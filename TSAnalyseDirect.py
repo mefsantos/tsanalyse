@@ -227,6 +227,7 @@ Examples :
 
 # TODO: add pydocs above regarding the new modules (clampageStateAnalysis, recordDuration, cvs2txsp3 and longitBaseAnalysis)
 
+# Mandatory imports
 import os
 import csv
 import sys
@@ -236,13 +237,52 @@ import tools.filter
 import tools.entropy
 import tools.compress
 import tools.partition
-import tools.csv2txsp3
-import tools.recordDuration
-import tools.fetalMaturationAnalysis
-import tools.clampStateAnalysis
 import tools.analysingSTV as stv
 import tools.utilityFunctions as util
-import tools.durationFromSingleDS as dsd
+
+
+# Flag to control argparser based on the imports
+csv2txsp3_exists = False
+recordDuration_exists = False
+fma_exists = False
+csa_exists = False
+dsduration_exists = False
+
+# under development / unnecessary tools
+try:
+    import tools.csv2txsp3
+    csv2txsp3_exists = True
+except ImportError:
+    #  module missing - gitIgnore
+    print("Missing module:csv2txsp3. Ignoring...")
+
+try:
+    import tools.recordDuration
+    recordDuration_exists = True
+except ImportError:
+    #  module missing - gitIgnore
+    print("Missing module:recordDuration. Ignoring...")
+
+try:
+    import tools.fetalMaturationAnalysis
+    fma_exists = True
+except ImportError:
+    #  module missing - gitIgnore
+    print("Missing module:fetalMaturationAnalysis. Ignoring...")
+
+try:
+    import tools.clampStateAnalysis
+    csa_exists = True
+except ImportError:
+    #  module missing - gitIgnore
+    print("Missing module:clampStateAnalysis. Ignoring...")
+
+try:
+    import tools.durationFromSingleDS as dsd
+    dsduration_exists = True
+except ImportError:
+    #  module missing - gitIgnore
+    print("Missing module:durationFromSingleDS. Ignoring...")
 
 
 def partition_procedures(inputdir, options):
@@ -317,43 +357,48 @@ if __name__ == "__main__":
     entropy = subparsers.add_parser('entropy', help='Calculate entropy for all the files in the given directory')
     tools.entropy.add_parser_options(entropy)
 
-    dsduration = subparsers.add_parser('duration',
-                                       help='Calculate the duration of recordings for all the files in the given directory')
+    if dsduration_exists:
+        dsduration = subparsers.add_parser('duration',
+                                           help='Calculate the duration of recordings for all the files in the given directory')
+    if csv2txsp3_exists:
+        sisporto = subparsers.add_parser('sisporto_format',
+                                         help='Transform csv-like files into sisporto TxSP3 format files')
 
-    sisporto = subparsers.add_parser('sisporto_format',
-                                     help='Transform csv-like files into sisporto TxSP3 format files')
+    if csa_exists:
+        clamp_analysis = subparsers.add_parser('clamp_analysis',
+                                               help='Computes the entropy and compression for PIAS, PIAD and PIAM '
+                                                    'for the given datasets. Also enables the division of the dataset '
+                                                    'by state and storing intermediary data sets.')
 
-    clamp_analysis = subparsers.add_parser('clamp_analysis',
-                                           help='Computes the entropy and compression for PIAS, PIAD and PIAM '
-                                                'for the given datasets. Also enables the division of the dataset '
-                                                'by state and storing intermediary data sets.')
-    tools.utilityFunctions.add_csv_parser_options(clamp_analysis)
-    tools.compress.add_parser_options(clamp_analysis)
-    tools.entropy.add_parser_options(clamp_analysis)
-    tools.clampStateAnalysis.add_parser_options(clamp_analysis)
+        tools.utilityFunctions.add_csv_parser_options(clamp_analysis)
+        tools.compress.add_parser_options(clamp_analysis)
+        tools.entropy.add_parser_options(clamp_analysis)
+        tools.clampStateAnalysis.add_parser_options(clamp_analysis)
 
-    ca = subparsers.add_parser('ca', help='Executes clamp_analysis command')
-    tools.utilityFunctions.add_csv_parser_options(ca)
-    tools.compress.add_parser_options(ca)
-    tools.entropy.add_parser_options(ca)
-    tools.clampStateAnalysis.add_parser_options(ca)
+        ca = subparsers.add_parser('ca', help='Executes clamp_analysis command')
+        tools.utilityFunctions.add_csv_parser_options(ca)
+        tools.compress.add_parser_options(ca)
+        tools.entropy.add_parser_options(ca)
+        tools.clampStateAnalysis.add_parser_options(ca)
 
-    longit_base_analysis = subparsers.add_parser('maturation',
-                                                help='Compute the confidence intervals for the longitudinal base'
-                                                     'dataset.')
-    tools.fetalMaturationAnalysis.add_parser_options(longit_base_analysis)
-    tools.utilityFunctions.add_csv_parser_options(longit_base_analysis)
+    if fma_exists:
+        longit_base_analysis = subparsers.add_parser('maturation',
+                                                     help='Compute the confidence intervals for the longitudinal base '
+                                                          'dataset.')
+        tools.fetalMaturationAnalysis.add_parser_options(longit_base_analysis)
+        tools.utilityFunctions.add_csv_parser_options(longit_base_analysis)
 
-    fma = subparsers.add_parser('fma', help='Execute maturation command')
-    tools.fetalMaturationAnalysis.add_parser_options(fma)
-    tools.utilityFunctions.add_csv_parser_options(fma)
+        fma = subparsers.add_parser('fma', help='Execute maturation command')
+        tools.fetalMaturationAnalysis.add_parser_options(fma)
+        tools.utilityFunctions.add_csv_parser_options(fma)
 
-    stv = subparsers.add_parser('stv', help='Perform Short-term Variability analysis with the following algorithms:'
-                                            'Arduini, Arduini_Mod, Dalton and Organ.')
+    stv = subparsers.add_parser('stv', help='Perform Short-term Variability analysis with the following algorithms: '
+                                            '%s' % (stv.AVAILABLE_ALGORITHMS))
     tools.analysingSTV.add_parser_options(stv)
     tools.utilityFunctions.add_csv_parser_options(stv)
 
-    singleRun = subparsers.add_parser('clean_duration', help='DS Duration after cleaning file')
+    if dsduration_exists:
+        singleRun = subparsers.add_parser('clean_duration', help='DS Duration after cleaning file')
 
     args = parser.parse_args()
     options = vars(args)

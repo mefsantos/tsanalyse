@@ -78,32 +78,10 @@ The main interface TSAnalyseDirect allows for operations to be applied to files 
      
         ./TSAnalyseDirect.py unittest_dataset entropy apen -t 0.2
 
-* Recording Duration
+* Stv
+	Compute short-term variability using the Arduini algorithm
 
-   Calculate the duration of recordings for all the files in the given directory
-   
-        ./TSAnalyseDirect.py unittest_dataset duration
-
-
-* Sisporto Format
-
-   Transform csv-like files into sisporto TxSP3 format files
-   
-        ./TSAnalyseDirect.py unittest_dataset sisporto_format
-
-* Clampage State Analysis of file or folder
-
-   Evaluates different states of a surgery that resources to clampage. The evaluation is performed using entropy 
-   and compression, and respective parameters.
-
-        ./TSAnalyseDirect.py unittest_dataset ca -c brolti -aio apen
-
-* Longitudinal Base Analysis of file or folder
-
-   Evaluates the entropy and compression in a specific dataset by creating nested groups based on specific 
-   parameters.
-
-        ./TSAnalyseDirect.py unitest_dataset longitbase -insep ","
+		./TSAnalyse.py unittest_dataset_filtered stv -algo arduini
 
 ## TSAnalyseFileBlocks
 
@@ -157,19 +135,6 @@ rounds those numbers to an integer.
 point is multiplied by 10 and rounded.
     
         ./TSAnalyseMultiscale unittest_dataset --round-to-int --multiply 10 compression -c paq8l
-
-* Compression Ratio of file or directory
-
-   Compute the Compression Rate of every dataset in a given directory
-   
-        ./TSAnalyseMultiscale.py ../Datasets/Compression cr
-
-* Confidence Interval and slope analysis of file or folder
-
-   Compute the confidence interval, mean and standard deviation, evaluates the slope using least square regression
-    and generate a new dataset with the new data appended
-
-        ./TSAnalyseMultiscale.py ../Datasets/MultiScale cisa -mo
 
 _______________________________________________________________________________
 
