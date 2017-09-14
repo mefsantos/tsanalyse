@@ -42,7 +42,7 @@ try:
 except ImportError:
     import tools.utilityFunctions as util
 
-module_logger = logging.getLogger('hrfanalyse.partition')
+module_logger = logging.getLogger('tsanalyse.partition')
 
 # This number was randomly chosen, no meaning to it
 SAMPLE_SIZE = 42

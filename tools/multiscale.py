@@ -57,7 +57,7 @@ except ImportError:
     import tools.utilityFunctions as util
 
 
-module_logger = logging.getLogger('hrfanalyse.multiscale')
+module_logger = logging.getLogger('tsanalyse.multiscale')
 
 
 # ENTRY POINT FUNCTION

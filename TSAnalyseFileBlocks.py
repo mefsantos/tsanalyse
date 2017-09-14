@@ -159,7 +159,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     options = vars(args)
 
-    logger = logging.getLogger('hrfanalyse')
+    logger = logging.getLogger('tsanalyse')
     logger.setLevel(getattr(logging, options['log_level']))
 
     if options['log_file'] is None:

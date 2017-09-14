@@ -42,7 +42,7 @@ This module's entry point function is apply_metric(...)
 import numpy
 import logging
 
-module_logger = logging.getLogger('hrfanalyse.separate_blocks')
+module_logger = logging.getLogger('tsanalyse.separate_blocks')
 
 
 # ENTRY POINT FUNCTION

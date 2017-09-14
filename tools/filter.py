@@ -43,7 +43,7 @@ import os
 import logging
 import utilityFunctions as util
 
-module_logger = logging.getLogger('hrfanalyse.filter')
+module_logger = logging.getLogger('tsanalyse.filter')
 
 
 # ENTRY POINT FUNCTIONS

@@ -244,6 +244,7 @@ import tools.utilityFunctions as util
 # Flag to control argparser based on the imports
 import_logger = logging.getLogger('tsanalyse')
 import_logger.info(" ###### Imports: ###### ")
+
 csv2txsp3_exists = False
 recordDuration_exists = False
 fma_exists = False

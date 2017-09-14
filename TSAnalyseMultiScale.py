@@ -151,8 +151,29 @@ import tools.entropy
 import tools.compress
 import tools.multiscale
 import tools.utilityFunctions as util
-import tools.compressionRatio as compratio
-import tools.confidenceIntervalWithSlopeAnalysis as cisa
+
+
+# Flag to control argparser based on the imports
+import_logger = logging.getLogger('tsanalyse')
+import_logger.info(" ###### Imports: ###### ")
+
+cr_exists = False
+cisa_exists = False
+
+try:
+    import tools.compressionRatio as compratio
+    cr_exists = True
+except ImportError:
+    import_logger.info("Missing module: compressionRatio. Ignoring...")
+
+try:
+    import tools.confidenceIntervalWithSlopeAnalysis as cisa
+    cisa_exists = True
+except ImportError:
+    import_logger.info("Missing module: confidenceIntervalWithSlopeAnalysis. Ignoring...")
+
+import_logger.info(" ###################### ")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generates a tables of file multiscaled compression/entropy")
@@ -174,33 +195,35 @@ if __name__ == "__main__":
 
     tools.entropy.add_parser_options(entropy)
 
-    comp_ratio = subparsers.add_parser('comp_ratio',
-                                       help='Compute the compression Rate and Confidence Interval of the a given data set. '
-                                       'Receives a dataset (file or folder) with the compression result and calculate '
-                                       'both the compression ratio and the confidence interval, generating new data sets '
-                                       'with the computed metrics appended.')
-    tools.utilityFunctions.add_csv_parser_options(comp_ratio)
-    cr = subparsers.add_parser('cr', help='Execute comp_ratio command')
-    tools.utilityFunctions.add_csv_parser_options(cr)
+    if cr_exists:
+        comp_ratio = subparsers.add_parser('comp_ratio',
+                                           help='Compute the compression Rate and Confidence Interval of the a given '
+                                                'dataset. Receives a dataset (file or folder) with the compression '
+                                                'result and calculate both the compression ratio and the confidence '
+                                                'interval, generating new datasets with the computed metrics appended.')
+        tools.utilityFunctions.add_csv_parser_options(comp_ratio)
+        cr = subparsers.add_parser('cr', help='Execute comp_ratio command')
+        tools.utilityFunctions.add_csv_parser_options(cr)
 
-    confidence_interval = subparsers.add_parser('confidence_interval_slope_analysis',
-                                                help='Compute the Confidence Interval for each scale '
-                                                '(uniscale or multiscale). Receives a data set '
-                                                '(ex: entropy results), calculate the confidence interval '
-                                                'and generates a new data set with the metrics appended.')
-    cisa.add_parser_options(confidence_interval)
-    tools.utilityFunctions.add_csv_parser_options(confidence_interval)
+    if cisa_exists:
+        confidence_interval = subparsers.add_parser('confidence_interval_slope_analysis',
+                                                    help='Compute the Confidence Interval for each scale (uniscale or '
+                                                         'multiscale). Receives a dataset (ex: entropy results), '
+                                                         'calculate the confidence interval and generates a new '
+                                                         'dataset with the metrics appended.')
+        cisa.add_parser_options(confidence_interval)
+        tools.utilityFunctions.add_csv_parser_options(confidence_interval)
 
-    conf_int = subparsers.add_parser('cisa', help='Execute confidence_interval_slope_analysis command')
-    cisa.add_parser_options(conf_int)
-    tools.utilityFunctions.add_csv_parser_options(conf_int)
+        conf_int = subparsers.add_parser('cisa', help='Execute confidence_interval_slope_analysis command')
+        cisa.add_parser_options(conf_int)
+        tools.utilityFunctions.add_csv_parser_options(conf_int)
 
     args = parser.parse_args()
     options = vars(args)
 
     # parser definition ends
 
-    logger = logging.getLogger('hrfanalyse')
+    logger = logging.getLogger('tsanalyse')
     logger.setLevel(getattr(logging, options['log_level']))
 
     if options['log_file'] is None:

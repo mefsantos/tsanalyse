@@ -70,7 +70,7 @@ except ImportError:
     except ImportError:
         lzma_available = False
 
-module_logger = logging.getLogger('hrfanalyse.compress')
+module_logger = logging.getLogger('tsanalyse.compress')
 
 # from memoize import Memoize
 
