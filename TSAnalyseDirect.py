@@ -242,6 +242,8 @@ import tools.utilityFunctions as util
 
 
 # Flag to control argparser based on the imports
+import_logger = logging.getLogger('tsanalyse')
+import_logger.info(" ###### Imports: ###### ")
 csv2txsp3_exists = False
 recordDuration_exists = False
 fma_exists = False
@@ -254,36 +256,37 @@ try:
     csv2txsp3_exists = True
 except ImportError:
     #  module missing - gitIgnore
-    print("Missing module:csv2txsp3. Ignoring...")
+    import_logger.info("Missing module: csv2txsp3. Ignoring...")
 
 try:
     import tools.recordDuration
     recordDuration_exists = True
 except ImportError:
     #  module missing - gitIgnore
-    print("Missing module:recordDuration. Ignoring...")
+    import_logger.info("Missing module: recordDuration. Ignoring...")
 
 try:
     import tools.fetalMaturationAnalysis
     fma_exists = True
 except ImportError:
     #  module missing - gitIgnore
-    print("Missing module:fetalMaturationAnalysis. Ignoring...")
+    import_logger.info("Missing module: fetalMaturationAnalysis. Ignoring...")
 
 try:
     import tools.clampStateAnalysis
     csa_exists = True
 except ImportError:
     #  module missing - gitIgnore
-    print("Missing module:clampStateAnalysis. Ignoring...")
+    import_logger.info("Missing module: clampStateAnalysis. Ignoring...")
 
 try:
     import tools.durationFromSingleDS as dsd
     dsduration_exists = True
 except ImportError:
     #  module missing - gitIgnore
-    print("Missing module:durationFromSingleDS. Ignoring...")
+    import_logger.info("Missing module: durationFromSingleDS. Ignoring...")
 
+import_logger.info(" ###################### ")
 
 def partition_procedures(inputdir, options):
     if options['start_at_end']:
@@ -393,7 +396,7 @@ if __name__ == "__main__":
         tools.utilityFunctions.add_csv_parser_options(fma)
 
     stv = subparsers.add_parser('stv', help='Perform Short-term Variability analysis with the following algorithms: '
-                                            '%s' % (stv.AVAILABLE_ALGORITHMS))
+                                            '%s' % stv.AVAILABLE_ALGORITHMS)
     tools.analysingSTV.add_parser_options(stv)
     tools.utilityFunctions.add_csv_parser_options(stv)
 
@@ -405,7 +408,7 @@ if __name__ == "__main__":
 
     # parser definition ends
 
-    logger = logging.getLogger('hrfanalyse')
+    logger = logging.getLogger('tsanalyse')
     logger.setLevel(getattr(logging, options['log_level']))
 
     if options['log_file'] is None:
