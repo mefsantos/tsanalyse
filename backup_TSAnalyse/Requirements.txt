@@ -1,0 +1,28 @@
+########## Requirements ########
+system librarires: 
+	lib32z1 and lib32stdc++6 to run paq8l in 64-bit machines
+python librarires:
+	pandas, numpy, pylzma, brotli, coveralls and pytest-cov
+external libraries:
+	paq8l, ppmd
+
+###### Instalation instructions:
+
+#### Using Vagrant
+Install VirtualBox - https://www.virtualbox.org/
+Install Vagrant - https://www.vagrantup.com/
+
+1. open terminal
+2. change the directory to the main folder of the package, i.e. ./hrfanalyse-master
+3. execute command to configure the virtual environment: 
+	> vagrant up
+4. execute command to open the virtual environment: 
+	> vagrant ssh
+
+
+#### Not using Vagrant - prepared for UBUNTU
+1. open terminal
+2. change the directory to the main folder of the package, i.e. ./hrfanalyse-master
+	> cd location_of_folder/hrfanalyse-master
+3. execute file "env_setup.sh"
+	> sudo ./env_setup.sh
