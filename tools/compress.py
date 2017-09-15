@@ -38,7 +38,7 @@ MODULE EXTERNAL DEPENDENCIES:
                      path if you would like to use them.
 
 
-ENTRY POINT: compress(input_name,compression_algorithm,level,decompress=False)
+ENTRY POINT: compress(input_name,compression_algorithm,level,decompress=False, with_compression_rate=False)
 
 """
 
@@ -72,14 +72,7 @@ except ImportError:
 
 module_logger = logging.getLogger('tsanalyse.compress')
 
-# from memoize import Memoize
-
 # DATA TYPE DEFINITIONS
-# """This is a data type defined to be used as a return for compression it has
-# three attributes original contains the original size of the file, compressed,
-# the size of the resulting compressed file and, time the time it takes to
-# decompress (null if the timing is not run)"""
-# CompressionData = namedtuple('CompressionData', 'original compressed time')
 """
 This is a data type defined to be used as a return for compression it has three attributes:
     - original: contains the original size of the file
@@ -91,10 +84,8 @@ CompressionData = namedtuple('CompressionData', 'original compressed compression
 
 
 # ENTRY POINT FUNCTION
-# @Memoize
 def compress(input_name, compression_algorithm, level, decompress=False, with_compression_rate=False):
     """
-
     (str,str,int,bool)-> dict of str : CompressionData
 
     Given a file or directory named input_name, apply the desired
@@ -103,6 +94,16 @@ def compress(input_name, compression_algorithm, level, decompress=False, with_co
 
     Levels will be set to the compressor's maximum or minimum respectively
     if the level passed as argument is not valid.
+
+    :param input_name: name of the dataset to read
+    :param compression_algorithm: the compressor to use
+    :param level: the level of compression
+    :param decompress: flag to determine whether to output the decompression time or not
+    :param with_compression_rate: flag to determine whether to output the compression rate or not
+    :return dictionary of 'string:CompressionData' with:
+        the original size, compressed size, compression rate*, decompression time*
+
+    * optional
     """
 
     compressed = {}
@@ -138,6 +139,12 @@ def gzip_compress(inputfile, level, decompress, compute_compression_rate):
     compression algorithm. This is possible because the only difference between
     gzip and zlib is the header added to the compressed file, which is not in the
     resulting compressed string, nor is it added in our case.
+
+    :param inputfile: file to read
+    :param level: level of compression
+    :param decompress: flag to enable the decompression time
+    :param compute_compression_rate: flag to enable the compression rate
+    :return  CompressionData
     """
 
     original_size = int(os.stat(inputfile).st_size)
@@ -165,10 +172,16 @@ def paq8l_compress(input_file, level, decompress, compute_compression_rate):
     (str, int, bool) -> CompressionData
 
     Compresses one file using the paq8l compressor, the size is
-    determined by quering the file paq8l creates, this temporary file
+    determined by querying the file paq8l creates, this temporary file
     is removed at the end of this function.
 
+    :param inputfile: file to read
+    :param level: level of compression
+    :param decompress: flag to enable the decompression time
+    :param compute_compression_rate: flag to enable the compression rate
+    :return  CompressionData
     """
+
     subprocess.check_output('paq8l -%d "%s"' % (level, input_file),
                             shell=True,
                             stderr=subprocess.STDOUT)
@@ -204,6 +217,12 @@ def lzma_compress(input_file, level, decompress, compute_compression_rate):
     python2.7, does not have a level parameter, a decision was made to keep this
     code backwards compatible so the level parameter is never used. The
     default the level being used is 6.
+
+    :param input_file: file to read
+    :param level: level of compression
+    :param decompress: flag to enable the decompression time
+    :param compute_compression_rate: flag to enable the compression rate
+    :return  CompressionData
      """
 
     original_size = int(os.stat(input_file).st_size)
@@ -232,6 +251,12 @@ def bzip2_compress(input_file, level, decompress, compute_compression_rate):
 
     Compresses one file using the python implementation of bzip2.
 
+
+    :param input_file: file to read
+    :param level: level of compression
+    :param decompress: flag to enable the decompression time
+    :param compute_compression_rate: flag to enable the compression rate
+    :return  CompressionData
     """
 
     original_size = int(os.stat(input_file).st_size)
@@ -265,6 +290,12 @@ def ppmd_compress(input_file, level, decompress, compute_compression_rate):
     NOTE: This algorithm does not have a standard level, but the model
     order behaves as a compression level, so level here refers to the
     order level. Maximum memory is always used.
+
+    :param input_file: file to read
+    :param level: level of compression
+    :param decompress: flag to enable the decompression time
+    :param compute_compression_rate: flag to enable the compression rate
+    :return  CompressionData
     """
     subprocess.call('ppmd e -s -f"%s.ppmd" -m256 -o%d "%s"' % (input_file, level, input_file),
                     shell=True)
@@ -298,7 +329,14 @@ def spbio_compress(input_file, level, decompress, compute_compression_rate):
 
     NOTE: This compressor is only available for Windows and has no
     compression levels.
+
+    :param input_file: file to read
+    :param level: level of compression
+    :param decompress: flag to enable the decompression time
+    :param compute_compression_rate: flag to enable the compression rate
+    :return  CompressionData
     """
+
     os.system('spbio "' + input_file + '"')
     original_size = int(os.stat(input_file).st_size)
     compressed_size = int(os.stat(input_file + '.sph').st_size)
@@ -315,13 +353,17 @@ def brotli_compress(input_file, level, decompress, compute_compression_rate):
 
     Compresses one file using the brotli algorithm by google.
 
+    :param input_file: file to read
+    :param level: level of compression
+    :param decompress: flag to enable the decompression time
+    :param compute_compression_rate: flag to enable the compression rate
+    :return  CompressionData
     """
 
     original_size = int(os.stat(input_file).st_size)
     with open(input_file, "rU") as fdorig:
         origlines = fdorig.read()
     origtext = memoryview(bytearray(origlines, "utf8"))
-    # compressedtext = memoryview(zlib.compress(origtext.tobytes(), int(level)))
     compressedtext = memoryview(brotli.compress(origtext.tobytes(), quality=int(level)))
     compressed_size = len(compressedtext)
     compression_rate = None
@@ -423,7 +465,9 @@ def set_level(options):
     !!!Auxiliary function!!!
     Return a valid value for level in the options to be within the maximum or minimum 
     levels for the chosen compressor.
-    
+
+    :param options: a dictionary containing all the parser options
+    :return the correct level to be used by the compressor
     """
     if ((not options['level']) or
             (options['level'] > AVAILABLE_COMPRESSORS[options['compressor']][1])):

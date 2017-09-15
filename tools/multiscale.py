@@ -1,5 +1,6 @@
 """
 Copyright (C) 2012 Mara Matias
+Edited by Marcelo Santos - 2016
 
 This file is part of HRFAnalyse.
 
@@ -33,7 +34,7 @@ MODULE DEPENDENCIES:
 numpy(http://numpy.scipy.org/)
 
 ENTRY POINT: create_scales(input_name,dest_dir,start,stop,step,mul_order,round_to_int)
-             multiscale_compression(input_name,start,stop,step,compressor,level,decompress)
+             multiscale_compression(input_name,start,stop,step,compressor,level,decompress, with_compression_rate)
              multiscale_entropy(input_name,start,stop,step,entropy_function,*args)
 """
 
@@ -61,6 +62,7 @@ module_logger = logging.getLogger('tsanalyse.multiscale')
 
 # ENTRY POINT FUNCTION
 
+
 def create_scales(input_name, dest_dir, start, stop, step, mul_order, round_to_int):
     """
     Creates all the scales in a given interval.
@@ -78,7 +80,14 @@ def create_scales(input_name, dest_dir, start, stop, step, mul_order, round_to_i
     mul_order is not disabled (set to -1) when calculating a scale point multiply
     all the original points by that mul_order. If round_to_int is set to True round
     the resulting scale point and output only the integer value.
-    
+
+    :param input_name: path for the dataset to read
+    :param dest_dir: name of the destination directory
+    :param start: starting scale
+    :param stop: ending scale
+    :param step: step between scales
+    :param mul_order: multiplication order to apply to the time series
+    :param round_to_int: flat to round the time series to integer
     """
     for scale in range(start, stop, step):
         output_dir = os.path.join(dest_dir, "Scale %d" % scale)
@@ -113,7 +122,18 @@ def multiscale_compression(input_name, start, stop, step, compressor, level, dec
     
     RETURN: Dictionary with filenames as keys and an array of CompressionData
     (one for each scale) as values.
+
+    :param input_name: name of the dataset to read
+    :param start: starting scale
+    :param stop: ending scale
+    :param step: step between scales
+    :param compressor: compressor to use
+    :param level: level of compression
+    :param decompress: flag to enable the output of the decompression time
+    :param with_compression_rate: flag to enable the calculation of the compression rate
+    :return dictionary of 'string:CompressionData'
     """
+
     compression_table = {}
     if os.path.isdir(input_name):
         filelist = util.listdir_no_hidden(input_name)
@@ -155,7 +175,17 @@ def multiscale_entropy(input_name, start, stop, step, entropy_function, dimensio
 
     RETURN: Dictionary with filenames as keys and an array of EntropyData (one
     for each scale) as values.
+
+    :param input_name: name of the dataset to read
+    :param start: starting scale
+    :param stop: ending scale
+    :param step: step between scales
+    :param entropy_function: entropy algorithm to use
+    :param dimension: matrix dimension
+    :param tolerance: tolerance to use
+    :return dictionary of 'string:EntropyData'
     """
+
     entropy_table = {}
     if os.path.isdir(input_name):
         filelist = util.listdir_no_hidden(input_name)
@@ -199,6 +229,12 @@ def create_scale(inputfile, output_dir, scale, mul_order, round_to_int):
     of N values, calculate the mean of these numbers and save it in the resulting
     file. Each iteration's interval starts after the last number used in the
     previous iteration.
+
+    :param inputfile: file to read
+    :param output_dir: output directory
+    :param scale: current scale being processed
+    :param mul_order: order of multiplication
+    :param round_to_int: flag to round the time series to integer
 
     """
     # TODO: when a single file is used as input use "home" directory for Datasets - so it does not affect the current dataset
