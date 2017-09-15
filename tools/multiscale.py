@@ -59,7 +59,6 @@ except ImportError:
 
 module_logger = logging.getLogger('tsanalyse.multiscale')
 
-
 # ENTRY POINT FUNCTION
 
 def create_scales(input_name, dest_dir, start, stop, step, mul_order, round_to_int):
@@ -105,7 +104,7 @@ def create_scales(input_name, dest_dir, start, stop, step, mul_order, round_to_i
                          round_to_int)
 
 
-def multiscale_compression(input_name, start, stop, step, compressor, level, decompress):
+def multiscale_compression(input_name, start, stop, step, compressor, level, decompress, with_compression_rate):
     """
     Calculate the multiscale compression for a file or directory.
     
@@ -122,26 +121,26 @@ def multiscale_compression(input_name, start, stop, step, compressor, level, dec
             compression_table[filename] = []
             for scale in range(start, stop, step):
                 file_to_compress = os.path.join("%s_Scales" % input_name, "Scale %d" % scale, filename)
-                compression_results = compress(file_to_compress,
-                                               compressor,
-                                               level,
-                                               decompress)
+                compression_results = compress(file_to_compress, compressor, level, decompress, with_compression_rate)
                 compression_table[filename].append(compression_results[file_to_compress].original)
                 compression_table[filename].append(compression_results[file_to_compress].compressed)
+                if with_compression_rate:
+                    compression_table[filename].append(compression_results[file_to_compress].compression_rate)
                 if decompress:
                     compression_table[filename].append(compression_results[file_to_compress].time)
     else:
-        # TODO: use the "home" dir of Data sets when the input is a single file
+        # TODO: use the "home" dir of datasets when the input is a single file
         # TODO: fix the following code - produces bugs
         filename = os.path.basename(input_name)
         for scale in range(start, stop, step):
             file_to_compress = os.path.join("%s_Scales" % input_name, "Scale %d" % scale, input_name)
-            compression_results = compress(file_to_compress,
-                                           compressor,
-                                           level,
-                                           decompress)
+            compression_results = compress(file_to_compress, compressor, level, decompress, with_compression_rate)
             compression_table[filename].append(compression_results[file_to_compress].original)
             compression_table[filename].append(compression_results[file_to_compress].compressed)
+
+            if with_compression_rate:
+                compression_table[filename].append(compression_results[file_to_compress].compression_rate)
+
             if decompress:
                 compression_table[filename].append(compression_results[file_to_compress].time)
     return compression_table

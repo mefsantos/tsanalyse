@@ -75,22 +75,30 @@ module_logger = logging.getLogger('tsanalyse.compress')
 # from memoize import Memoize
 
 # DATA TYPE DEFINITIONS
-"""This is a data type defined to be used as a return for compression it has
-three attributes original contains the original size of the file, compressed,
-the size of the resulting compressed file and, time the time it takes to
-decompress (null if the timing is not run)"""
-CompressionData = namedtuple('CompressionData', 'original compressed time')
+# """This is a data type defined to be used as a return for compression it has
+# three attributes original contains the original size of the file, compressed,
+# the size of the resulting compressed file and, time the time it takes to
+# decompress (null if the timing is not run)"""
+# CompressionData = namedtuple('CompressionData', 'original compressed time')
+"""
+This is a data type defined to be used as a return for compression it has three attributes:
+    - original: contains the original size of the file
+    - compressed: the size of the resulting compressed file
+    - compression_rate: the compression rate of the file
+    - time: the time it takes to decompress (null if the timing is not run)
+"""
+CompressionData = namedtuple('CompressionData', 'original compressed compression_rate time')
 
 
 # ENTRY POINT FUNCTION
 # @Memoize
-def compress(input_name, compression_algorithm, level, decompress=False):
+def compress(input_name, compression_algorithm, level, decompress=False, with_compression_rate=False):
     """
 
     (str,str,int,bool)-> dict of str : CompressionData
 
     Given a file or directory named input_name, apply the desired
-    compression algorithm to all the files. Optionaly a timming on
+    compression algorithm to all the files. Optionaly a timing on
     decompression may also be run.
 
     Levels will be set to the compressor's maximum or minimum respectively
@@ -109,25 +117,26 @@ def compress(input_name, compression_algorithm, level, decompress=False):
         filelist = util.listdir_no_hidden(input_name)
         for filename in filelist:
             filename = filename.strip()  # removes the tailing \n
-            compression_data = method_to_call(os.path.join(input_name, filename), level, decompress)
+            compression_data = method_to_call(os.path.join(input_name, filename), level,
+                                              decompress, with_compression_rate)
             compressed[filename.strip()] = compression_data
     else:
-        compression_data = method_to_call(input_name.strip(), level, decompress)
+        compression_data = method_to_call(input_name.strip(), level, decompress, with_compression_rate)
         compressed[input_name.strip()] = compression_data
     return compressed
 
 
 # IMPLEMENTATION
-def gzip_compress(inputfile, level, decompress):
+def gzip_compress(inputfile, level, decompress, compute_compression_rate):
     """
     (str, int, bool)-> CompressionData
 
     Compresses one file using the python implementation of zlib.
 
     NOTE: Although this uses the name gzip the actual tool being used
-    is python's zlib which has the actual implementation of the deflate 
-    compression algorithm. This is possible because the only difference between 
-    gzip and zlib is the header added to the compressed file, which is not in the 
+    is python's zlib which has the actual implementation of the deflate
+    compression algorithm. This is possible because the only difference between
+    gzip and zlib is the header added to the compressed file, which is not in the
     resulting compressed string, nor is it added in our case.
     """
 
@@ -137,19 +146,21 @@ def gzip_compress(inputfile, level, decompress):
     origtext = memoryview(bytearray(origlines, "utf8"))
     compressedtext = memoryview(zlib.compress(origtext.tobytes(), int(level)))
     compressed_size = len(compressedtext)
-
+    compression_rate = None
     decompress_time = None
     if decompress:
         decompress_time = min(timeit.repeat(lambda: zlib.decompress(compressedtext.tobytes()),
                                             number=10,
                                             repeat=3, timer=time.clock))
+    if compute_compression_rate:
+        compression_rate = util.compression_ratio(original_size, compressed_size)
 
-    cd = CompressionData(original_size, compressed_size, decompress_time)
+    cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
 
     return cd
 
 
-def paq8l_compress(input_file, level, decompress):
+def paq8l_compress(input_file, level, decompress, compute_compression_rate):
     """
     (str, int, bool) -> CompressionData
 
@@ -163,7 +174,9 @@ def paq8l_compress(input_file, level, decompress):
                             stderr=subprocess.STDOUT)
     original_size = int(os.stat(input_file).st_size)
     compressed_size = int(os.stat(input_file + '.paq8l').st_size)
+    compression_rate = None
     decompress_time = None
+
     if decompress:
         decompress_time = min(timeit.repeat(
             'subprocess.check_output(\'paq8l -d "%s.paq8l"\',shell=True,stderr=subprocess.STDOUT)' % input_file,
@@ -173,12 +186,15 @@ def paq8l_compress(input_file, level, decompress):
 
     os.remove('%s.paq8l' % input_file)
 
-    cd = CompressionData(original_size, compressed_size, decompress_time)
+    if compute_compression_rate:
+        compression_rate = util.compression_ratio(original_size, compressed_size)
+
+    cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
 
     return cd
 
 
-def lzma_compress(input_file, level, decompress):
+def lzma_compress(input_file, level, decompress, compute_compression_rate):
     """
     (str,int,bool) -> CompressionData
 
@@ -196,19 +212,21 @@ def lzma_compress(input_file, level, decompress):
     origtext = memoryview(bytearray(origlines, "utf8"))
     compressedtext = memoryview(lzma.compress(origtext.tobytes()))
     compressed_size = len(compressedtext)
-
+    compression_rate = None
     decompress_time = None
     if decompress:
         decompress_time = min(timeit.repeat(lambda: lzma.decompress(compressedtext.tobytes()),
                                             number=10,
                                             repeat=3, timer=time.clock))
+    if compute_compression_rate:
+        compression_rate = util.compression_ratio(original_size, compressed_size)
 
-    cd = CompressionData(original_size, compressed_size, decompress_time)
+    cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
 
     return cd
 
 
-def bzip2_compress(input_file, level, decompress):
+def bzip2_compress(input_file, level, decompress, compute_compression_rate):
     """
     (str, int, bool) -> CompressionData
 
@@ -222,19 +240,23 @@ def bzip2_compress(input_file, level, decompress):
     origtext = memoryview(bytearray(origlines, "utf8"))
     compressedtext = memoryview(bz2.compress(origtext.tobytes(), level))
     compressed_size = len(compressedtext)
-
+    compression_rate = None
     decompress_time = None
     if decompress:
         decompress_time = min(timeit.repeat(lambda: bz2.decompress(compressedtext.tobytes()),
                                             number=10,
                                             repeat=3, timer=time.clock))
 
-    cd = CompressionData(original_size, compressed_size, decompress_time)
+    if compute_compression_rate:
+        compression_rate = util.compression_ratio(original_size, compressed_size)
+        cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
+    else:
+        cd = CompressionData(original_size, compressed_size, decompress_time)
 
     return cd
 
 
-def ppmd_compress(input_file, level, decompress):
+def ppmd_compress(input_file, level, decompress, compute_compression_rate):
     """
     (str, int, bool) -> CompressionData
 
@@ -248,7 +270,7 @@ def ppmd_compress(input_file, level, decompress):
                     shell=True)
     original_size = int(os.stat(input_file).st_size)
     compressed_size = int(os.stat(input_file + '.ppmd').st_size)
-
+    compression_rate = None
     decompress_time = None
     if decompress:
         decompress_time = min(
@@ -260,12 +282,15 @@ def ppmd_compress(input_file, level, decompress):
 
     os.remove('%s.ppmd' % input_file)
 
-    cd = CompressionData(original_size, compressed_size, decompress_time)
+    if compute_compression_rate:
+        compression_rate = util.compression_ratio(original_size, compressed_size)
+
+    cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
 
     return cd
 
 
-def spbio_compress(input_file, level, decompress):
+def spbio_compress(input_file, level, decompress, compute_compression_rate):
     """
     (str, int, bool) -> CompressionData
 
@@ -281,7 +306,7 @@ def spbio_compress(input_file, level, decompress):
     return original_size, compressed_size
 
 
-def brotli_compress(input_file, level, decompress):
+def brotli_compress(input_file, level, decompress, compute_compression_rate):
     """
     @param input_file
     @param level
@@ -299,14 +324,17 @@ def brotli_compress(input_file, level, decompress):
     # compressedtext = memoryview(zlib.compress(origtext.tobytes(), int(level)))
     compressedtext = memoryview(brotli.compress(origtext.tobytes(), quality=int(level)))
     compressed_size = len(compressedtext)
-
+    compression_rate = None
     decompress_time = None
     if decompress:
         decompress_time = min(timeit.repeat(lambda: zlib.decompress(compressedtext.tobytes()),
                                             number=10,
                                             repeat=3, timer=time.clock))
 
-    cd = CompressionData(original_size, compressed_size, decompress_time)
+    if compute_compression_rate:
+        compression_rate = util.compression_ratio(original_size, compressed_size)
+
+    cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
 
     return cd
 
@@ -343,7 +371,7 @@ def test_compressors():
     return available
 
 
-"""A constant variable with the list of available compressors int the path"""
+# A constant variable with the list of available compressors in the path
 AVAILABLE_COMPRESSORS = test_compressors()
 
 
@@ -392,7 +420,7 @@ def set_level(options):
     """
     (dict of str: object) -> int
 
-    !!!Auxilary function!!!
+    !!!Auxiliary function!!!
     Return a valid value for level in the options to be within the maximum or minimum 
     levels for the chosen compressor.
     

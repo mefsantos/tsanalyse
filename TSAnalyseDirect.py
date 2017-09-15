@@ -450,30 +450,42 @@ if __name__ == "__main__":
     if options['command'] == 'compress':
         compressor = options['compressor']
         level = tools.compress.set_level(options)
-        resulting_dict = tools.compress.compress(inputdir, compressor, level, options['decompress'])
-
+        resulting_dict = tools.compress.compress(inputdir, compressor, level,
+                                                 options['decompress'], options['comp_ratio'])
         if options['decompress']:
-            outfile = "%s_decompress_%s_%d.csv" % (output_name, compressor, level)
+            outfile = "%s_decompress_%s_%d" % (output_name, compressor, level)
         else:
-            outfile = "%s_%s_lvl_%d.csv" % (output_name, compressor, level)
+            outfile = "%s_%s_lvl_%d" % (output_name, compressor, level)
+        if options['comp_ratio']:
+            outfile += "_wCR"
+        outfile += ".csv"
+
         output_file = open(outfile, "w")
         writer = csv.writer(output_file, delimiter=";")
         header = ["Filename", "Original_Size", "Compressed_Size"]
+        if options['comp_ratio']:
+            header.append("CRx100")
         if options['decompress']:
             header.append("Decompression_Time")
         writer.writerow(header)
+
         for filename in sorted(resulting_dict.keys()):
             cd = resulting_dict[filename]
-            data_row = [filename, cd.original, cd.compressed]
+            data_row = [filename, cd.original, cd.compression_rate, cd.compressed]
+            if options['comp_ratio']:
+                data_row.append(cd.compression_rate)
+            else:
+                del(data_row[2])
             if options['decompress']:
                 data_row.append(cd.time)
             writer.writerow(data_row)
         output_file.close()
         print("Storing into: %s" % os.path.abspath(outfile))
 
-        if options["comp_ratio"]:
-            # add option for csv_parser characters (insep, outsep, etc) e round_digits
-            util.append_comp_ratio_column(outfile, round_digits=round_digits, insep=read_sep)
+        # will be handled inside compress.py
+        # if options["comp_ratio"]:
+        #     # add option for csv_parser characters (insep, outsep, etc) e round_digits
+        #     util.append_comp_ratio_column(outfile, round_digits=round_digits, insep=read_sep)
 
     elif options['command'] == 'entropy':
         files_stds = tools.entropy.calculate_std(inputdir)

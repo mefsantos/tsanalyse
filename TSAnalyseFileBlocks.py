@@ -22,14 +22,14 @@ This file is part of HRFAnalyse.
 
 _______________________________________________________________________________
 
-HRFAnalyseFileBlocks is an auxiliary command line interface to apply one of the most common operations
+TSAnalyseFileBlocks is an auxiliary command line interface to apply one of the most common operations
 we used.
 
 This interface takes a file or directory, breaks each file into blocks and compresses each of the
 generated blocks directories.
 
 
-Usage: ./HRFAnalyseFileBlocks.py [BLOCK OPTIONS] INPUTFILE COMMAND [COMMAND OPTIONS]
+Usage: ./TSAnalyseFileBlocks.py [BLOCK OPTIONS] INPUTFILE COMMAND [COMMAND OPTIONS]
 
 To define how to create the blocks you can change BLOCK OPTIONS:
 
@@ -52,7 +52,7 @@ compress: This command allows you to compress all the files in the
      Unless changed the compression level used is always the max for
      the chosen algorithm (refer to the compressor's manual for this
      information).
-     
+
 
      OUTCOME: Calling this command will create a csv file using ';'
      as a field delimiter for each file in the _blocks directory.
@@ -77,7 +77,7 @@ compress: This command allows you to compress all the files in the
 
 entropy: This command allows you to calculate the entropy for all
      files in a given directory.
-    
+
      OUTCOME: Calling this commmand will create a csv file using ';'
      as a field delimiter. The entropy measure and the
      optons used are appended to name the resulting file. This
@@ -102,18 +102,18 @@ Examples:
 
 Cut files into 5min blocks with no overlap and compress each one with the default compressor
 
-./HRFAnalyseFileBlocks.py unittest_dataset/ -s 300 compress
+./TSAnalyseFileBlocks.py unittest_dataset/ -s 300 compress
 
 
 Cut files into blocks with 300 lines with no overlap and compress each one with the default compressor
 
-./HRFAnalyseFileBlocks.py unittest_dataset/ -s 300 --use-lines compress
+./TSAnalyseFileBlocks.py unittest_dataset/ -s 300 --use-lines compress
 
 
 Cut files into blocks with 5 min where one block starts 1 min later then the previous one did.
 Compress each one with the paq8l compressor
 
-./HRFAnalyseFileBlocks.py unittest_dataset/ -s 300 -g 60 compress -c paq8l
+./TSAnalyseFileBlocks.py unittest_dataset/ -s 300 -g 60 compress -c paq8l
 
 
 =>Entropy
@@ -121,7 +121,7 @@ Compress each one with the paq8l compressor
 Cut files into blocks with 5 min where one block starts 1 min later then the previous one did.
 Calculate each files entropy using the Sample entropy.
 
-./HRFAnalyseFileBlocks.py unittest_dataset/ -s 300 -g 60 entropy sampen
+./TSAnalyseFileBlocks.py unittest_dataset/ -s 300 -g 60 entropy sampen
 
 
 """

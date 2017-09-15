@@ -22,11 +22,11 @@ This file is part of HRFAnalyse.
 
 _______________________________________________________________________________
 
-HRFAnalyseMultiScale is a command line interface to apply the multiscale method
+TSAnalyseMultiScale is a command line interface to apply the multiscale method
 based on (http://www.physionet.org/physiotools/mse/tutorial/), but using
 compression also.
 
-Usage:./HRFAnalyseMultiScale.py [OPTIONS] INPUT COMMAND [COMMAND OPTIONS]
+Usage:./TSAnalyseMultiScale.py [OPTIONS] INPUT COMMAND [COMMAND OPTIONS]
 
 OPTIONS to apply when creating the scales:
   -start SCALE, --scale-start SCALE
@@ -49,7 +49,7 @@ compress: This command allows you to compress all the files in the
      Unless changed the compression level used is always the max for
      the chosen algorithm (refer to the compressor's manual for this
      information).
-     
+
 
      OUTCOME: Calling this commmand will create a csv file using ';'
      as a field delimiter. The compression algorith and the
@@ -72,7 +72,7 @@ compress: This command allows you to compress all the files in the
 
 entropy: This command allows you to calculate the entropy for all
      files in a given directory.
-    
+
      OUTCOME: Calling this commmand will create a csv file using ';'
      as a field delimiter. The entropy measure and the
      compression level used are used to name the resulting file. This
@@ -90,11 +90,11 @@ entropy: This command allows you to calculate the entropy for all
 
     For a sampen and apen documentation please look at:
              pyeeg (http://code.google.com/p/pyeeg/downloads/list)
-             
+
    All functions take arguments as inner options, to look at a
    particular entropy's options type:
 
-   ./HRFAnalyseMultiScale.py INPUT_DIRECTORY entropy ENTROPY -h
+   ./TSAnalyseMultiScale.py INPUT_DIRECTORY entropy ENTROPY -h
 
 
 comp_ratio or cr: This command allows you to calculate the compression ratio for each scale of a given file or every file
@@ -122,22 +122,22 @@ Examples:
 
 Multiscale entropy for all the files starting at scale 1(original files)
  and ending in scale 20
-./HRFAnalyseMultiScale.py unittest_dataset entropy sampen
+./TSAnalyseMultiScale.py unittest_dataset entropy sampen
 
 Multiscale compression with rounded results for scale, since the scales are constructed
 by averaging a given number of point we are bound to have floats, this options
 rounds those numbers to an integer.
-./HRFAnalyseMultiScale.py unittest_dataset --round-to-int compress
+./TSAnalyseMultiScale.py unittest_dataset --round-to-int compress
 
 Multiscale compression with rounded results for scale, multiplied by 10, the scale
 point is multiplied by 10 and rounded.
-./HRFAnalyseMultiScale.py unittest_dataset --round-to-int --multiply 10 compress -c paq8l
+./TSAnalyseMultiScale.py unittest_dataset --round-to-int --multiply 10 compress -c paq8l
 
 Compression Ratio
-./HRFAnalyseMultiScale.py ../Datasets/Compression_Results/ cr
+./TSAnalyseMultiScale.py ../Datasets/Compression_Results/ cr
 
 Confidence Intervals with Slope Analysis:
-./HRFAnalyseMultiScale.py ../Datasets/Entropy_DS/MultiScale cisa -mo
+./TSAnalyseMultiScale.py ../Datasets/Entropy_DS/MultiScale cisa -mo
 
 """
 
@@ -268,23 +268,49 @@ if __name__ == "__main__":
                 outfile += "_int"
             if options['mul_order'] != -1:
                 outfile += "_%d" % (options["mul_order"])
+            if options['comp_ratio']:
+                outfile += "_wCR"
             outfile += ".csv"
 
             compression_table = tools.multiscale.multiscale_compression(input_dir, options["scale_start"],
                                                                         options["scale_stop"] + 1, options["scale_step"],
                                                                         options["compressor"], options["level"],
-                                                                        options["decompress"])
+                                                                        options["decompress"],
+                                                                        options["comp_ratio"])
 
             writer = csv.writer(open(outfile, "w"), delimiter=";")
-            if options['decompress']:
-                header = ["Filename"] + list(functools.reduce(operator.add, [
-                    ("Scale_%d_Original" % s, "Scale_%d_Compressed" % s, "Scale_%d_Decompression" % s) for s in
-                    range(options["scale_start"], options["scale_stop"] + 1, options["scale_step"])]))
+
+            if (not options['decompress']) and (not options['comp_ratio']):
+                header = ["Filename"] + list(functools.reduce(
+                    operator.add, [("Scale_%d_Original" % s, "Scale_%d_Compressed" % s)
+                                   for s in range(options["scale_start"],
+                                                  options["scale_stop"] + 1,
+                                                  options["scale_step"])]))
+            elif options['decompress'] and (not options['comp_ratio']):
+                header = ["Filename"] + list(
+                    functools.reduce(
+                        operator.add, [("Scale_%d_Original" % s, "Scale_%d_Compressed" % s, "Scale_%d_Decompression" % s)
+                                       for s in range(options["scale_start"],
+                                                      options["scale_stop"] + 1,
+                                                      options["scale_step"])]))
+
+            elif (not options['decompress']) and options['comp_ratio']:
+                header = ["Filename"] + list(functools.reduce(
+                    operator.add, [("Scale_%d_Original" % s,"Scale_%d_Compressed" % s, "Scale_%d_CRx100" % s)
+                                   for s in range(options["scale_start"],
+                                                  options["scale_stop"] + 1,
+                                                  options["scale_step"])]))
             else:
-                header = ["Filename"] + list(functools.reduce(operator.add,
-                                                              [("Scale_%d_Original" % s, "Scale_%d_Compressed" % s) for s in
-                                                               range(options["scale_start"], options["scale_stop"] + 1,
-                                                                     options["scale_step"])]))
+                header = ["Filename"] + list(
+                    functools.reduce(
+                        operator.add, [("Scale_%d_Original" % s,
+                                        "Scale_%d_Compressed" % s,
+                                        "Scale_%d_CRx100" % s,
+                                        "Scale_%d_Decompression" % s)
+                                       for s in range(options["scale_start"],
+                                                      options["scale_stop"] + 1,
+                                                      options["scale_step"])]))
+
             writer.writerow(header)
             for filename in sorted(compression_table.keys()):
                 writer.writerow([filename] + compression_table[filename])
@@ -296,9 +322,12 @@ if __name__ == "__main__":
         elif options["command"] == "entropy":
             if options['entropy'] == 'apen' or options['entropy'] == 'apenv2' or options['entropy'] == "sampen":
                 outfile = "%s_multiscale_start_%d_end_%d_step_%d_%s_dim_%d_tol_%.2f.csv" % (input_dir,
-                                                                   options["scale_start"], options["scale_stop"],
-                                                                   options["scale_step"], options["entropy"],
-                                                                   options["dimension"], options["tolerance"])
+                                                                                            options["scale_start"],
+                                                                                            options["scale_stop"],
+                                                                                            options["scale_step"],
+                                                                                            options["entropy"],
+                                                                                            options["dimension"],
+                                                                                            options["tolerance"])
                 entropy_table = {}
 
                 entropy_table = tools.multiscale.multiscale_entropy(input_dir,
