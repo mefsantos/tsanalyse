@@ -56,6 +56,12 @@ def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_t
     and saves the resulting files in dest_dir, optionally the
     time stamp is kept and the limits(50-250) are applied.
 
+    :param input_name: name of the dataset to read
+    :param dest_dir: output directory
+    :param keep_time: flag to keep the time column of the original dataset
+    :param apply_limits: flag to apply limits between sections
+    :param round_to_int: flag to round the time series to integer
+
     """
     module_logger.debug("The input name received: %s" % input_name)
     if os.path.isdir(input_name):
@@ -80,7 +86,13 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
     (str, str, bool, bool) -> NoneType
 
     Clean operation of a single file.
-    
+
+    :param input_file: file to read
+    :param dest_file: output file
+    :param keep_time: flag to keep the time column of the original dataset
+    :param apply_limits: flag to apply limits between sections
+    :param round_to_int: flag to round the time series to integer
+
     """
     floating_point_param = "%.3f\n"
     if round_to_int:

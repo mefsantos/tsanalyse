@@ -1,5 +1,6 @@
 """
 Copyright (C) 2012 Mara Matias
+Edited by Marcelo Santos - 2016
 
 This file is part of HRFAnalyse.
 

@@ -185,7 +185,6 @@ if __name__ == "__main__":
 
     tools.multiscale.add_parser_options(parser)
 
-    # commands = parser.add_subparsers(help="MultiScale using compression or entropy", dest="command")
     subparsers = parser.add_subparsers(help='Different commands/operations to execute on the data sets', dest="command")
 
     compress = subparsers.add_parser("compress", help="use compression on multiscale")
@@ -239,7 +238,7 @@ if __name__ == "__main__":
 
     input_dir = util.remove_slash_from_path(input_dir)  # if slash exists
 
-    # compute multi scales
+    # compute multiscales
     if options['command'] not in ["comp_ratio", "cr", "confidence_interval_slope_analysis", "cisa"]:
         scales_dir = '%s_Scales' % input_dir
         if options['round']:
@@ -315,8 +314,6 @@ if __name__ == "__main__":
             for filename in sorted(compression_table.keys()):
                 writer.writerow([filename] + compression_table[filename])
 
-            # if options["comp_ratio"]:   #  execute the comp_ratio command here
-
             print("Storing into: %s" % os.path.abspath(outfile))
 
         elif options["command"] == "entropy":
@@ -347,7 +344,7 @@ if __name__ == "__main__":
             else:
                 logger.error("Multiscale not implemented for %s" % options["entropy"])
 
-    else:   # command doesn't need to compute multi-scale
+    else:   # command doesn't need to compute multiscale
         read_sep, write_sep, line_term = options['read_separator'], options['write_separator'], options['line_terminator']
 
         if options['round_digits'] is not None:
