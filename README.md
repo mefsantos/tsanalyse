@@ -1,8 +1,3 @@
-
-[![Build Status](https://travis-ci.org/dngferreira/hrfanalyse.svg?branch=master)](https://travis-ci.org/dngferreira/hrfanalyse)
-[![Coverage Status](https://coveralls.io/repos/github/dngferreira/hrfanalyse/badge.svg?branch=master)](https://coveralls.io/github/dngferreira/hrfanalyse?branch=master)
-      
-
 ## Instalation Notes
 
 The tool set requires some external libraries described in _Requirements.txt_, along with instructions.
