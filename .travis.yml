@@ -10,10 +10,13 @@ addons:
     - yasm
     - g++-4.8
 
-# command to install dependencies
+before_install:
+- sudo apt-get update -qq
+- sudo apt-get install -qq python-pip python-dev build-essentiallib32z1 lib32stdc++6
+
 install:
-  - pip install -r requirements/requirements.txt
-  - pip install -r requirements/requirements_test.txt
+  - pip install -r requirements.txt
+  - pip install -r requirements_test.txt
   - pip install algo/brotli_src
   - yasm algo/paq8l_src/paq7asm-x86_64.asm -f elf -m amd64 -o algo/paq8l_src/paq7asm-x86_64.o
   - g++ algo/paq8l_src/paq8l.cpp -DUNIX -O2 -Os -s -fomit-frame-pointer -o algo/paq8l algo/paq8l_src/paq7asm-x86_64.o
@@ -21,9 +24,9 @@ install:
   - ln -s $TRAVIS_BUILD_DIR/algo/ppmd_src/ppmd $TRAVIS_BUILD_DIR/algo/ppmd
 
 # command to run tests
-script:
-  - py.test --cov=tools
-after_success:
-  - coveralls
+# script:
+  # - py.test --cov=tools
+# after_success:
+  # - coveralls
 env:
   - PATH=$PATH:$TRAVIS_BUILD_DIR/algo/
