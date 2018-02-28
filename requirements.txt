@@ -1,0 +1,7 @@
+numpy
+pylzma
+pandas
+numpy
+scipy
+# brotli - added as git sub-modulecoveralls
+pytest-cov
