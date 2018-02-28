@@ -435,12 +435,6 @@ def add_parser_options(parser):
                         default=list(AVAILABLE_COMPRESSORS.keys())[0],
                         help="compressor to be used. Available compressors:" + ', '.join(
                             AVAILABLE_COMPRESSORS) + ";default:[%(default)s]")
-    parser.add_argument("-dt",
-                        "--decompress-time",
-                        dest="decompress",
-                        action="store_true",
-                        default=False,
-                        help="Use this options if you want the decompression time instead of the compression size")
     parser.add_argument("-l",
                         "--level",
                         dest="level",
@@ -456,6 +450,13 @@ def add_parser_options(parser):
                         default=False,
                         help="Use this options if you want add a column to the final data set containing "
                              "the compression ratio")
+    # 28/02/18 - removed flags to avoid excessive unexplained functionalities (paper review)
+    # parser.add_argument("-dt",
+    #                     "--decompress-time",
+    #                     dest="decompress",
+    #                     action="store_true",
+    #                     default=False,
+    #                     help="Use this options if you want the decompression time instead of the compression size")
 
 
 def set_level(options):

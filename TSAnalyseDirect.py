@@ -289,6 +289,7 @@ except ImportError:
 
 import_logger.info(" ###################### ")
 
+
 def partition_procedures(inputdir, options):
     if options['start_at_end']:
         outputdir = "%s_last_%d_%d" % (inputdir, options['partition_start'], options['section'])
