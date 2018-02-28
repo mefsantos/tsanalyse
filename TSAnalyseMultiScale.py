@@ -194,15 +194,16 @@ if __name__ == "__main__":
 
     tools.entropy.add_parser_options(entropy)
 
-    if cr_exists:
-        comp_ratio = subparsers.add_parser('comp_ratio',
-                                           help='Compute the compression Rate and Confidence Interval of the a given '
-                                                'dataset. Receives a dataset (file or folder) with the compression '
-                                                'result and calculate both the compression ratio and the confidence '
-                                                'interval, generating new datasets with the computed metrics appended.')
-        tools.utilityFunctions.add_csv_parser_options(comp_ratio)
-        cr = subparsers.add_parser('cr', help='Execute comp_ratio command')
-        tools.utilityFunctions.add_csv_parser_options(cr)
+    # 28/02/18 - removed flags to avoid excessive unexplained functionalities (paper review)
+    # if cr_exists:
+    #     comp_ratio = subparsers.add_parser('comp_ratio',
+    #                                        help='Compute the compression Rate and Confidence Interval of the a given '
+    #                                             'dataset. Receives a dataset (file or folder) with the compression '
+    #                                             'result and calculate both the compression ratio and the confidence '
+    #                                             'interval, generating new datasets with the computed metrics appended.')
+    #     tools.utilityFunctions.add_csv_parser_options(comp_ratio)
+    #     cr = subparsers.add_parser('cr', help='Execute comp_ratio command')
+    #     tools.utilityFunctions.add_csv_parser_options(cr)
 
     if cisa_exists:
         confidence_interval = subparsers.add_parser('confidence_interval_slope_analysis',
