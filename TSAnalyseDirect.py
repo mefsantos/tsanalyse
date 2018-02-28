@@ -551,3 +551,5 @@ if __name__ == "__main__":
 
     elif options['command'] == 'clean_duration':
         tools.durationFromSingleDS.compute_duration_from_dirs(inputdir)
+
+
