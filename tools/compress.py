@@ -84,7 +84,7 @@ CompressionData = namedtuple('CompressionData', 'original compressed compression
 
 
 # ENTRY POINT FUNCTION
-# TODO: flag -round não está a ser usada aqui! activar e propagar alteração pelo módulo
+# TODO: flag -round nao esta a ser usada aqui! activar e propagar alteracao pelo modulo
 def compress(input_name, compression_algorithm, level, decompress=False, with_compression_rate=False):
     """
     (str,str,int,bool)-> dict of str : CompressionData
