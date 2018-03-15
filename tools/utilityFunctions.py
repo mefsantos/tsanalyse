@@ -418,7 +418,7 @@ def is_multiscale(string2parse):
 
 
 # Compression
-def compression_ratio(original, compressed, round_digits=2):
+def compression_ratio(original, compressed, round_digits=4):
     """
     Compute the compression ratio
     :param original: original size of the file
