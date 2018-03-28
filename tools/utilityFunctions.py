@@ -418,7 +418,7 @@ def is_multiscale(string2parse):
 
 
 # Compression
-def compression_ratio(original, compressed, round_digits=2):
+def compression_ratio(original, compressed, round_digits=4):
     """
     Compute the compression ratio
     :param original: original size of the file
@@ -426,7 +426,9 @@ def compression_ratio(original, compressed, round_digits=2):
     :param round_digits: amount of decimal cases to consider when rounding the number
     :return: the compression ratio
     """
-    return round(float((float(compressed) / float(original)) * 100), round_digits)
+    if round_digits is None:
+        round_digits = 4
+    return round(float((float(compressed) / float(original)) * 100), int(round_digits))
 
 
 # Confidence Interval

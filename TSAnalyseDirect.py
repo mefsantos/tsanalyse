@@ -240,7 +240,6 @@ import tools.partition
 import tools.analysingSTV as stv
 import tools.utilityFunctions as util
 
-
 # Flag to control argparser based on the imports
 import_logger = logging.getLogger('tsanalyse')
 import_logger.info(" ###### Imports: ###### ")
@@ -254,6 +253,7 @@ dsduration_exists = False
 # under development / unnecessary tools
 try:
     import tools.csv2txsp3
+
     csv2txsp3_exists = True
 except ImportError:
     #  module missing - gitIgnore
@@ -261,6 +261,7 @@ except ImportError:
 
 try:
     import tools.recordDuration
+
     recordDuration_exists = True
 except ImportError:
     #  module missing - gitIgnore
@@ -268,6 +269,7 @@ except ImportError:
 
 try:
     import tools.fetalMaturationAnalysis
+
     fma_exists = True
 except ImportError:
     #  module missing - gitIgnore
@@ -275,6 +277,7 @@ except ImportError:
 
 try:
     import tools.clampStateAnalysis
+
     csa_exists = True
 except ImportError:
     #  module missing - gitIgnore
@@ -282,6 +285,7 @@ except ImportError:
 
 try:
     import tools.durationFromSingleDS as dsd
+
     dsduration_exists = True
 except ImportError:
     #  module missing - gitIgnore
@@ -424,7 +428,8 @@ if __name__ == "__main__":
 
     # Global options for csv's
     if options['command'] in ["clamp_analysis", "ca", "fma", "longitbase", "compress", "decompress"]:
-        read_sep, write_sep, line_term = options['read_separator'], options['write_separator'], options['line_terminator']
+        read_sep, write_sep, line_term = options['read_separator'], options['write_separator'], options[
+            'line_terminator']
 
         if options['round_digits'] is not None:
             round_digits = int(options['round_digits'])
@@ -450,13 +455,18 @@ if __name__ == "__main__":
 
     if options['command'] == 'compress':
         compressor = options['compressor']
+        digits_to_round = options['round_digits']
         level = tools.compress.set_level(options)
-        resulting_dict = tools.compress.compress(inputdir, compressor, level,
-                                                 options['decompress'], options['comp_ratio'])
-        if options['decompress']:
-            outfile = "%s_decompress_%s_%d" % (output_name, compressor, level)
-        else:
-            outfile = "%s_%s_lvl_%d" % (output_name, compressor, level)
+        resulting_dict = tools.compress.compress(inputdir, compressor, level, False,
+                                                 options['comp_ratio'], digits_to_round)
+
+        # print resulting_dict
+
+        # options['decompress'], options['comp_ratio']) # decompress is disabled
+        # if options['decompress']:
+        # #     outfile = "%s_decompress_%s_%d" % (output_name, compressor, level)
+        # else:
+        outfile = "%s_%s_lvl_%d" % (output_name, compressor, level)
         if options['comp_ratio']:
             outfile += "_wCR"
         outfile += ".csv"
@@ -466,19 +476,20 @@ if __name__ == "__main__":
         header = ["Filename", "Original_Size", "Compressed_Size"]
         if options['comp_ratio']:
             header.append("CRx100")
-        if options['decompress']:
-            header.append("Decompression_Time")
+        # if options['decompress']:
+        #     header.append("Decompression_Time")
         writer.writerow(header)
 
         for filename in sorted(resulting_dict.keys()):
             cd = resulting_dict[filename]
-            data_row = [filename, cd.original, cd.compression_rate, cd.compressed]
+            # data_row = [filename, cd.original, cd.compression_rate, cd.compressed]
+            data_row = [filename, cd.original, cd.compressed]
             if options['comp_ratio']:
                 data_row.append(cd.compression_rate)
-            else:
-                del(data_row[2])
-            if options['decompress']:
-                data_row.append(cd.time)
+            # else:
+            #   del (data_row[2])
+            # if options['decompress']:
+            #     data_row.append(cd.time)
             writer.writerow(data_row)
         output_file.close()
         print("Storing into: %s" % os.path.abspath(outfile))
@@ -528,28 +539,30 @@ if __name__ == "__main__":
             input_is = "file"
         method_2_call = getattr(sys.modules[tools.clampStateAnalysis.__name__], "clamp_analysis_from_%s" % input_is)
 
-        method_2_call(input_path=inputdir,entropy_2_use=options['entropy'],
-                      entropy_tolerance=options['tolerance'],entropy_dimension=options['dimension'],
-                      compressor_2_use=compressor,compressor_level=level,
+        method_2_call(input_path=inputdir, entropy_2_use=options['entropy'],
+                      entropy_tolerance=options['tolerance'], entropy_dimension=options['dimension'],
+                      compressor_2_use=compressor, compressor_level=level,
                       with_compression_ratio=options["compression_ratio"],
-                      sep2read=read_sep, sep2write=write_sep,line_term=line_term,
+                      sep2read=read_sep, sep2write=write_sep, line_term=line_term,
                       store_by_state=options['store_by_state'],
-                      output_path=util.remove_slash_from_path(options['output_path']), compute_all=options['compute_all'])
+                      output_path=util.remove_slash_from_path(options['output_path']),
+                      compute_all=options['compute_all'])
 
     elif options['command'] == 'maturation' or options['command'] == 'fma':
         tools.fetalMaturationAnalysis.fetal_maturation_analysis(inputdir, round_digits=round_digits,
-                                                                sep2read=read_sep, sep2write=write_sep, line_term=line_term,
+                                                                sep2read=read_sep, sep2write=write_sep,
+                                                                line_term=line_term,
                                                                 specific_storage=options["output_path"],
                                                                 num_of_columns_to_keep=options["cols_2_keep"],
-                                                                encoding=options["encoding"], debug_flag=options["debug_mode"],
+                                                                encoding=options["encoding"],
+                                                                debug_flag=options["debug_mode"],
                                                                 number_of_groups=options['number_of_groups'],
                                                                 group_by=options['group_by'])
 
     elif options['command'] == 'stv':
-        tools.analysingSTV.compute_stv_metric_of_directory(inputdir, options['algorithm'], options['sampling_frequency'],
+        tools.analysingSTV.compute_stv_metric_of_directory(inputdir, options['algorithm'],
+                                                           options['sampling_frequency'],
                                                            output_path=options["output_path"])
 
     elif options['command'] == 'clean_duration':
         tools.durationFromSingleDS.compute_duration_from_dirs(inputdir)
-
-
