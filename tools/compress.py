@@ -85,7 +85,9 @@ CompressionData = namedtuple('CompressionData', 'original compressed compression
 
 # ENTRY POINT FUNCTION
 # TODO: flag -round nao esta a ser usada aqui! activar e propagar alteracao pelo modulo
-def compress(input_name, compression_algorithm, level, decompress=False, with_compression_rate=False):
+
+def compress(input_name, compression_algorithm, level, decompress=False,
+             with_compression_rate=False, digits_to_round=None):
     """
     (str,str,int,bool)-> dict of str : CompressionData
 
@@ -101,6 +103,7 @@ def compress(input_name, compression_algorithm, level, decompress=False, with_co
     :param level: the level of compression
     :param decompress: flag to determine whether to output the decompression time or not
     :param with_compression_rate: flag to determine whether to output the compression rate or not
+    :param digits_to_round: number of digits to use when rounding floats/doubles
     :return dictionary of 'string:CompressionData' with:
         the original size, compressed size, compression rate*, decompression time*
 
@@ -120,16 +123,16 @@ def compress(input_name, compression_algorithm, level, decompress=False, with_co
         for filename in filelist:
             filename = filename.strip()  # removes the tailing \n
             compression_data = method_to_call(os.path.join(input_name, filename), level,
-                                              decompress, with_compression_rate)
+                                              decompress, with_compression_rate, digits_to_round)
             compressed[filename.strip()] = compression_data
     else:
-        compression_data = method_to_call(input_name.strip(), level, decompress, with_compression_rate)
+        compression_data = method_to_call(input_name.strip(), level, decompress, with_compression_rate, digits_to_round)
         compressed[input_name.strip()] = compression_data
     return compressed
 
 
 # IMPLEMENTATION
-def gzip_compress(inputfile, level, decompress, compute_compression_rate):
+def gzip_compress(inputfile, level, decompress, compute_compression_rate, digits_to_round):
     """
     (str, int, bool)-> CompressionData
 
@@ -161,14 +164,14 @@ def gzip_compress(inputfile, level, decompress, compute_compression_rate):
                                             number=10,
                                             repeat=3, timer=time.clock))
     if compute_compression_rate:
-        compression_rate = util.compression_ratio(original_size, compressed_size)
+        compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
 
     return cd
 
 
-def paq8l_compress(input_file, level, decompress, compute_compression_rate):
+def paq8l_compress(input_file, level, decompress, compute_compression_rate, digits_to_round):
     """
     (str, int, bool) -> CompressionData
 
@@ -201,14 +204,14 @@ def paq8l_compress(input_file, level, decompress, compute_compression_rate):
     os.remove('%s.paq8l' % input_file)
 
     if compute_compression_rate:
-        compression_rate = util.compression_ratio(original_size, compressed_size)
+        compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
 
     return cd
 
 
-def lzma_compress(input_file, level, decompress, compute_compression_rate):
+def lzma_compress(input_file, level, decompress, compute_compression_rate, digits_to_round):
     """
     (str,int,bool) -> CompressionData
 
@@ -239,14 +242,14 @@ def lzma_compress(input_file, level, decompress, compute_compression_rate):
                                             number=10,
                                             repeat=3, timer=time.clock))
     if compute_compression_rate:
-        compression_rate = util.compression_ratio(original_size, compressed_size)
+        compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
 
     return cd
 
 
-def bzip2_compress(input_file, level, decompress, compute_compression_rate):
+def bzip2_compress(input_file, level, decompress, compute_compression_rate, digits_to_round):
     """
     (str, int, bool) -> CompressionData
 
@@ -274,7 +277,7 @@ def bzip2_compress(input_file, level, decompress, compute_compression_rate):
                                             repeat=3, timer=time.clock))
 
     if compute_compression_rate:
-        compression_rate = util.compression_ratio(original_size, compressed_size)
+        compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
         cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
     else:
         cd = CompressionData(original_size, compressed_size, decompress_time)
@@ -282,7 +285,7 @@ def bzip2_compress(input_file, level, decompress, compute_compression_rate):
     return cd
 
 
-def ppmd_compress(input_file, level, decompress, compute_compression_rate):
+def ppmd_compress(input_file, level, decompress, compute_compression_rate, digits_to_round):
     """
     (str, int, bool) -> CompressionData
 
@@ -315,14 +318,14 @@ def ppmd_compress(input_file, level, decompress, compute_compression_rate):
     os.remove('%s.ppmd' % input_file)
 
     if compute_compression_rate:
-        compression_rate = util.compression_ratio(original_size, compressed_size)
+        compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
 
     return cd
 
 
-def spbio_compress(input_file, level, decompress, compute_compression_rate):
+def spbio_compress(input_file, level, decompress, compute_compression_rate, digits_to_round):
     """
     (str, int, bool) -> CompressionData
 
@@ -345,7 +348,7 @@ def spbio_compress(input_file, level, decompress, compute_compression_rate):
     return original_size, compressed_size
 
 
-def brotli_compress(input_file, level, decompress, compute_compression_rate):
+def brotli_compress(input_file, level, decompress, compute_compression_rate, digits_to_round):
     """
     @param input_file
     @param level
@@ -375,7 +378,7 @@ def brotli_compress(input_file, level, decompress, compute_compression_rate):
                                             repeat=3, timer=time.clock))
 
     if compute_compression_rate:
-        compression_rate = util.compression_ratio(original_size, compressed_size)
+        compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
 
