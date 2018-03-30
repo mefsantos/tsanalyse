@@ -2,20 +2,20 @@
 """
 Copyright (C) 2012 Mara Matias
 
-This file is part of HRFAnalyse.
+This file is part of TSAnalyse.
 
-    HRFAnalyse is free software: you can redistribute it and/or modify
+    TSAnalyse is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation, either version 3 of the License,
     or (at your option) any later version.
 
-    HRFAnalyse is distributed in the hope that it will be useful,
+    TSAnalyse is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with HRFAnalyse.  If not, see
+    along with TSAnalyse.  If not, see
     <http://www.gnu.org/licenses/>.
 
 _______________________________________________________________________________
@@ -26,15 +26,14 @@ asymmetrical depending if the value of the compression/entropy for the
 concatenation of two files f1, f2 is the same whether you have f1.f2
 or f2.f1.
 
-Simetrical Distances:
+Symmetrical Distances:
 Normalized Information Distance (compression)
 
-Assymetrical Distances:
+Asymmetrical Distances:
 CrossEntropy (entropy): NOT IMPLEMENTED
 
 
-ENTRY POINT: distance(filename1, filename2, distance_definition, compressor, 
-level, decompress):
+ENTRY POINT: distance(filename1, filename2, distance_definition, compressor, level, decompress):
 """
 
 import os

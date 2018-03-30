@@ -3,20 +3,20 @@ Copyright (C) 2012 Mara Matias
 Edited by Marcelo Santos - 2016
 
 
-This file is part of HRFAnalyse.
+This file is part of TSAnalyse.
 
-    HRFAnalyse is free software: you can redistribute it and/or modify
+    TSAnalyse is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation, either version 3 of the License,
     or (at your option) any later version.
 
-    HRFAnalyse is distributed in the hope that it will be useful,
+    TSAnalyse is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with HRFAnalyse.  If not, see
+    along with TSAnalyse.  If not, see
     <http://www.gnu.org/licenses/>.
 
 _______________________________________________________________________________
@@ -35,8 +35,7 @@ Optionally a limit may be applied to eliminate signal loss, we consider the
 signal to be lost if hrf is bellow 50 or above 250. If a particular line is 
 considered as signal lost it is omitted from the resulting file.
 
-ENTRY POINT: clean(input_name,dest_dir,keep_time=False,
-apply_limits=False)
+ENTRY POINT: clean(input_name,dest_dir, keep_time=False, apply_limits=False)
 """
 
 import os

@@ -1,20 +1,20 @@
 """
 Copyright (C) 2016 Marcelo Santos
 
-This file is part of HRFAnalyse.
+This file is part of TSAnalyse.
 
-    HRFAnalyse is free software: you can redistribute it and/or modify
+    TSAnalyse is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation, either version 3 of the License,
     or (at your option) any later version.
 
-    HRFAnalyse is distributed in the hope that it will be useful,
+    TSAnalyse is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with HRFAnalyse.  If not, see
+    along with TSAnalyse.  If not, see
     <http://www.gnu.org/licenses/>.
 
 _______________________________________________________________________________
@@ -270,7 +270,7 @@ def stv_sd_subsets(time_series_to_eval,  sampling_frequency=4, duration_in_secon
     return map(lambda subset: np.std(subset), lol_of_subsets)
 
 
-def stv_sd(time_series_to_eval, sampling_frequency=4):
+def stv_sd(time_series_to_eval):
     return np.std(time_series_to_eval)
 
 # # test example - arduini standard

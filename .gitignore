@@ -407,3 +407,9 @@ docs/_build/
 # PyBuilder
 target/
 
+
+# Manually added to discard user csv's
+individual_runs/
+debug_runs/
+clampage_state_analysis/
+*_Scales/

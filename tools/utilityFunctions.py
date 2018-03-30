@@ -1,20 +1,20 @@
 """
 Copyright (C) 2016 Marcelo Santos
 
-This file is part of HRFAnalyse.
+This file is part of TSAnalyse.
 
-    HRFAnalyse is free software: you can redistribute it and/or modify
+    TSAnalyse is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation, either version 3 of the License,
     or (at your option) any later version.
 
-    HRFAnalyse is distributed in the hope that it will be useful,
+    TSAnalyse is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with HRFAnalyse.  If not, see
+    along with TSAnalyse.  If not, see
     <http://www.gnu.org/licenses/>.
 
 _______________________________________________________________________________
@@ -39,14 +39,19 @@ import pandas as pd
 import itertools as it
 import scipy.stats as st
 
-
-# HRF package home location - when called by package main scripts, i.e.: HRFAnalyse[Direct,MultiScale,...]
+# HRF package home location - when called by package main scripts, i.e.: TSAnalyse[Direct,MultiScale,...]
 HRF_HOME = os.path.abspath(".")
-
-# DEBUG LOCATION
 DEBUG_PATH = os.path.join(HRF_HOME, "debug_runs")
+RUN_ISOLATED_FILES_PATH = os.path.join(HRF_HOME, "individual_runs")
+
+# Check if the folder required for debug and individual runs exists and create them if necessary
+
 if not os.path.exists(DEBUG_PATH):
     os.mkdir(DEBUG_PATH)
+
+if not os.path.exists(RUN_ISOLATED_FILES_PATH):
+    os.mkdir(RUN_ISOLATED_FILES_PATH)
+
 
 # DEBUG FLAG
 DEBUG = False
@@ -303,6 +308,7 @@ def replace_char_in_filename_by(path_to_eval=".", char_to_remove=" ", char_to_pl
     """
     Replace space in file names for char_to_replace
     :param path_to_eval: path to evaluate
+    :param char_to_remove: character to be replaced
     :param char_to_replace: character to be placed instead of space
     """
     dir_path = os.path.expanduser(remove_slash_from_path(path_to_eval))
@@ -410,7 +416,7 @@ def parse_ms_params(path):
 
 def is_multiscale(string2parse):
     """
-    Test if the the data sets were compressed using multiscale
+    Test if the the datasets were compressed using multiscale
     :param string2parse: dataset name (path)
     :return: Either True if multiscale was used or False otherwise
     """
@@ -569,12 +575,28 @@ def add_csv_parser_options(parser):
                         default="\n",
                         help="Specifies the character to use as line termination; [default:'\\n']")
 
+
+def add_numbers_parser_options(parser):
+    """
+    (argparse.ArgumentParser) -> NoneType
+
+    !!!Auxiliary function!!!  These are arguments for an argparse parser or subparser,
+    and are the optional arguments for the invoked modules
+    """
     parser.add_argument("-round",
                         "--round-digits",
                         dest="round_digits",
                         action="store",
                         help="Specifies number of digits to use when rounding values; [default: %(default)s]")
 
+
+def add_debug_parser_options(parser):
+    """
+    (argparse.ArgumentParser) -> NoneType
+
+    !!!Auxiliary function!!!  These are arguments for an argparse parser or subparser,
+    and are the optional arguments for the invoked modules
+    """
     parser.add_argument("-dbg",
                         "--debug",
                         dest="debug_mode",

@@ -2,20 +2,20 @@
 Copyright (C) 2012 Mara Matias
 Edited by Marcelo Santos - 2016
 
-This file is part of HRFAnalyse.
+This file is part of TSAnalyse.
 
-    HRFAnalyse is free software: you can redistribute it and/or modify
+    TSAnalyse is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation, either version 3 of the License,
     or (at your option) any later version.
 
-    HRFAnalyse is distributed in the hope that it will be useful,
+    TSAnalyse is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with HRFAnalyse.  If not, see
+    along with TSAnalyse.  If not, see
     <http://www.gnu.org/licenses/>.
 
 _______________________________________________________________________________
@@ -23,15 +23,16 @@ _______________________________________________________________________________
 !!!IMPLEMETNTATION NOTE: This module presumes the files contain only two columns, the first
 column is a time series the second is the heart rate frequency(hrf).
 
-The time series can either be a cummulative passage of time, or timestamps where
+The time series can either be a cumulative passage of time, or timestamps where
 each stamp indicates the time passed since the last timestamp.
 
 The partitions using time stamps do not use the actual value of the timestamp, it
 uses the mode of all timestamps this way the data is not affected by
 extended periods of signal loss, and what we get is closer to the
-period of aquired signal. !!!
+period of acquired signal. !!!
 
-ENTRY POINT:partition(input_name,dest_dir,starting_point=0,section=-1,gap=-1,start_at_end=False,full_file=False,lines=False)
+ENTRY POINT:    partition(input_name, dest_dir, starting_point=0, section=-1, gap=-1, start_at_end=False,
+                        full_file=False, lines=False)
 
 """
 

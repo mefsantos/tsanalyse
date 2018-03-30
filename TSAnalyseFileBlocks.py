@@ -4,20 +4,20 @@
 
 Copyright (C) 2012 Mara Matias
 
-This file is part of HRFAnalyse.
+This file is part of TSAnalyse.
 
-    HRFAnalyse is free software: you can redistribute it and/or modify
+    TSAnalyse is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation, either version 3 of the License,
     or (at your option) any later version.
 
-    HRFAnalyse is distributed in the hope that it will be useful,
+    TSAnalyse is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with HRFAnalyse.  If not, see
+    along with TSAnalyse.  If not, see
     <http://www.gnu.org/licenses/>.
 
 _______________________________________________________________________________
@@ -34,7 +34,7 @@ Usage: ./TSAnalyseFileBlocks.py [BLOCK OPTIONS] INPUTFILE COMMAND [COMMAND OPTIO
 To define how to create the blocks you can change BLOCK OPTIONS:
 
   --start-at-end        Partition from end of file instead of beginning
-  -ds SECONDS, --defered-start SECONDS
+  -ds SECONDS, --deferred-start SECONDS
                         Time gap between the start of the file and the start
                         of the interval; default:[0]
   -s SECONDS, --section SECONDS
@@ -78,7 +78,7 @@ compress: This command allows you to compress all the files in the
 entropy: This command allows you to calculate the entropy for all
      files in a given directory.
 
-     OUTCOME: Calling this commmand will create a csv file using ';'
+     OUTCOME: Calling this command will create a csv file using ';'
      as a field delimiter. The entropy measure and the
      optons used are appended to name the resulting file. This
      file will be created in the parent of the directory we are
@@ -89,7 +89,7 @@ entropy: This command allows you to calculate the entropy for all
     COMMAND_OPTIONS are the available entropy measures:
 
      sampen              Sample Entropy
-     apen                Aproximate Entropy
+     apen                Approximate Entropy
      apenv2              A slightly different implementation of Aproximate Entropy
 
     For a particular function's documentation please look at:

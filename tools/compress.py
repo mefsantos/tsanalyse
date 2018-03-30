@@ -4,20 +4,20 @@ Copyright (C) 2012 Mara Matias
 Edited by Duarte Ferreira - 2016
 Edited by Marcelo Santos - 2016
 
-This file is part of HRFAnalyse.
+This file is part of TSAnalyse.
 
-    HRFAnalyse is free software: you can redistribute it and/or modify
+    TSAnalyse is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation, either version 3 of the License,
     or (at your option) any later version.
 
-    HRFAnalyse is distributed in the hope that it will be useful,
+    TSAnalyse is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with HRFAnalyse.  If not, see
+    along with TSAnalyse.  If not, see
     <http://www.gnu.org/licenses/>.
 
 _______________________________________________________________________________
@@ -38,7 +38,8 @@ MODULE EXTERNAL DEPENDENCIES:
                      path if you would like to use them.
 
 
-ENTRY POINT: compress(input_name,compression_algorithm,level,decompress=False, with_compression_rate=False)
+ENTRY POINT: compress(input_name, compression_algorithm, level, decompress=False, with_compression_rate=False,
+                        digits_to_round=None)
 
 """
 
@@ -84,8 +85,6 @@ CompressionData = namedtuple('CompressionData', 'original compressed compression
 
 
 # ENTRY POINT FUNCTION
-# TODO: flag -round nao esta a ser usada aqui! activar e propagar alteracao pelo modulo
-
 def compress(input_name, compression_algorithm, level, decompress=False,
              with_compression_rate=False, digits_to_round=None):
     """
@@ -126,8 +125,12 @@ def compress(input_name, compression_algorithm, level, decompress=False,
                                               decompress, with_compression_rate, digits_to_round)
             compressed[filename.strip()] = compression_data
     else:
+        entry_name = os.path.basename(input_name.strip())
+
         compression_data = method_to_call(input_name.strip(), level, decompress, with_compression_rate, digits_to_round)
-        compressed[input_name.strip()] = compression_data
+
+        # compressed[input_name.strip()] = compression_data
+        compressed[entry_name] = compression_data
     return compressed
 
 

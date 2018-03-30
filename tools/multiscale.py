@@ -2,20 +2,20 @@
 Copyright (C) 2012 Mara Matias
 Edited by Marcelo Santos - 2016
 
-This file is part of HRFAnalyse.
+This file is part of TSAnalyse.
 
-    HRFAnalyse is free software: you can redistribute it and/or modify
+    TSAnalyse is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation, either version 3 of the License,
     or (at your option) any later version.
 
-    HRFAnalyse is distributed in the hope that it will be useful,
+    TSAnalyse is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with HRFAnalyse.  If not, see
+    along with TSAnalyse.  If not, see
     <http://www.gnu.org/licenses/>.
 
 _______________________________________________________________________________
@@ -113,7 +113,8 @@ def create_scales(input_name, dest_dir, start, stop, step, mul_order, round_to_i
                          round_to_int)
 
 
-def multiscale_compression(input_name, start, stop, step, compressor, level, decompress, with_compression_rate):
+def multiscale_compression(input_name, scales_dir, start, stop, step, compressor, level, decompress,
+                           with_compression_rate, round_digits=None):
     """
     Calculate the multiscale compression for a file or directory.
     
@@ -124,6 +125,7 @@ def multiscale_compression(input_name, start, stop, step, compressor, level, dec
     (one for each scale) as values.
 
     :param input_name: name of the dataset to read
+    :param scales_dir: directory containing the scales
     :param start: starting scale
     :param stop: ending scale
     :param step: step between scales
@@ -131,6 +133,7 @@ def multiscale_compression(input_name, start, stop, step, compressor, level, dec
     :param level: level of compression
     :param decompress: flag to enable the output of the decompression time
     :param with_compression_rate: flag to enable the calculation of the compression rate
+    :param round_digits: number of decimal digits to use when rounding floats/doubles
     :return dictionary of 'string:CompressionData'
     """
 
@@ -140,33 +143,42 @@ def multiscale_compression(input_name, start, stop, step, compressor, level, dec
         for filename in filelist:
             compression_table[filename] = []
             for scale in range(start, stop, step):
-                file_to_compress = os.path.join("%s_Scales" % input_name, "Scale %d" % scale, filename)
-                compression_results = compress(file_to_compress, compressor, level, decompress, with_compression_rate)
-                compression_table[filename].append(compression_results[file_to_compress].original)
-                compression_table[filename].append(compression_results[file_to_compress].compressed)
+                # file_to_compress = os.path.join("%s_Scales" % input_name, "Scale %d" % scale, filename)
+                file_to_compress = os.path.join(scales_dir, "Scale %d" % scale, filename)
+                compression_results = compress(file_to_compress, compressor, level, decompress,
+                                               with_compression_rate, round_digits)
+
+                compression_table[filename].append(compression_results[filename].original)
+                compression_table[filename].append(compression_results[filename].compressed)
                 if with_compression_rate:
-                    compression_table[filename].append(compression_results[file_to_compress].compression_rate)
+                    compression_table[filename].append(compression_results[filename].compression_rate)
                 if decompress:
-                    compression_table[filename].append(compression_results[file_to_compress].time)
+                    compression_table[filename].append(compression_results[filename].time)
+
     else:
-        # TODO: use the "home" dir of datasets when the input is a single file
-        # TODO: fix the following code - produces bugs
+        # TODO: use the "home" dir of datasets when the input is a single file - solved?
+        # TODO: fix the following code - produces bugs - solved?
         filename = os.path.basename(input_name)
+        compression_table[filename] = []
         for scale in range(start, stop, step):
-            file_to_compress = os.path.join("%s_Scales" % input_name, "Scale %d" % scale, input_name)
-            compression_results = compress(file_to_compress, compressor, level, decompress, with_compression_rate)
-            compression_table[filename].append(compression_results[file_to_compress].original)
-            compression_table[filename].append(compression_results[file_to_compress].compressed)
+            file_to_compress = os.path.join(scales_dir, "Scale %d" % scale, filename)
+
+            compression_results = compress(file_to_compress, compressor, level, decompress,
+                                           with_compression_rate, round_digits)
+
+            compression_table[filename].append(compression_results[filename].original)
+            compression_table[filename].append(compression_results[filename].compressed)
 
             if with_compression_rate:
-                compression_table[filename].append(compression_results[file_to_compress].compression_rate)
+                compression_table[filename].append(compression_results[filename].compression_rate)
 
             if decompress:
-                compression_table[filename].append(compression_results[file_to_compress].time)
+                compression_table[filename].append(compression_results[filename].time)
+
     return compression_table
 
 
-def multiscale_entropy(input_name, start, stop, step, entropy_function, dimension, tolerance):
+def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_function, dimension, tolerance):
     """
     Calculate the multiscale entropy for a file or directory.
 
@@ -177,6 +189,7 @@ def multiscale_entropy(input_name, start, stop, step, entropy_function, dimensio
     for each scale) as values.
 
     :param input_name: name of the dataset to read
+    :param scales_dir: directory containing the multiple scales
     :param start: starting scale
     :param stop: ending scale
     :param step: step between scales
@@ -201,17 +214,21 @@ def multiscale_entropy(input_name, start, stop, step, entropy_function, dimensio
                                           {filename: tolerances[filename]})
                 entropy_table[filename].append(entropy_results[file_in_scale][1])
     else:
-        files_stds = calculate_std(os.path.join("%s_Scales" % input_name, "Scale %d" % start))
-        tolerances = [files_stds[filename] * tolerance for filename in files_stds]
-        entropy_table[input_name] = []
         filename = os.path.basename(input_name)
+        file_for_std = os.path.join(scales_dir, "Scale %d" % start, filename)
+        file_std = calculate_std(file_for_std)
+
+        tolerances = dict((filename, file_std[fname] * tolerance) for fname in file_std)
+
+        entropy_table[filename] = []
         for scale in range(start, stop, step):
-            file_in_scale = os.path.join("%s_Scales" % input_name, "Scale %d" % scale, filename)
+            file_in_scale = os.path.join(scales_dir, "Scale %d" % scale, filename)
             entropy_results = entropy(file_in_scale,
                                       entropy_function,
                                       dimension,
                                       tolerances)
-            entropy_table[input_name].append(entropy_results[1])
+
+            entropy_table[filename].append(entropy_results[filename].entropy)
     return entropy_table
 
 
@@ -225,7 +242,7 @@ def create_scale(inputfile, output_dir, scale, mul_order, round_to_int):
 
     RETURN: None
 
-    ALGORITHM: For a scale N, read the file,on each iteration extract an interval
+    ALGORITHM: For a scale N, read the file, on each iteration extract an interval
     of N values, calculate the mean of these numbers and save it in the resulting
     file. Each iteration's interval starts after the last number used in the
     previous iteration.
@@ -237,7 +254,6 @@ def create_scale(inputfile, output_dir, scale, mul_order, round_to_int):
     :param round_to_int: flag to round the time series to integer
 
     """
-    # TODO: when a single file is used as input use "home" directory for Datasets - so it does not affect the current dataset
     filename = os.path.basename(inputfile)
     line_index = 0
     with open(inputfile, "rU") as fdin:

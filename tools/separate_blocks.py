@@ -1,20 +1,20 @@
 """
 Copyright (C) 2012 Mara Matias
 
-This file is part of HRFAnalyse.
+This file is part of TSAnalyse.
 
-    HRFAnalyse is free software: you can redistribute it and/or modify
+    TSAnalyse is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation, either version 3 of the License,
     or (at your option) any later version.
 
-    HRFAnalyse is distributed in the hope that it will be useful,
+    TSAnalyse is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with HRFAnalyse.  If not, see
+    along with TSAnalyse.  If not, see
     <http://www.gnu.org/licenses/>.
 
 _______________________________________________________________________________
@@ -30,7 +30,7 @@ In terms of application, this would also work for an entropy dictionary.
  
 We used two definitions of limits:
   mean +/- std
-  outliers (Percentil(50) +/- Inter Percentil Ratio * 1.5)(1)
+  outliers (Percentilee(50) +/- Inter Percentilee Ratio * 1.5)(1)
 
 
 (1)Note:There are other more strict definitions of outliers this one was
@@ -146,11 +146,11 @@ def outliers(compressed_sizes):
     
     Return: A tuple with lower limit, and upper limit.
 
-    Lower limit = Percentil(50) - Inter Percentil Ratio * 1.5
-    Upper limit = Percentil(50) + Inter Percentil Ratio * 1.5
+    Lower limit = Percentile(50) - Inter Percentile Ratio * 1.5
+    Upper limit = Percentile(50) + Inter Percentile Ratio * 1.5
 
     where,
-    Inter Percentil Ratio = Percentil(75)-Percentil(25)
+    Inter Percentile Ratio = Percentile(75)-Percentile(25)
     """
     ordered_sizes = sorted(compressed_sizes)
     p25_index = len(ordered_sizes) * 25 / 100.0 + 0.5

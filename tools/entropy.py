@@ -2,20 +2,20 @@
 Copyright (C) 2012 Mara Matias
 Edited by Marcelo Santos - 2016
 
-This file is part of HRFAnalyse.
+This file is part of TSAnalyse.
 
-    HRFAnalyse is free software: you can redistribute it and/or modify
+    TSAnalyse is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
     by the Free Software Foundation, either version 3 of the License,
     or (at your option) any later version.
 
-    HRFAnalyse is distributed in the hope that it will be useful,
+    TSAnalyse is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with HRFAnalyse.  If not, see
+    along with TSAnalyse.  If not, see
     <http://www.gnu.org/licenses/>.
 
 _______________________________________________________________________________
@@ -70,15 +70,17 @@ def entropy(input_name, function, dimension, tolerances):
 
     method_to_call = getattr(sys.modules[__name__], function)
     entropy_dict = {}
+
     if os.path.isdir(input_name):
         filelist = util.listdir_no_hidden(input_name)
         for filename in filelist:
             entropyData = method_to_call(os.path.join(input_name, filename.strip()), dimension, tolerances[filename])
             entropy_dict[filename.strip()] = entropyData
     else:
+        filename = os.path.basename(input_name)
         tolerances = tolerances[list(tolerances.keys())[0]]
         entropyData = method_to_call(input_name.strip(), dimension, tolerances)
-        entropy_dict[input_name.strip()] = entropyData
+        entropy_dict[filename] = entropyData
     return entropy_dict
 
 
@@ -270,7 +272,7 @@ def apenv2(filename, dimension, tolerance):
 
 
 # AUXILIARY FUNCTIONS
-
+# TODO: here add the parser options for the round digits (see the commented line)
 def add_parser_options(parser):
     """
     (argparse.ArgumentParser) -> NoneType
@@ -288,6 +290,7 @@ def add_parser_options(parser):
                          default=0.1)
     samp_en.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
                          help="Matrix Dimension. [default:%(default)s]", default=2)
+    # util.add_numbers_parser_options(samp_en)
 
     ap_en = entropy_parsers.add_parser('apen', help="Aproximate Entropy")
     ap_en.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
