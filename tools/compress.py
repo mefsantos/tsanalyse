@@ -43,6 +43,7 @@ ENTRY POINT: compress(input_name, compression_algorithm, level, decompress=False
 
 """
 
+# TODO: later i might want to use subprocess import to run C commands instead so i can capture the output + errors
 import os
 import sys
 import bz2
@@ -91,7 +92,7 @@ def compress(input_name, compression_algorithm, level, decompress=False,
     (str,str,int,bool)-> dict of str : CompressionData
 
     Given a file or directory named input_name, apply the desired
-    compression algorithm to all the files. Optionaly a timing on
+    compression algorithm to all the files. Optionally a timing on
     decompression may also be run.
 
     Levels will be set to the compressor's maximum or minimum respectively
@@ -120,13 +121,12 @@ def compress(input_name, compression_algorithm, level, decompress=False,
     if os.path.isdir(input_name):
         filelist = util.listdir_no_hidden(input_name)
         for filename in filelist:
-            filename = filename.strip()  # removes the tailing \n
+            filename = filename.strip()  # removes the trailing \n
             compression_data = method_to_call(os.path.join(input_name, filename), level,
                                               decompress, with_compression_rate, digits_to_round)
-            compressed[filename.strip()] = compression_data
+            compressed[filename] = compression_data
     else:
         entry_name = os.path.basename(input_name.strip())
-
         compression_data = method_to_call(input_name.strip(), level, decompress, with_compression_rate, digits_to_round)
 
         # compressed[input_name.strip()] = compression_data
@@ -188,7 +188,6 @@ def paq8l_compress(input_file, level, decompress, compute_compression_rate, digi
     :param compute_compression_rate: flag to enable the compression rate
     :return  CompressionData
     """
-
     subprocess.check_output('paq8l -%d "%s"' % (level, input_file),
                             shell=True,
                             stderr=subprocess.STDOUT)
@@ -304,8 +303,12 @@ def ppmd_compress(input_file, level, decompress, compute_compression_rate, digit
     :param compute_compression_rate: flag to enable the compression rate
     :return  CompressionData
     """
-    subprocess.call('ppmd e -s -f"%s.ppmd" -m256 -o%d "%s"' % (input_file, level, input_file),
-                    shell=True)
+    # subprocess.call('ppmd e -s -f"%s.ppmd" -m256 -o%d "%s"' % (input_file, level, input_file), shell=True)
+
+    # change the previous line to this so the ppmd comrpessor does not output an empty line into the shell
+    subprocess.check_output('ppmd e -s -f"%s.ppmd" -m256 -o%d "%s"' % (input_file, level, input_file), shell=True,
+                            stderr=subprocess.STDOUT)
+
     original_size = int(os.stat(input_file).st_size)
     compressed_size = int(os.stat(input_file + '.ppmd').st_size)
     compression_rate = None

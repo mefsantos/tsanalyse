@@ -40,14 +40,16 @@ import itertools as it
 import scipy.stats as st
 
 # HRF package home location - when called by package main scripts, i.e.: TSAnalyse[Direct,MultiScale,...]
-HRF_HOME = os.path.abspath(".")
-DEBUG_PATH = os.path.join(HRF_HOME, "debug_runs")
-RUN_ISOLATED_FILES_PATH = os.path.join(HRF_HOME, "individual_runs")
-
+TSA_HOME = os.path.abspath(".")
+DEBUG_PATH = os.path.join(TSA_HOME, "debug_runs")
+RUN_ISOLATED_FILES_PATH = os.path.join(TSA_HOME, "individual_runs")
+BLOCK_ANALYSIS_OUTPUT_PATH = os.path.join(TSA_HOME, "block_analysis")
+FILE_BLOCKS_STORAGE_PATH = os.path.join(TSA_HOME, "file_blocks")
 # Check if the folder required for debug and individual runs exists and create them if necessary
 
-if not os.path.exists(DEBUG_PATH):
-    os.mkdir(DEBUG_PATH)
+
+# if not os.path.exists(DEBUG_PATH):
+#     os.mkdir(DEBUG_PATH)
 
 if not os.path.exists(RUN_ISOLATED_FILES_PATH):
     os.mkdir(RUN_ISOLATED_FILES_PATH)
@@ -55,6 +57,13 @@ if not os.path.exists(RUN_ISOLATED_FILES_PATH):
 
 # DEBUG FLAG
 DEBUG = False
+
+
+# dataset name
+def get_dataset_name_from_path(dataset_path):
+    if os.path.isdir(dataset_path):
+        return os.path.basename(dataset_path).replace(" ", "_")
+    return (os.path.basename(dataset_path).replace(" ", "_")).replace(".", "_")
 
 
 # List utility functions
@@ -275,6 +284,12 @@ def remove_file_extension(file_name):
     return '.'.join(file_name.split('.')[:-1])
 
 
+def get_file_extension(file_name):
+    if not os.path.isdir(file_name):
+        return '.'.join(file_name.split('.')[-1])
+    return ""
+
+
 def remove_slash_from_path(path):
     """
     remove the tailing '/' from the path argument
@@ -306,19 +321,20 @@ def generate_header_from_list_with_string(base_list, string_for_header):
 
 def replace_char_in_filename_by(path_to_eval=".", char_to_remove=" ", char_to_place="_"):
     """
-    Replace space in file names for char_to_replace
+    Replace char_to_remove in file names for char_to_replace in a given directory
     :param path_to_eval: path to evaluate
     :param char_to_remove: character to be replaced
     :param char_to_replace: character to be placed instead of space
     """
     dir_path = os.path.expanduser(remove_slash_from_path(path_to_eval))
     if os.path.exists(dir_path):
-        for filename in os.listdir(dir_path):
-            new_name = filename.replace(char_to_remove, char_to_place)
-            name_2_write = os.path.join(dir_path, filename.replace(" ", char_to_place))
-            if new_name != filename:
-                os.rename(os.path.join(dir_path, filename), name_2_write)
-                print("Renaming %s into %s" % (filename, new_name))
+        if os.path.isdir(dir_path):
+            for filename in os.listdir(dir_path):
+                new_name = filename.replace(char_to_remove, char_to_place)
+                name_2_write = os.path.join(dir_path, filename.replace(" ", char_to_place))
+                if new_name != filename:
+                    os.rename(os.path.join(dir_path, filename), name_2_write)
+                    print("Renaming %s into %s" % (filename, new_name))
     else:
         raise IOError("Path does not exist.")
 

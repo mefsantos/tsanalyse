@@ -1,4 +1,4 @@
-## Instalation Notes
+## Installation Notes
 
 The tool set requires some external libraries described in _Requirements.txt_, along with instructions.
 **env_setup.sh** script automatically install and link all the dependencies required for UBUNTU systems.
@@ -27,32 +27,17 @@ The main interface TSAnalyseDirect allows for operations to be applied to files 
         
         ./TSAnalyseDirect.py unittest_dataset filter
     
-    Retrieve the timestamps and hrf from the first hour: 
+    Retrieve the timestamps and hrf:
         
-        ./TSAnalyseDirect.py unittest_dataset filter -kt -s 3600
+        ./TSAnalyseDirect.py unittest_dataset filter -kt
     
-    
-    Retrieve the valid hrf(50<=hrf<=250) for the last hour:
+    Retrieve the hrf of the file discarding the first 60 seconds
         
-        ./TSAnalyseDirect.py unittest_dataset filter -s 3600 --apply-limits --start-at-end
-    
-    Retrieve the hrf for the interval 1m--61m
-        
-        ./TSAnalyseDirect.py unittest_dataset filter -ds 1 -s 3600
+        ./TSAnalyseDirect.py unittest_dataset filter -ds 60
     
     Retrieve the hrf from first 2000 lines:
         
         ./TSAnalyseDirect.py unittest_dataset filter -s 2000 --use_lines
-    
-    Break the file into 5 minute blocks where the blocks don't overlap
-        
-        ./TSAnalyseDirect.py unittest_dataset filter -s 300 --full-file
-    
-    Break the file into 5 minute blocks where the blocks start with a one
-    minute difference
-        
-        ./TSAnalyseDirect.py unittest_dataset filter -s 300 -g 60 --full-file
-
 
 
 * Compress
@@ -60,7 +45,12 @@ The main interface TSAnalyseDirect allows for operations to be applied to files 
     Compress using the gzip algorithm (maximum compression level will be used)
         
         ./TSAnalyseDirect.py unittest_dataset compress -c gzip
-    
+
+    Compress using the brotli algorithm (maximum compression level will be used) and return an additional column with
+    the compression ratio
+
+        ./TSAnalyseDirect.py unittest_dataset compress -c brotli -cr
+
     Compress using the bzip2 algorithm with minimum compression(1 in this case):
         
         ./TSAnalyseDirect.py unittest_dataset compress -c bzip2 --level 1
@@ -96,19 +86,15 @@ automatically.
        Cut files into blocks with 300 lines with no overlap and compress each one with the default compressor
         
         ./TSAnalyseFileBlocks.py unittest_dataset/ -s 300 --use-lines compress
-        
-        
-       Cut files into blocks with 5 min where one block starts 1 min later then the previous one did. Compress each one with the paq8l compressor
-        
-        ./TSAnalyseFileBlocks.py unittest_dataset/ -s 300 -g 60 compress -c paq8l
 
 
 * Entropy
     
-       Cut files into blocks with 5 min where one block starts 1 min later then the previous one did. Calculte each files entropy using the Sample entropy.
+       Cut files into blocks with 5 min where one block starts 1 min later then the previous one did.
+       Calculate each files entropy using the Sample entropy.
         
         ./TSAnalyseFileBlocks.py unittest_dataset/ -s 300 -g 60 entropy sampen
-    
+
 
 ## TSAnalyseMultiScale
 

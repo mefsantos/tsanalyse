@@ -224,15 +224,16 @@ if __name__ == "__main__":
     logger.addHandler(log_output)
 
     input_dir = options['inputdir'].strip()
-
     input_dir = util.remove_slash_from_path(input_dir)  # if slash exists
 
-    # compute multiscales
+    # commands that need to compute multiscales
     if options['command'] not in ["comp_ratio", "cr", "confidence_interval_slope_analysis", "cisa"]:
         # add exception in case we try to run a single file and not a directory
         scales_dir = '%s_Scales' % (input_dir if os.path.isdir(input_dir)
                                     else os.path.join(util.RUN_ISOLATED_FILES_PATH,
                                                       os.path.basename(util.remove_file_extension(input_dir))))
+
+        scales_dir = os.path.abspath(scales_dir)
 
         if options['round']:
             scales_dir += "_int"
@@ -241,7 +242,6 @@ if __name__ == "__main__":
 
         logger.info("Creating Scales Directory")
 
-        # TODO: start using a specific directory for the outputs
         tools.multiscale.create_scales(input_dir, scales_dir, options["scale_start"], options["scale_stop"] + 1,
                                        options["scale_step"], options['mul_order'], options['round'])
         logger.info("Scales Directory created")
@@ -255,7 +255,7 @@ if __name__ == "__main__":
         else:
             output_name = input_dir
 
-        # TODO : CONTINUAR A DEFINIR OUTPUT_NAME COMO NOME DO FICHEIRO A GRAVAR
+        # TODO : CONTINUAR A DEFINIR OUTPUT_NAME COMO NOME DO FICHEIRO A GRAVAR - solved?
 
         if options["command"] == "compress":
             options["level"] = tools.compress.set_level(options)

@@ -397,7 +397,7 @@ def sniffer(lines, start_at_end=False):
     return cumulative, float(time_stamp)
 
 
-def add_parser_options(parser, full_file_option=True):
+def add_parser_options(parser, full_file_option=True, file_blocks_usage=False):
     """
      (argparse.ArgumentParser, bool) -> NoneType
 
@@ -417,23 +417,29 @@ def add_parser_options(parser, full_file_option=True):
                         action="store_true",
                         default=False,
                         help="Partition using line count instead of time")
+
     # 28/02/18 - removed flags to avoid excessive unexplained functionalities (paper review)
-    # parser.add_argument("-sae", "--start-at-end", dest="start_at_end",
-    #                     action="store_true",
-    #                     default=False,
-    #                     help="Partition from end of file instead of beginning")
-    # parser.add_argument("-s", "--section", dest="section", metavar="SECONDS",
-    #                     action="store",
-    #                     type=float,
-    #                     # default=60,
-    #                     help="Amount of time in seconds to be captured. default:[%(default)s]")
-    # parser.add_argument("-g", "--gap", dest="gap", metavar="SECONDS",
-    #                     action="store",
-    #                     type=float,
-    #                     default=0,
-    #                     help="gap between sections. default:[%(default)s]")
-    # if full_file_option:
-    #     parser.add_argument("-ff", "--full-file", dest="full_file",
-    #                         action="store_true",
-    #                         default=False,
-    #                         help="Partition the full file into blocks")
+    # correction: 30/03/18 - we will only consider these flags to the FileBlocks
+
+    if file_blocks_usage:
+        #  30/03/18: however this one may still be disabled
+        # parser.add_argument("-sae", "--start-at-end", dest="start_at_end",
+        #                     action="store_true",
+        #                     default=False,
+        #                     help="Partition from end of file instead of beginning")
+
+        parser.add_argument("-s", "--section", dest="section", metavar="SECONDS",
+                            action="store",
+                            type=float,
+                            default=60,
+                            help="Amount of time in seconds to be captured. default:[%(default)s]")
+        parser.add_argument("-g", "--gap", dest="gap", metavar="SECONDS",
+                            action="store",
+                            type=float,
+                            default=0,
+                            help="gap between sections. default:[%(default)s]")
+        if full_file_option:
+            parser.add_argument("-ff", "--full-file", dest="full_file",
+                                action="store_true",
+                                default=False,
+                                help="Partition the full file into blocks")

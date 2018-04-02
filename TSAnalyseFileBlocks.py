@@ -3,6 +3,7 @@
 """
 
 Copyright (C) 2012 Mara Matias
+Edited by Marcelo Santos - 2016
 
 This file is part of TSAnalyse.
 
@@ -126,18 +127,20 @@ Calculate each files entropy using the Sample entropy.
 
 """
 
-import argparse
-import tools.partition
-import tools.compress
-import tools.entropy
-import tools.separate_blocks
 import os
 import csv
 import logging
+import argparse
+import tools.entropy
+import tools.compress
+import tools.partition
+import tools.separate_blocks
+import tools.utilityFunctions as util
 
 # TODO: add another parameter (sampling_frequency) in order to partition by seconds
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser(description="Analysis of the file's blocks")
     parser.add_argument("inputfile", metavar="INPUT FILE", help="File to be analysed")
     parser.add_argument("--log", action="store", metavar="LOGFILE", default=None, dest="log_file",
@@ -145,7 +148,7 @@ if __name__ == "__main__":
     parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
                         choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default="WARNING")
 
-    tools.partition.add_parser_options(parser, full_file_option=False)
+    tools.partition.add_parser_options(parser, full_file_option=False, file_blocks_usage=True)
 
     subparsers = parser.add_subparsers(help='Different commands to be run on directory', dest="command")
 
@@ -162,6 +165,10 @@ if __name__ == "__main__":
     logger = logging.getLogger('tsanalyse')
     logger.setLevel(getattr(logging, options['log_level']))
 
+    # THESE OPTIONS ARE DISABLED FOR NOW
+    options['start_at_end'] = False
+    options['decompress'] = None
+
     if options['log_file'] is None:
         log_output = logging.StreamHandler()
     else:
@@ -171,16 +178,31 @@ if __name__ == "__main__":
     log_output.setFormatter(formatter)
     logger.addHandler(log_output)
 
-    if options['inputfile'].endswith('/'):
-        options['inputfile'] = options['inputfile'][:-1]
+    inputdir = options['inputfile'].strip()
+    inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
 
-    if os.path.isdir(options['inputfile']):
-        dest_dir = "%s_parts_%d_%d" % (options['inputfile'], options['section'], options['gap'])
-    else:
-        dest_dir = "%s_parts_%d_%d" % (os.path.dirname(options['inputfile']), options['section'], options['gap'])
-    if not os.path.isdir(dest_dir):
-        logger.info("Creating %s!" % dest_dir)
-        os.makedirs(dest_dir)
+    if not os.path.exists(util.BLOCK_ANALYSIS_OUTPUT_PATH):
+        logger.info("Creating %s..." % util.BLOCK_ANALYSIS_OUTPUT_PATH)
+        os.mkdir(util.BLOCK_ANALYSIS_OUTPUT_PATH)
+
+    if not os.path.exists(util.FILE_BLOCKS_STORAGE_PATH):
+        logger.info("Creating %s..." % util.BLOCK_ANALYSIS_OUTPUT_PATH)
+        os.mkdir(util.FILE_BLOCKS_STORAGE_PATH)
+
+    # if os.path.isdir(inputdir):
+    #     # dest_dir = "%s_parts_%d_%d" % (options['inputfile'], options['section'], options['gap'])
+    #     dir_name = "%s_parts_%d_%d" % (inputdir, options['section'], options['gap'])
+    # else:
+    #     dest_dir = "%s_parts_%d_%d" % (os.path.dirname(options['inputfile']), options['section'], options['gap'])
+
+    file_blocks_suffix = "sec_%d_gap_%d" % (options['section'], options['gap'])
+    dataset_suffix_name = "%s_parts_%s" % (util.get_dataset_name_from_path(inputdir), file_blocks_suffix)
+
+    dest_dir = os.path.join(util.FILE_BLOCKS_STORAGE_PATH, dataset_suffix_name)
+
+    if not os.path.exists(dest_dir):
+        logger.info("Creating %s..." % dest_dir)
+        os.mkdir(dest_dir)
 
     logger.info("%s will be used to store file partitions" % dest_dir)
 
@@ -188,7 +210,7 @@ if __name__ == "__main__":
     logger.info("Partitioning file in %d minutes intervals with %d gaps " % (options['section'], options['gap']))
     if options['gap'] == 0:
         options['gap'] = options['section']
-    block_minutes = tools.partition.partition(options['inputfile'],
+    block_minutes = tools.partition.partition(inputdir,
                                               dest_dir,
                                               options['partition_start'],
                                               options['section'],
@@ -210,12 +232,22 @@ if __name__ == "__main__":
             compressed[bfile] = tools.compress.compress(os.path.join(dest_dir, "%s_blocks" % bfile),
                                                         options['compressor'], options['level'], options['decompress'])
             logger.info("Compression complete")
+
         for filename in compressed:
             if options['decompress']:
-                fboutname = "%s_decompress_%s.csv" % (filename, options['compressor'])
+                fboutsuffix = "%s_%s_decompress_%s.csv" % (os.path.basename(filename),
+                                                           file_blocks_suffix,
+                                                           options['compressor'])
             else:
-                fboutname = "%s_%s_lvl_%s.csv" % (filename, options['compressor'], options['level'])
-            writer = csv.writer(open(fboutname, "w"), delimiter=";")
+                fboutsuffix = "%s_%s_%s_lvl_%s.csv" % (os.path.basename(filename),
+                                                        file_blocks_suffix,
+                                                        options['compressor'],
+                                                        options['level'])
+
+            fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
+
+            file_to_write = open(fboutname, "w")
+            writer = csv.writer(file_to_write, delimiter=";")
             header = ["Block", "Original Size", "Compressed Size"]
             if options['decompress']:
                 header.append("Decompression Time")
@@ -228,6 +260,7 @@ if __name__ == "__main__":
                 writer.writerow(row_data)
 
             print("Storing into: %s" % os.path.abspath(fboutname))
+            file_to_write.close()
 
     elif options['command'] == 'entropy':
         entropy = {}
@@ -242,8 +275,13 @@ if __name__ == "__main__":
                                                    tolerances)
             logger.info("Entropy calculations complete")
         for filename in entropy:
-            fboutname = "%s_%s_dim_%d_tol_%.2f.csv" % (filename, options['entropy'], options['dimension'], options['tolerance'])
-            writer = csv.writer(open(fboutname, "w"), delimiter=";")
+            fboutsuffix = "%s_%s_%s_dim_%d_tol_%.2f.csv" % (os.path.basename(filename), file_blocks_suffix,
+                                                       options['entropy'], options['dimension'], options['tolerance'])
+
+            fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
+
+            file_to_write = open(fboutname, "w")
+            writer = csv.writer(file_to_write, delimiter=";")
             header = ["Block", "Entropy"]
             writer.writerow(header)
             for blocknum in range(1, len(entropy[filename]) + 1):
@@ -252,3 +290,4 @@ if __name__ == "__main__":
                 writer.writerow(row_data)
 
             print("Storing into: %s" % os.path.abspath(fboutname))
+            file_to_write.close()

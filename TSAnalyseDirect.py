@@ -179,40 +179,40 @@ csa_exists = False
 dsduration_exists = False
 
 # under development / unnecessary tools
-try:
-    import tools.csv2txsp3
-    csv2txsp3_exists = True
-except ImportError:
-    #  module missing - gitIgnore
-    import_logger.info("Missing module: csv2txsp3. Ignoring...")
+# try:
+#     import tools.csv2txsp3
+#     csv2txsp3_exists = True
+# except ImportError:
+#     #  module missing - gitIgnore
+#     import_logger.info("Missing module: csv2txsp3. Ignoring...")
 
-try:
-    import tools.recordDuration
-    recordDuration_exists = True
-except ImportError:
-    #  module missing - gitIgnore
-    import_logger.info("Missing module: recordDuration. Ignoring...")
-
-try:
-    import tools.fetalMaturationAnalysis
-    fma_exists = True
-except ImportError:
-    #  module missing - gitIgnore
-    import_logger.info("Missing module: fetalMaturationAnalysis. Ignoring...")
-
-try:
-    import tools.clampStateAnalysis
-    csa_exists = True
-except ImportError:
-    #  module missing - gitIgnore
-    import_logger.info("Missing module: clampStateAnalysis. Ignoring...")
-
-try:
-    import tools.durationFromSingleDS as dsd
-    dsduration_exists = True
-except ImportError:
-    #  module missing - gitIgnore
-    import_logger.info("Missing module: durationFromSingleDS. Ignoring...")
+# try:
+#     import tools.recordDuration
+#     recordDuration_exists = True
+# except ImportError:
+#     #  module missing - gitIgnore
+#     import_logger.info("Missing module: recordDuration. Ignoring...")
+#
+# try:
+#     import tools.fetalMaturationAnalysis
+#     fma_exists = True
+# except ImportError:
+#     #  module missing - gitIgnore
+#     import_logger.info("Missing module: fetalMaturationAnalysis. Ignoring...")
+#
+# try:
+#     import tools.clampStateAnalysis
+#     csa_exists = True
+# except ImportError:
+#     #  module missing - gitIgnore
+#     import_logger.info("Missing module: clampStateAnalysis. Ignoring...")
+#
+# try:
+#     import tools.durationFromSingleDS as dsd
+#     dsduration_exists = True
+# except ImportError:
+#     #  module missing - gitIgnore
+#     import_logger.info("Missing module: durationFromSingleDS. Ignoring...")
 
 import_logger.info(" ###################### ")
 
@@ -265,6 +265,17 @@ def clean_procedures(inputdir, options):
     return outputdir
 
 
+def set_disabled_parser_options_values(options):
+    # filter
+    if not hasattr(options, "start_at_end"):
+        options["start_at_end"] = False
+    if not hasattr(options, "section"):
+        options["section"] = None
+    if not hasattr(options, "gap"):
+        options["gap"] = None
+    if not hasattr(options, "full_file"):
+        options["full_file"] = True
+
 if __name__ == "__main__":
 
     # lets evaluate the directory for individual runs here
@@ -272,9 +283,9 @@ if __name__ == "__main__":
         os.mkdir(util.RUN_ISOLATED_FILES_PATH)
 
     # TODO: validate the input inside each module (to avoid unnecessary computation terminating in errors)
-    parser = argparse.ArgumentParser(description="Generates a table of file compression/entropy and new data sets "
+    parser = argparse.ArgumentParser(description="Generates a table of file compression/entropy and new datasets "
                                                  "(when needed) for a given file or directory")
-    parser.add_argument("inputdir", metavar="INPUT PATH", help="Path for a file or directory containing the data sets "
+    parser.add_argument("inputdir", metavar="INPUT PATH", help="Path for a file or directory containing the datasets "
                                                                "to be used as input", action="store")
     parser.add_argument("--log", action="store", metavar="LOGFILE", default=None, dest="log_file",
                         help="Use LOGFILE to save logs.")
@@ -283,9 +294,10 @@ if __name__ == "__main__":
 
     subparsers = parser.add_subparsers(help='Different commands/operations to execute on the data sets', dest="command")
 
-    ds_filter = subparsers.add_parser('filter', help='Clean all the files in the given directory')
+    ds_filter = subparsers.add_parser('filter', help='Filter all the files in the given directory')
     tools.filter.add_parser_options(ds_filter)
     tools.partition.add_parser_options(ds_filter, full_file_option=True)
+    tools.utilityFunctions.add_csv_parser_options(ds_filter)
 
     compress = subparsers.add_parser('compress', help='Compress all the files in the given directory')
     tools.compress.add_parser_options(compress)
@@ -345,6 +357,9 @@ if __name__ == "__main__":
 
     # parser definition ends
 
+    # disabled filter parser options:
+    set_disabled_parser_options_values(options)
+
     logger = logging.getLogger('tsanalyse')
     logger.setLevel(getattr(logging, options['log_level']))
 
@@ -352,47 +367,47 @@ if __name__ == "__main__":
         log_output = logging.StreamHandler()
     else:
         log_output = logging.FileHandler(options['log_file'])
+
     log_output.setLevel(getattr(logging, options['log_level']))
     formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
     log_output.setFormatter(formatter)
     logger.addHandler(log_output)
 
     # Global options for csv's
-    if options['command'] in ["clamp_analysis", "ca", "fma", "longitbase", "compress", "decompress"]:
-        read_sep, write_sep, line_term = options['read_separator'], options['write_separator'], options[
-            'line_terminator']
+    read_sep = options['read_separator'] if hasattr(options, "read_separator") else ";"
+    write_sep = options['write_separator'] if hasattr(options, "write_separator") else ";"
+    line_term = options['line_terminator'] if hasattr(options, "line_terminator") else "\n"
+    # read_sep, write_sep, line_term = , options['write_separator'], options['line_terminator']
 
-        if options['round_digits'] is not None:
-            round_digits = int(options['round_digits'])
-        else:
-            round_digits = None
+    round_digits = int(options['round_digits']) if hasattr(options, "round_digits") else None
+    round_digits = int(round_digits) if round_digits is not None else None
+
+    # if hasattr(args, "round_digits"):
+    #     if options['round_digits'] is not None:
+    #         round_digits = int(options['round_digits'])
+    #     else:
+    #         round_digits = None
 
     inputdir = options['inputdir'].strip()
-
     inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
 
+    # TODO: move the filter command to be an individual interface
     if options['command'] == 'filter':
         outputdir = clean_procedures(inputdir, options)
         if options['section']:
             outputdir = partition_procedures(outputdir, options)
         inputdir = outputdir
 
-    # "bad" if: if we test a single file it will merge the file and folder names and store in the
-    # previous directory. best solution is to use parser options or the debug flag
     if not os.path.isdir(inputdir):
-        # output_name = "%s_%s" % (os.path.split(inputdir)[0], os.path.basename(inputdir))
         output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH, os.path.basename(util.remove_file_extension(inputdir)))
-        # if we are just evaluating a file we will place it in RUN_ISOLATED_FILES_PATH with its original name without
-        # the csv. the rest of the name will be added depending on the operation
     else:
         output_name = inputdir
 
     if options['command'] == 'compress':
         compressor = options['compressor']
-        digits_to_round = options['round_digits']
         level = tools.compress.set_level(options)
         resulting_dict = tools.compress.compress(inputdir, compressor, level, False,
-                                                 options['comp_ratio'], digits_to_round)
+                                                 options['comp_ratio'], round_digits)
 
         # options['decompress'], options['comp_ratio']) # decompress is disabled
         # if options['decompress']:

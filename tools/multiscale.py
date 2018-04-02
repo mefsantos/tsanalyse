@@ -145,6 +145,7 @@ def multiscale_compression(input_name, scales_dir, start, stop, step, compressor
             for scale in range(start, stop, step):
                 # file_to_compress = os.path.join("%s_Scales" % input_name, "Scale %d" % scale, filename)
                 file_to_compress = os.path.join(scales_dir, "Scale %d" % scale, filename)
+
                 compression_results = compress(file_to_compress, compressor, level, decompress,
                                                with_compression_rate, round_digits)
 
@@ -205,6 +206,7 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
         files_stds = calculate_std(os.path.join("%s_Scales" % input_name, "Scale %d" % start))
         tolerances = dict((filename, files_stds[filename] * tolerance) for filename in files_stds)
         for filename in filelist:
+
             entropy_table[filename] = []
             for scale in range(start, stop, step):
                 file_in_scale = os.path.join("%s_Scales" % input_name, "Scale %d" % scale, filename)
@@ -212,7 +214,8 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
                                           entropy_function,
                                           dimension,
                                           {filename: tolerances[filename]})
-                entropy_table[filename].append(entropy_results[file_in_scale][1])
+
+                entropy_table[filename].append(entropy_results[filename].entropy)
     else:
         filename = os.path.basename(input_name)
         file_for_std = os.path.join(scales_dir, "Scale %d" % start, filename)

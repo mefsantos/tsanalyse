@@ -9,20 +9,20 @@ class TestCompressModule(unittest.TestCase):
     """
     Tests for the compress module
 
-    All the test use a predetermined file adulterado in the unittest_dataset_clean
-        Only original size and compressed size are tested since decomporession time
-    is always an avarage.
+    All the test use a predetermined file adulterado in unittest_dataset_filtered
+        Only original size and compressed size are tested since decompression time
+    is always an average.
     """
 
     @classmethod
     def setUpClass(cls):
-        if not os.path.exists('unittest_dataset_clean'):
-            os.mkdir('unittest_dataset_clean')
-        tools.filter.ds_filter('unittest_dataset/adulterado.txt', 'unittest_dataset_clean', apply_limits=True)
+        if not os.path.exists('unittest_dataset_filtered'):
+            os.mkdir('unittest_dataset_filtered')
+        tools.filter.ds_filter('unittest_dataset/adulterado.txt', 'unittest_dataset_filtered', apply_limits=True)
 
     @classmethod
     def tearDownClass(cls):
-        shutil.rmtree('unittest_dataset_clean')
+        shutil.rmtree('unittest_dataset_filtered')
 
     def test_gzip_max(self):
         """
@@ -30,7 +30,7 @@ class TestCompressModule(unittest.TestCase):
     compression level.
 
     """
-        cd = tools.compress.gzip_compress('unittest_dataset_clean/adulterado.txt', 9, False)
+        cd = tools.compress.gzip_compress('unittest_dataset_filtered/adulterado.txt', 9, False)
         self.assertEqual(cd.original, 47385)
         self.assertEqual(cd.compressed, 17029)
 
@@ -40,7 +40,7 @@ class TestCompressModule(unittest.TestCase):
     compression level.
 
     """
-        cd = tools.compress.brotli_compress('unittest_dataset_clean/adulterado.txt', 11, False)
+        cd = tools.compress.brotli_compress('unittest_dataset_filtered/adulterado.txt', 11, False)
         self.assertEqual(cd.original, 47385)
         self.assertEqual(cd.compressed, 13969)
 
@@ -51,7 +51,7 @@ class TestCompressModule(unittest.TestCase):
     Test the result of calling the paq8l compressor with maximum compression level
     for the file.
     """
-        cd = tools.compress.paq8l_compress('unittest_dataset_clean/adulterado.txt', 8, False)
+        cd = tools.compress.paq8l_compress('unittest_dataset_filtered/adulterado.txt', 8, False)
         self.assertEqual(cd.original, 47385)
         self.assertEqual(cd.compressed, 9741)
 
@@ -63,7 +63,7 @@ class TestCompressModule(unittest.TestCase):
     not used, rather it serves to show that it is in fact not being used -- see
     test_lzma_min the values are the same)
     """
-        cd = tools.compress.lzma_compress('unittest_dataset_clean/adulterado.txt', 9, False)
+        cd = tools.compress.lzma_compress('unittest_dataset_filtered/adulterado.txt', 9, False)
         self.assertEqual(cd.original, 47385)
         self.assertEqual(cd.compressed, 13282)
 
@@ -72,7 +72,7 @@ class TestCompressModule(unittest.TestCase):
     Test the results of calling the bzip2 compressor with maximum level of
     compression.
     """
-        cd = tools.compress.bzip2_compress('unittest_dataset_clean/adulterado.txt', 9, False)
+        cd = tools.compress.bzip2_compress('unittest_dataset_filtered/adulterado.txt', 9, False)
         self.assertEqual(cd.original, 47385)
         self.assertEqual(cd.compressed, 13040)
 
@@ -83,7 +83,7 @@ class TestCompressModule(unittest.TestCase):
     Test the results of calling the ppmd compressor with maximum level of
     compression.
     """
-        cd = tools.compress.ppmd_compress('unittest_dataset_clean/adulterado.txt', 16, False)
+        cd = tools.compress.ppmd_compress('unittest_dataset_filtered/adulterado.txt', 16, False)
         self.assertEqual(cd.original, 47385)
         self.assertEqual(cd.compressed, 12950)
 
@@ -94,7 +94,7 @@ class TestCompressModule(unittest.TestCase):
     Test the result of calling the spbio compressor with maximum compression level
     for the file.
     """
-        cd = tools.compress.spbio_compress('unittest_dataset_clean/adulterado.txt', 8, False)
+        cd = tools.compress.spbio_compress('unittest_dataset_filtered/adulterado.txt', 8, False)
         self.assertEqual(cd.original, 47385)
         self.assertEqual(cd.compressed, 9741)
 

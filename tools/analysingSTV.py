@@ -1,5 +1,5 @@
 """
-Copyright (C) 2016 Marcelo Santos
+Copyright (C) 2017 Marcelo Santos
 
 This file is part of TSAnalyse.
 
@@ -270,7 +270,8 @@ def stv_sd_subsets(time_series_to_eval,  sampling_frequency=4, duration_in_secon
     return map(lambda subset: np.std(subset), lol_of_subsets)
 
 
-def stv_sd(time_series_to_eval):
+# need this dummy param so that i can use method_to_call()
+def stv_sd(time_series_to_eval, sampling_frequency=4):
     return np.std(time_series_to_eval)
 
 # # test example - arduini standard
@@ -286,6 +287,7 @@ def stv_sd(time_series_to_eval):
 # l7 = stv_van_geijn(simple_list)
 
 
+# TODO: add entry point for a single file and not only a directory
 # TODO: add parameter for duration of the subsets if needed and standardize every function to the same parameters
 def compute_stv_metric_of_file(input_file_name, algorithm_name, sampling_frequency=4):
     dataframe = pandas.read_csv(input_file_name)
@@ -310,7 +312,7 @@ def compute_stv_metric_of_directory(input_path, algorithm_name, sampling_frequen
 
     if output_path is None:
         base_path = os.path.dirname(os.path.abspath(util.remove_slash_from_path(input_path)))
-        output_path = os.path.join(base_path, "stv_algorithms")
+        output_path = os.path.join(base_path, "stv_analysis")
 
     if not os.path.exists(output_path):
         os.mkdir(output_path)

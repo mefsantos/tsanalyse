@@ -408,8 +408,16 @@ docs/_build/
 target/
 
 
-# Manually added to discard user csv's
+# Manually added to discard user csv's folders generated from the evaluations
+unittest_dataset_filtered/
+unittest_dataset_filtered*/
+unittest_dataset_parts*/
+*_parts_*/
 individual_runs/
 debug_runs/
+sisporto_txsp3/
 clampage_state_analysis/
 *_Scales/
+file_blocks/
+block_analysis/
+*.csv
