@@ -211,6 +211,14 @@ if __name__ == "__main__":
 
     options["decompress"] = None  # decompress is disabled. This os the shortest mod without deleting code
 
+    # TODO: later we might remove this when every command accepts these flags
+    read_sep = options['read_separator'] if hasattr(args, "read_separator") else ";"
+    write_sep = options['write_separator'] if hasattr(args, "write_separator") else ";"
+    line_term = options['line_terminator'] if hasattr(args, "line_terminator") else "\n"
+
+    round_digits = options['round_digits'] if hasattr(args, "round_digits") else None
+    round_digits = int(round_digits) if round_digits is not None else None
+
     logger = logging.getLogger('tsanalyse')
     logger.setLevel(getattr(logging, options['log_level']))
 
@@ -337,7 +345,8 @@ if __name__ == "__main__":
                 entropy_table = tools.multiscale.multiscale_entropy(input_dir, scales_dir,
                                                                     options["scale_start"], options["scale_stop"] + 1,
                                                                     options["scale_step"], options["entropy"],
-                                                                    options["dimension"], options["tolerance"])
+                                                                    options["dimension"], options["tolerance"],
+                                                                    round_digits)
 
                 output_file = open(outfile, "w")
                 writer = csv.writer(output_file, delimiter=";")

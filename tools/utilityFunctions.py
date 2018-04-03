@@ -58,14 +58,6 @@ if not os.path.exists(RUN_ISOLATED_FILES_PATH):
 # DEBUG FLAG
 DEBUG = False
 
-
-# dataset name
-def get_dataset_name_from_path(dataset_path):
-    if os.path.isdir(dataset_path):
-        return os.path.basename(dataset_path).replace(" ", "_")
-    return (os.path.basename(dataset_path).replace(" ", "_")).replace(".", "_")
-
-
 # List utility functions
 def head(v_list, num_elements=1):
     """
@@ -339,6 +331,13 @@ def replace_char_in_filename_by(path_to_eval=".", char_to_remove=" ", char_to_pl
         raise IOError("Path does not exist.")
 
 
+# dataset name
+def get_dataset_name_from_path(dataset_path):
+    if os.path.isdir(dataset_path):
+        return os.path.basename(dataset_path).replace(" ", "_")
+    return (os.path.basename(dataset_path).replace(" ", "_")).replace(".", "_")
+
+
 def output_name(filename, basepath=None, filename_suffix=""):
     """
     Generate the output filename based on the input name
@@ -373,35 +372,6 @@ def write_list_to_file(file_2_write, list_2_write):
     for val in list_2_write:
         f2w.write("%d\n" % val)
     f2w.close()
-
-
-def append_comp_ratio_column(input_filename, round_digits=None, insep=";", outsep=";", line_term="\n"):
-    """
-    Receives path for a csv file (with compression metrics), appends a column with the compression Ratio and stores
-    the file
-    :param input_filename: path for the file to read
-    :param round_digits: number of digits to use when rounding
-    :param insep: separator to consider when reading the file [default: ";"]
-    :param outsep: separator to consider when writing the file [default: ";"]
-    :param line_term: line termination character to consider when writing the file [default: "\n"] (Windows uses "\r\n")
-    """
-    original_df = pd.read_csv(input_filename, insep)
-    comp_ratios_list = list()
-    header_name = "CRx100"
-    for df_line in original_df.iterrows():
-        original_size, compressed_size = df_line[1].ix[1], df_line[1].ix[2]
-        line_comp_ratio = compression_ratio(original_size, compressed_size)
-        if original_size < compressed_size:
-            line_comp_ratio = -line_comp_ratio
-
-        comp_ratios_list.append(line_comp_ratio)
-    if round_digits is not None:
-        comp_ratios_list = round_list(comp_ratios_list, round_digits)
-    col_df = pd.DataFrame(comp_ratios_list, columns=[header_name], index=None)
-    res_df = pd.concat([original_df,col_df], axis=1)
-    print("Storing into: %s" % os.path.abspath(input_filename))
-
-    res_df.to_csv(input_filename, sep=outsep, index=False, line_terminator=line_term)
 
 
 # Multi Scale related
@@ -618,4 +588,5 @@ def add_debug_parser_options(parser):
                         dest="debug_mode",
                         action="store_true",
                         default=False,
-                        help="Run in debug mode. Storage path is set to ;[default: %(default)s]")
+                        help="Run in debug mode.")
+# help="Run in debug mode. Storage path is set to ;[default: %(default)s]")

@@ -154,6 +154,8 @@ if __name__ == "__main__":
 
     compress = subparsers.add_parser('compress', help='compress all the files in the given directory')
     tools.compress.add_parser_options(compress)
+    tools.utilityFunctions.add_csv_parser_options(compress)
+    tools.utilityFunctions.add_numbers_parser_options(compress)
 
     entropy = subparsers.add_parser('entropy', help='calculate entropy for all the files in the given directory')
     tools.entropy.add_parser_options(entropy)
@@ -168,6 +170,14 @@ if __name__ == "__main__":
     # THESE OPTIONS ARE DISABLED FOR NOW
     options['start_at_end'] = False
     options['decompress'] = None
+
+    # TODO: later we might remove this when every command accepts these flags
+    read_sep = options['read_separator'] if hasattr(args, "read_separator") else ";"
+    write_sep = options['write_separator'] if hasattr(args, "write_separator") else ";"
+    line_term = options['line_terminator'] if hasattr(args, "line_terminator") else "\n"
+
+    round_digits = options['round_digits'] if hasattr(args, "round_digits") else None
+    round_digits = int(round_digits) if round_digits is not None else None
 
     if options['log_file'] is None:
         log_output = logging.StreamHandler()
@@ -230,31 +240,41 @@ if __name__ == "__main__":
             # creating the block for compatibility with windows, so this line
             # changes the filename
             compressed[bfile] = tools.compress.compress(os.path.join(dest_dir, "%s_blocks" % bfile),
-                                                        options['compressor'], options['level'], options['decompress'])
+                                                        options['compressor'], options['level'],
+                                                        options['decompress'], options['comp_ratio'], round_digits)
             logger.info("Compression complete")
 
         for filename in compressed:
             if options['decompress']:
-                fboutsuffix = "%s_%s_decompress_%s.csv" % (os.path.basename(filename),
-                                                           file_blocks_suffix,
-                                                           options['compressor'])
+                fboutsuffix = "%s_%s_decompress_%s" % (os.path.basename(filename),
+                                                       file_blocks_suffix,
+                                                       options['compressor'])
             else:
-                fboutsuffix = "%s_%s_%s_lvl_%s.csv" % (os.path.basename(filename),
-                                                        file_blocks_suffix,
-                                                        options['compressor'],
-                                                        options['level'])
+                fboutsuffix = "%s_%s_%s_lvl_%s" % (os.path.basename(filename),
+                                                   file_blocks_suffix,
+                                                   options['compressor'],
+                                                   options['level'])
+            if options['comp_ratio']:
+                fboutsuffix += "_wCR"
+
+            fboutsuffix += ".csv"
 
             fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
 
             file_to_write = open(fboutname, "w")
             writer = csv.writer(file_to_write, delimiter=";")
             header = ["Block", "Original Size", "Compressed Size"]
+            if options['comp_ratio']:
+                header.append("CRx100")
             if options['decompress']:
                 header.append("Decompression Time")
             writer.writerow(header)
+
             for blocknum in range(1, len(compressed[filename]) + 1):
                 block_results = compressed[filename]['%s_%d' % (filename, blocknum)]
                 row_data = [blocknum, block_results.original, block_results.compressed]
+                if options['comp_ratio']:
+                    row_data.append(block_results.compression_rate)
                 if options['decompress']:
                     row_data.append(block_results.time)
                 writer.writerow(row_data)
@@ -269,14 +289,14 @@ if __name__ == "__main__":
             logger.info("Entropy calculations started for %s" % os.path.join(dest_dir, "%s_blocks" % bfile))
             files_stds = tools.entropy.calculate_std(os.path.join(dest_dir, "%s_blocks" % bfile))
             tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
-            entropy[bfile] = tools.entropy.entropy(os.path.join(dest_dir, "%s_blocks" % bfile),
-                                                   options['entropy'],
-                                                   options['dimension'],
-                                                   tolerances)
+            entropy[bfile] = tools.entropy.entropy(os.path.join(dest_dir, "%s_blocks" % bfile), options['entropy'],
+                                                   options['dimension'], tolerances, round_digits)
             logger.info("Entropy calculations complete")
+
         for filename in entropy:
             fboutsuffix = "%s_%s_%s_dim_%d_tol_%.2f.csv" % (os.path.basename(filename), file_blocks_suffix,
-                                                       options['entropy'], options['dimension'], options['tolerance'])
+                                                            options['entropy'], options['dimension'],
+                                                            options['tolerance'])
 
             fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
 

@@ -151,6 +151,7 @@ def gzip_compress(inputfile, level, decompress, compute_compression_rate, digits
     :param level: level of compression
     :param decompress: flag to enable the decompression time
     :param compute_compression_rate: flag to enable the compression rate
+    :param digits_to_round: number of digits to use when rounding floats/doubles
     :return  CompressionData
     """
 
@@ -182,10 +183,11 @@ def paq8l_compress(input_file, level, decompress, compute_compression_rate, digi
     determined by querying the file paq8l creates, this temporary file
     is removed at the end of this function.
 
-    :param inputfile: file to read
+    :param input_file: file to read
     :param level: level of compression
     :param decompress: flag to enable the decompression time
     :param compute_compression_rate: flag to enable the compression rate
+    :param digits_to_round: number of digits to use when rounding floats/doubles
     :return  CompressionData
     """
     subprocess.check_output('paq8l -%d "%s"' % (level, input_file),
@@ -228,6 +230,7 @@ def lzma_compress(input_file, level, decompress, compute_compression_rate, digit
     :param level: level of compression
     :param decompress: flag to enable the decompression time
     :param compute_compression_rate: flag to enable the compression rate
+    :param digits_to_round: number of digits to use when rounding floats/doubles
     :return  CompressionData
      """
 
@@ -262,6 +265,7 @@ def bzip2_compress(input_file, level, decompress, compute_compression_rate, digi
     :param level: level of compression
     :param decompress: flag to enable the decompression time
     :param compute_compression_rate: flag to enable the compression rate
+    :param digits_to_round: number of digits to use when rounding floats/doubles
     :return  CompressionData
     """
 
@@ -280,9 +284,8 @@ def bzip2_compress(input_file, level, decompress, compute_compression_rate, digi
 
     if compute_compression_rate:
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
-        cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-    else:
-        cd = CompressionData(original_size, compressed_size, decompress_time)
+
+    cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
 
     return cd
 
@@ -301,6 +304,7 @@ def ppmd_compress(input_file, level, decompress, compute_compression_rate, digit
     :param level: level of compression
     :param decompress: flag to enable the decompression time
     :param compute_compression_rate: flag to enable the compression rate
+    :param digits_to_round: number of digits to use when rounding floats/doubles
     :return  CompressionData
     """
     # subprocess.call('ppmd e -s -f"%s.ppmd" -m256 -o%d "%s"' % (input_file, level, input_file), shell=True)
@@ -367,6 +371,7 @@ def brotli_compress(input_file, level, decompress, compute_compression_rate, dig
     :param level: level of compression
     :param decompress: flag to enable the decompression time
     :param compute_compression_rate: flag to enable the compression rate
+    :param digits_to_round: number of digits to use when rounding floats/doubles
     :return  CompressionData
     """
 

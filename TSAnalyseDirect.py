@@ -265,16 +265,16 @@ def clean_procedures(inputdir, options):
     return outputdir
 
 
-def set_disabled_parser_options_values(options):
+def set_disabled_parser_options_values(parser_args, parser_options):
     # filter
-    if not hasattr(options, "start_at_end"):
-        options["start_at_end"] = False
-    if not hasattr(options, "section"):
-        options["section"] = None
-    if not hasattr(options, "gap"):
-        options["gap"] = None
-    if not hasattr(options, "full_file"):
-        options["full_file"] = True
+    if not hasattr(parser_args, "start_at_end"):
+        parser_options["start_at_end"] = False
+    if not hasattr(parser_args, "section"):
+        parser_options["section"] = None
+    if not hasattr(parser_args, "gap"):
+        parser_options["gap"] = None
+    if not hasattr(parser_args, "full_file"):
+        parser_options["full_file"] = True
 
 if __name__ == "__main__":
 
@@ -358,7 +358,7 @@ if __name__ == "__main__":
     # parser definition ends
 
     # disabled filter parser options:
-    set_disabled_parser_options_values(options)
+    set_disabled_parser_options_values(args, options)
 
     logger = logging.getLogger('tsanalyse')
     logger.setLevel(getattr(logging, options['log_level']))
@@ -373,13 +373,13 @@ if __name__ == "__main__":
     log_output.setFormatter(formatter)
     logger.addHandler(log_output)
 
+    # TODO: later we might remove this when every command accepts these flags
     # Global options for csv's
-    read_sep = options['read_separator'] if hasattr(options, "read_separator") else ";"
-    write_sep = options['write_separator'] if hasattr(options, "write_separator") else ";"
-    line_term = options['line_terminator'] if hasattr(options, "line_terminator") else "\n"
-    # read_sep, write_sep, line_term = , options['write_separator'], options['line_terminator']
+    read_sep = options['read_separator'] if hasattr(args, "read_separator") else ";"
+    write_sep = options['write_separator'] if hasattr(args, "write_separator") else ";"
+    line_term = options['line_terminator'] if hasattr(args, "line_terminator") else "\n"
+    round_digits = options['round_digits'] if hasattr(args, "round_digits") else None
 
-    round_digits = int(options['round_digits']) if hasattr(options, "round_digits") else None
     round_digits = int(round_digits) if round_digits is not None else None
 
     # if hasattr(args, "round_digits"):
@@ -448,7 +448,7 @@ if __name__ == "__main__":
         resulting_dict = tools.entropy.entropy(inputdir,
                                                options['entropy'],
                                                options['dimension'],
-                                               tolerances)
+                                               tolerances, round_digits)
 
         # print("RESULT Entropy: %s" % resulting_dict)
         outfile = "%s_%s_dim_%d_tol_%.2f.csv" % (output_name, options['entropy'],

@@ -56,7 +56,7 @@ EntropyData = namedtuple('EntropyData', 'points entropy')
 
 
 # ENTRY POINT FUNCTION
-def entropy(input_name, function, dimension, tolerances):
+def entropy(input_name, type, dimension, tolerances, round_digits=None):
     """
     (str, str, int, float) -> EntropyData
     
@@ -68,19 +68,20 @@ def entropy(input_name, function, dimension, tolerances):
     and tolerance parameters.
     """
 
-    method_to_call = getattr(sys.modules[__name__], function)
+    method_to_call = getattr(sys.modules[__name__], type)
     entropy_dict = {}
 
     if os.path.isdir(input_name):
         filelist = util.listdir_no_hidden(input_name)
         for filename in filelist:
-            entropyData = method_to_call(os.path.join(input_name, filename.strip()), dimension, tolerances[filename])
-            entropy_dict[filename.strip()] = entropyData
+            entropy_data = method_to_call(os.path.join(input_name, filename.strip()), dimension,
+                                          tolerances[filename], round_digits)
+            entropy_dict[filename.strip()] = entropy_data
     else:
         filename = os.path.basename(input_name)
         tolerances = tolerances[list(tolerances.keys())[0]]
-        entropyData = method_to_call(input_name.strip(), dimension, tolerances)
-        entropy_dict[filename] = entropyData
+        entropy_data = method_to_call(input_name.strip(), dimension, tolerances, round_digits)
+        entropy_dict[filename] = entropy_data
     return entropy_dict
 
 
@@ -118,7 +119,7 @@ def calculate_file_std(filename):
     return numpy.std(file_data)
 
 
-def sampen(filename, dimension, tolerance):
+def sampen(filename, dimension, tolerance, round_digits=None):
     """
     (str, int, float) -> EntropyData
 
@@ -130,11 +131,16 @@ def sampen(filename, dimension, tolerance):
         file_data = file_d.readlines()
     # file_data = list(map(float, file_data))
     file_data = numpy.array(map(float, file_data))  # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
-    return EntropyData(len(file_data), samp_entropy(file_data, dimension, tolerance))
+
+    samp_ent = samp_entropy(file_data, dimension, tolerance)
+    if round_digits:
+        samp_ent = round(samp_ent, round_digits)
+
+    return EntropyData(len(file_data), samp_ent)
 
 
 # IMPLEMENTATION
-def apen(filename, dimension, tolerance):
+def apen(filename, dimension, tolerance, round_digits=None):
     """
     (str, int, float) -> EntropyData
 
@@ -146,10 +152,15 @@ def apen(filename, dimension, tolerance):
         file_data = file_d.readlines()
     # file_data = list(map(float, file_data))
     file_data = numpy.array(map(float, file_data)) # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
-    return EntropyData(len(file_data), ap_entropy(file_data, dimension, tolerance))
+
+    ap_ent = ap_entropy(file_data, dimension, tolerance)
+    if round_digits:
+        ap_ent = round(ap_ent, round_digits)
+
+    return EntropyData(len(file_data), ap_ent)
 
 
-def apenv2(filename, dimension, tolerance):
+def apenv2(filename, dimension, tolerance, round_digits=None):
     """
     (str, int, float) -> EntropyData
     
@@ -165,9 +176,9 @@ def apenv2(filename, dimension, tolerance):
     & Sons, Inc., Hoboken, NJ, USA. doi: 10.1002/9780470545379.ch3
         
     ALGORITHM: Based on the algorithm described in the book referenced, 
-    this implementation actually calculates the Nm and Nm+1(Nmp) vectors directly.
+    this implementation actually calculates the n_m and n_m+1(n_mp) vectors directly.
     The following description is an explanation to help you understand why it is
-    possible to jump directly to building Nm.
+    possible to jump directly to building n_m.
     
     Suppose we started by directly calculating the auxiliary matrix S where every
     cell S(i,j) is either 0 if the absolute distance between points i and j is 
@@ -185,7 +196,7 @@ def apenv2(filename, dimension, tolerance):
     is greater that tolerance. The Crm and Crm+1 matrices are necessarily also
     symmetrical and with a main diagonal filled with 1's.
     
-    Nm, and Nm+1 are vectors where every index(i) is the sum of each row(i) in Crm
+    n_m, and n_m+1 are vectors where every index(i) is the sum of each row(i) in Crm
     and Crm+1 respectively. Since we proposed looking for 0's instead of 1 our N
     vectors start with the value assuming all the columns in the row are 1, we then
     subtract for every 0 found. Although the Cr matrices are not actually created
@@ -193,13 +204,13 @@ def apenv2(filename, dimension, tolerance):
     Crm matrix. With that in mind and the fact that the Crm matrix is symmetrical,
     we can simply test the value of the distance between points i and j, if it 
     is bigger than the tolerance, Crm would have a zero in that cell and so we 
-    subtract one from our Nm and Nm+1 vector at position i and j. Provided of 
+    subtract one from our n_m and n_m+1 vector at position i and j. Provided of
     course both i and j are within the index limits.
     
-    The rest of the implementation follows the description found it the book, Cm
-    is the vector Nm with all cells divided by the length of Nm. Analogous for Cmp
-    and Nmp. Finally the Phi's are calculated by averaging the Cm and Cmp vectors
-    and the entropy value is the subtraction of Phi of Cm and Phi of Cmp.
+    The rest of the implementation follows the description found it the book, c_m
+    is the vector n_m with all cells divided by the length of n_m. Analogous for c_mp
+    and n_mp. Finally the Phi's are calculated by averaging the c_m and c_mp vectors
+    and the entropy value is the subtraction of Phi of c_m and Phi of c_mp.
     
     (*)As an implementation boost we use this knowledge to skip some cell whose value
     we already know to be 0. This is done by creating a burned_indexes that contains 
@@ -214,8 +225,8 @@ def apenv2(filename, dimension, tolerance):
 
     data_len = len(file_data)
 
-    Nm = [data_len - dimension + 1] * (data_len - dimension + 1)
-    Nmp = [data_len - dimension] * (data_len - dimension)
+    n_m = [data_len - dimension + 1] * (data_len - dimension + 1)
+    n_mp = [data_len - dimension] * (data_len - dimension)
     burned_indexes = [{} for i in range(data_len - dimension + 1)]
 
     for i in range(0, data_len - (dimension - 1)):
@@ -230,11 +241,11 @@ def apenv2(filename, dimension, tolerance):
                     mabove = m
                     while mabove >= 0:
                         if i + mabove < data_len - (dimension - 1) and j + mabove < data_len - (dimension - 1):
-                            Nm[i + mabove] -= 1
-                            Nm[j + mabove] -= 1
+                            n_m[i + mabove] -= 1
+                            n_m[j + mabove] -= 1
                         if i + mabove < data_len - dimension and j + mabove < data_len - dimension:
-                            Nmp[i + mabove] -= 1
-                            Nmp[j + mabove] -= 1
+                            n_mp[i + mabove] -= 1
+                            n_mp[j + mabove] -= 1
                         if i + mabove < data_len - dimension + 1 and j + mabove < data_len - dimension + 1:
                             burned_indexes[i + mabove][j + mabove] = None
                         mabove -= 1
@@ -242,18 +253,20 @@ def apenv2(filename, dimension, tolerance):
                 m -= 1
             if m < 0 and i < data_len - dimension and j < data_len - dimension and abs(
                             file_data[i + dimension] - file_data[j + dimension]) > tolerance:
-                Nmp[i] -= 1
-                Nmp[j] -= 1
+                n_mp[i] -= 1
+                n_mp[j] -= 1
 
-    Cm = [line / float(data_len - dimension + 1) for line in Nm]
-    Cmp = [line / float(data_len - dimension) for line in Nmp]
+    c_m = [line / float(data_len - dimension + 1) for line in n_m]
+    c_mp = [line / float(data_len - dimension) for line in n_mp]
 
-    Phi_m = numpy.mean([numpy.log(pos) for pos in Cm])
-    Phi_mp = numpy.mean([numpy.log(pos) for pos in Cmp])
+    phi_m = numpy.mean([numpy.log(pos) for pos in c_m])
+    phi_mp = numpy.mean([numpy.log(pos) for pos in c_mp])
 
-    Ap_En = Phi_m - Phi_mp
+    ap_en = phi_m - phi_mp
+    if round_digits:
+        ap_en = round(ap_en, round_digits)
 
-    return EntropyData(len(file_data), Ap_En)
+    return EntropyData(len(file_data), ap_en)
 
 
 # def fast_apen(filename,args):
@@ -290,7 +303,7 @@ def add_parser_options(parser):
                          default=0.1)
     samp_en.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
                          help="Matrix Dimension. [default:%(default)s]", default=2)
-    # util.add_numbers_parser_options(samp_en)
+    util.add_numbers_parser_options(samp_en)
 
     ap_en = entropy_parsers.add_parser('apen', help="Aproximate Entropy")
     ap_en.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
@@ -298,6 +311,7 @@ def add_parser_options(parser):
                        default=0.1)
     ap_en.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
                        help="Matrix Dimension. [default:%(default)s]", default=2)
+    util.add_numbers_parser_options(ap_en)
 
     ap_en_v2 = entropy_parsers.add_parser('apenv2', help="Aproximate Entropy version 2")
     ap_en_v2.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
@@ -305,3 +319,4 @@ def add_parser_options(parser):
                           default=0.1)
     ap_en_v2.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
                           help="Matrix Dimension. [default:%(default)s]", default=2)
+    util.add_numbers_parser_options(ap_en_v2)

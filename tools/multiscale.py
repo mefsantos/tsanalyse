@@ -143,7 +143,6 @@ def multiscale_compression(input_name, scales_dir, start, stop, step, compressor
         for filename in filelist:
             compression_table[filename] = []
             for scale in range(start, stop, step):
-                # file_to_compress = os.path.join("%s_Scales" % input_name, "Scale %d" % scale, filename)
                 file_to_compress = os.path.join(scales_dir, "Scale %d" % scale, filename)
 
                 compression_results = compress(file_to_compress, compressor, level, decompress,
@@ -157,8 +156,6 @@ def multiscale_compression(input_name, scales_dir, start, stop, step, compressor
                     compression_table[filename].append(compression_results[filename].time)
 
     else:
-        # TODO: use the "home" dir of datasets when the input is a single file - solved?
-        # TODO: fix the following code - produces bugs - solved?
         filename = os.path.basename(input_name)
         compression_table[filename] = []
         for scale in range(start, stop, step):
@@ -179,7 +176,8 @@ def multiscale_compression(input_name, scales_dir, start, stop, step, compressor
     return compression_table
 
 
-def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_function, dimension, tolerance):
+def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_function, dimension, tolerance,
+                       round_digits=None):
     """
     Calculate the multiscale entropy for a file or directory.
 
@@ -210,10 +208,8 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
             entropy_table[filename] = []
             for scale in range(start, stop, step):
                 file_in_scale = os.path.join("%s_Scales" % input_name, "Scale %d" % scale, filename)
-                entropy_results = entropy(file_in_scale,
-                                          entropy_function,
-                                          dimension,
-                                          {filename: tolerances[filename]})
+                entropy_results = entropy(file_in_scale, entropy_function, dimension,
+                                          {filename: tolerances[filename]}, round_digits)
 
                 entropy_table[filename].append(entropy_results[filename].entropy)
     else:
@@ -226,10 +222,7 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
         entropy_table[filename] = []
         for scale in range(start, stop, step):
             file_in_scale = os.path.join(scales_dir, "Scale %d" % scale, filename)
-            entropy_results = entropy(file_in_scale,
-                                      entropy_function,
-                                      dimension,
-                                      tolerances)
+            entropy_results = entropy(file_in_scale, entropy_function, dimension, tolerances, round_digits)
 
             entropy_table[filename].append(entropy_results[filename].entropy)
     return entropy_table
@@ -292,7 +285,7 @@ def add_parser_options(parser):
                         type=int,
                         dest="scale_start",
                         action="store",
-                        help="Start scales whith this amount of points. Default:[%(default)s]",
+                        help="Start scales with this amount of points. Default:[%(default)s]",
                         default=1)
     parser.add_argument("-stop",
                         "--scale-stop",
@@ -300,7 +293,7 @@ def add_parser_options(parser):
                         type=int,
                         dest="scale_stop",
                         action="store",
-                        help="Stop scales whith this amount of points. Default:[%(default)s]",
+                        help="Stop scales with this amount of points. Default:[%(default)s]",
                         default=20)
     parser.add_argument("-step",
                         "--scale-step",
@@ -316,10 +309,12 @@ def add_parser_options(parser):
                         type=int,
                         dest="mul_order",
                         action="store",
-                        help="before calculating the resulting scale, multiply every number in the series by MUL ORDER, -1 disables this option; Default:[%(default)s]",
+                        help="before calculating the resulting scale, multiply every number in the series by MUL ORDER;"
+                             " -1 disables this option; Default:[%(default)s]",
                         default=-1)
     parser.add_argument("-rint",
                         "--round-to-int",
                         dest="round",
                         action="store_true",
+                        help="Round the scales values to int.",
                         default=False)
