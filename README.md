@@ -1,3 +1,6 @@
+[![Coverage Status](https://coveralls.io/repos/github/mefsantos/tsanalyse/badge.svg?branch=master)](https://coveralls.io/github/mefsantos/tsanalyse?branch=master)
+
+
 ## Installation Notes
 
 The tool set requires some external libraries described in _Requirements.txt_, along with instructions.

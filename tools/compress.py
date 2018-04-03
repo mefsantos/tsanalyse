@@ -135,7 +135,7 @@ def compress(input_name, compression_algorithm, level, decompress=False,
 
 
 # IMPLEMENTATION
-def gzip_compress(inputfile, level, decompress, compute_compression_rate, digits_to_round):
+def gzip_compress(inputfile, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
     (str, int, bool)-> CompressionData
 
@@ -175,7 +175,7 @@ def gzip_compress(inputfile, level, decompress, compute_compression_rate, digits
     return cd
 
 
-def paq8l_compress(input_file, level, decompress, compute_compression_rate, digits_to_round):
+def paq8l_compress(input_file, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
     (str, int, bool) -> CompressionData
 
@@ -215,7 +215,7 @@ def paq8l_compress(input_file, level, decompress, compute_compression_rate, digi
     return cd
 
 
-def lzma_compress(input_file, level, decompress, compute_compression_rate, digits_to_round):
+def lzma_compress(input_file, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
     (str,int,bool) -> CompressionData
 
@@ -254,7 +254,7 @@ def lzma_compress(input_file, level, decompress, compute_compression_rate, digit
     return cd
 
 
-def bzip2_compress(input_file, level, decompress, compute_compression_rate, digits_to_round):
+def bzip2_compress(input_file, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
     (str, int, bool) -> CompressionData
 
@@ -290,7 +290,7 @@ def bzip2_compress(input_file, level, decompress, compute_compression_rate, digi
     return cd
 
 
-def ppmd_compress(input_file, level, decompress, compute_compression_rate, digits_to_round):
+def ppmd_compress(input_file, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
     (str, int, bool) -> CompressionData
 
@@ -335,7 +335,7 @@ def ppmd_compress(input_file, level, decompress, compute_compression_rate, digit
     return cd
 
 
-def spbio_compress(input_file, level, decompress, compute_compression_rate, digits_to_round):
+def spbio_compress(input_file, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
     (str, int, bool) -> CompressionData
 
@@ -358,7 +358,7 @@ def spbio_compress(input_file, level, decompress, compute_compression_rate, digi
     return original_size, compressed_size
 
 
-def brotli_compress(input_file, level, decompress, compute_compression_rate, digits_to_round):
+def brotli_compress(input_file, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
     @param input_file
     @param level
