@@ -122,7 +122,7 @@ entropy: This command allows you to calculate the entropy for all
 Examples :
 
 
-  =>Clean:
+  =>Filter:
      Retrieve the hrf:
      ./TSAnalyseDirect.py unittest_dataset filter
 
@@ -306,7 +306,6 @@ if __name__ == "__main__":
 
     entropy = subparsers.add_parser('entropy', help='Calculate entropy for all the files in the given directory')
     tools.entropy.add_parser_options(entropy)
-    # tools.utilityFunctions.add_numbers_parser_options(entropy)
 
     # import try/catch not working properly - commented to disable these commands to be displayed
     # if dsduration_exists:
@@ -378,15 +377,9 @@ if __name__ == "__main__":
     read_sep = options['read_separator'] if hasattr(args, "read_separator") else ";"
     write_sep = options['write_separator'] if hasattr(args, "write_separator") else ";"
     line_term = options['line_terminator'] if hasattr(args, "line_terminator") else "\n"
+
     round_digits = options['round_digits'] if hasattr(args, "round_digits") else None
-
     round_digits = int(round_digits) if round_digits is not None else None
-
-    # if hasattr(args, "round_digits"):
-    #     if options['round_digits'] is not None:
-    #         round_digits = int(options['round_digits'])
-    #     else:
-    #         round_digits = None
 
     inputdir = options['inputdir'].strip()
     inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
@@ -409,7 +402,6 @@ if __name__ == "__main__":
         resulting_dict = tools.compress.compress(inputdir, compressor, level, False,
                                                  options['comp_ratio'], round_digits)
 
-        # options['decompress'], options['comp_ratio']) # decompress is disabled
         # if options['decompress']:
         # #     outfile = "%s_decompress_%s_%d" % (output_name, compressor, level)
         # else:
@@ -450,10 +442,8 @@ if __name__ == "__main__":
                                                options['dimension'],
                                                tolerances, round_digits)
 
-        # print("RESULT Entropy: %s" % resulting_dict)
         outfile = "%s_%s_dim_%d_tol_%.2f.csv" % (output_name, options['entropy'],
                                                  options['dimension'], options['tolerance'])
-        # print("OUTPUT NAME: %s" % outfile)
         output_file = open(outfile, "w")
         writer = csv.writer(output_file, delimiter=";")
         writer.writerow(["Filename", "Entropy"])

@@ -34,7 +34,6 @@ Usage: ./TSAnalyseFileBlocks.py [BLOCK OPTIONS] INPUTFILE COMMAND [COMMAND OPTIO
 
 To define how to create the blocks you can change BLOCK OPTIONS:
 
-  --start-at-end        Partition from end of file instead of beginning
   -ds SECONDS, --deferred-start SECONDS
                         Time gap between the start of the file and the start
                         of the interval; default:[0]
@@ -74,6 +73,7 @@ compress: This command allows you to compress all the files in the
                         compressor was chosen]
      --decompression    Use this option if you also wish to calculate how long it takes to
                         decompress the file once it's compressed
+     -cr, --with-compression-ratio      Add an additional column with the compression ratio
 
 
 entropy: This command allows you to calculate the entropy for all
@@ -198,12 +198,6 @@ if __name__ == "__main__":
     if not os.path.exists(util.FILE_BLOCKS_STORAGE_PATH):
         logger.info("Creating %s..." % util.BLOCK_ANALYSIS_OUTPUT_PATH)
         os.mkdir(util.FILE_BLOCKS_STORAGE_PATH)
-
-    # if os.path.isdir(inputdir):
-    #     # dest_dir = "%s_parts_%d_%d" % (options['inputfile'], options['section'], options['gap'])
-    #     dir_name = "%s_parts_%d_%d" % (inputdir, options['section'], options['gap'])
-    # else:
-    #     dest_dir = "%s_parts_%d_%d" % (os.path.dirname(options['inputfile']), options['section'], options['gap'])
 
     file_blocks_suffix = "sec_%d_gap_%d" % (options['section'], options['gap'])
     dataset_suffix_name = "%s_parts_%s" % (util.get_dataset_name_from_path(inputdir), file_blocks_suffix)

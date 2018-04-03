@@ -38,7 +38,7 @@ OPTIONS to apply when creating the scales:
   --multiply MUL ORDER  before calculating the resulting scale, multiply every
                         number in the series by MUL ORDER, -1 disables this
                         option; Default:[-1]
-  --round-to-int
+  -rint, --round-to-int    Round the hrf values to int
 
 The two available commands are compress and entropy.
 
@@ -68,6 +68,7 @@ compress: This command allows you to compress all the files in the
                         compressor was chosen]
      --decompression    Use this option if you also wish to calculate how long it
                         takes to decompress the file once it's compressed
+     -cr, --with-compression-ratio      Add an additional column with the compression ratio
 
 
 entropy: This command allows you to calculate the entropy for all
@@ -155,7 +156,6 @@ import_logger.info(" ###################### ")
 
 if __name__ == "__main__":
 
-    # lets evaluate the directory for individual runs here
     if not os.path.exists(util.RUN_ISOLATED_FILES_PATH):
         os.mkdir(util.RUN_ISOLATED_FILES_PATH)
 
@@ -236,7 +236,6 @@ if __name__ == "__main__":
 
     # commands that need to compute multiscales
     if options['command'] not in ["comp_ratio", "cr", "confidence_interval_slope_analysis", "cisa"]:
-        # add exception in case we try to run a single file and not a directory
         scales_dir = '%s_Scales' % (input_dir if os.path.isdir(input_dir)
                                     else os.path.join(util.RUN_ISOLATED_FILES_PATH,
                                                       os.path.basename(util.remove_file_extension(input_dir))))
@@ -255,11 +254,8 @@ if __name__ == "__main__":
         logger.info("Scales Directory created")
 
         if not os.path.isdir(input_dir):
-            # output_name = "%s_%s" % (os.path.split(inputdir)[0], os.path.basename(inputdir))
             output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH,
                                        os.path.basename(util.remove_file_extension(input_dir)))
-            # if we are just evaluating a file we will place it in RUN_ISOLATED_FILES_PATH with its original name without
-            # the csv. the rest of the name will be added depending on the operation
         else:
             output_name = input_dir
 
