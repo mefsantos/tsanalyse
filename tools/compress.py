@@ -171,7 +171,7 @@ def gzip_compress(inputfile, level, decompress, compute_compression_rate=None, d
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-
+    fdorig.close()
     return cd
 
 
@@ -250,7 +250,7 @@ def lzma_compress(input_file, level, decompress, compute_compression_rate=None, 
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-
+    fdorig.close()
     return cd
 
 
@@ -286,7 +286,7 @@ def bzip2_compress(input_file, level, decompress, compute_compression_rate=None,
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-
+    fdorig.close()
     return cd
 
 
@@ -392,7 +392,7 @@ def brotli_compress(input_file, level, decompress, compute_compression_rate=None
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-
+    fdorig.close()
     return cd
 
 

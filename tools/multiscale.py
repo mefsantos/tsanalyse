@@ -76,7 +76,7 @@ def create_scales(input_name, dest_dir, start, stop, step, mul_order, round_to_i
     
     ALGORITHM:Create a new folder for each scale between start and stop (use step 
     to jump between scale numbers). For each scale(s) build file with the same name 
-    as the original, where every s points are avareges to generate a new one. If
+    as the original, where every s points are averages to generate a new one. If
     mul_order is not disabled (set to -1) when calculating a scale point multiply
     all the original points by that mul_order. If round_to_int is set to True round
     the resulting scale point and output only the integer value.
@@ -195,6 +195,7 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
     :param entropy_function: entropy algorithm to use
     :param dimension: matrix dimension
     :param tolerance: tolerance to use
+    :param round_digits: numbers of digits to round
     :return dictionary of 'string:EntropyData'
     """
 
@@ -265,6 +266,8 @@ def create_scale(inputfile, output_dir, scale, mul_order, round_to_int):
             else:
                 fdout.write('%.3f\n' % scaled_hrf)
             line_index += scale
+    fdin.close()
+    fdout.close()
 
 
 # AUXILIARY FUNCTIONS

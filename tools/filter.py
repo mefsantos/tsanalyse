@@ -64,7 +64,6 @@ def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_t
     """
     module_logger.debug("The input name received: %s" % input_name)
     if os.path.isdir(input_name):
-        # filelist = os.listdir(input_name) # to avoid listing hidden files (.X)
         filelist = util.listdir_no_hidden(input_name)
         for filename in filelist:
             clean_file(os.path.join(input_name, filename.strip()),
@@ -121,6 +120,8 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
                             time = data[0]
                             fdout.write("%s " % time)
                         fdout.write(floating_point_param % hrf)
+    fdin.close()
+    fdout.close()
     print("Storing files into: %s" % os.path.abspath(dest_file))
 
 

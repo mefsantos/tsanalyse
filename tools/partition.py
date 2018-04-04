@@ -20,7 +20,7 @@ This file is part of TSAnalyse.
 
 _______________________________________________________________________________
 
-!!!IMPLEMETNTATION NOTE: This module presumes the files contain only two columns, the first
+!!!IMPLEMENTATION NOTE: This module presumes the files contain only two columns, the first
 column is a time series the second is the heart rate frequency(hrf).
 
 The time series can either be a cumulative passage of time, or timestamps where
@@ -137,6 +137,7 @@ def partition_by_lines(input_name, dest_dir, starting_point, section, gap, start
     else:
         write_partition(lines, os.path.join(dest_dir, filename), p_init, p_end)
         p_times.append((r_start, r_end))
+    fdin.close()
     return p_times
 
 
@@ -230,6 +231,7 @@ def partition_by_time(input_name, dest_dir, starting_point, section, gap, start_
     else:
         write_partition(lines, os.path.join(dest_dir, filename), p_init, p_end)
         p_times.append((r_start, r_end))
+    fdin.close()
     return p_times
 
 
@@ -346,7 +348,7 @@ def write_partition(lines, output_file, i_index, f_index):
                 hrf = lines[i_index].strip()
             fdout.write("%s\n" % hrf)
             i_index += 1
-
+    fdout.close()
 
 # AUXILIARY FUNCTIONS
 
