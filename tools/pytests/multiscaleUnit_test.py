@@ -6,7 +6,7 @@ from tools import multiscale
 import tools.filter
 
 
-class TestEntropyModule(unittest.TestCase):
+class TestMultiscaleModule(unittest.TestCase):
     """
     Tests for the multiscale module
 

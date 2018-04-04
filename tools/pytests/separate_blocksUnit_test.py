@@ -6,7 +6,7 @@ from tools import separate_blocks
 import tools.filter
 
 
-class TestEntropyModule(unittest.TestCase):
+class TestSeparateBlocksModule(unittest.TestCase):
     """
     Tests for the separate_blocks module
 

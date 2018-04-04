@@ -6,7 +6,7 @@ from tools import partition
 import tools.filter
 
 
-class TestEntropyModule(unittest.TestCase):
+class TestPartitionModule(unittest.TestCase):
     """
     Tests for the partition module
 
