@@ -1,4 +1,5 @@
 numpy
-pylzma
-numpy
+scipy
 pandas
+pylzma
+brotli
