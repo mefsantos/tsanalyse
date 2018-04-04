@@ -165,7 +165,7 @@ import tools.filter
 import tools.entropy
 import tools.compress
 import tools.partition
-import tools.analysingSTV as stv
+import tools.stv_analysis as stv
 import tools.utilityFunctions as util
 
 # Flag to control argparser based on the imports
@@ -348,7 +348,7 @@ if __name__ == "__main__":
 
     stv = subparsers.add_parser('stv', help='Perform Short-term Variability analysis with the following algorithms: '
                                             '%s' % stv.AVAILABLE_ALGORITHMS)
-    tools.analysingSTV.add_parser_options(stv)
+    tools.stv_analysis.add_parser_options(stv)
     tools.utilityFunctions.add_csv_parser_options(stv)
 
     args = parser.parse_args()
@@ -454,7 +454,7 @@ if __name__ == "__main__":
         print("Storing into: %s" % os.path.abspath(outfile))
 
     elif options['command'] == 'stv':
-        tools.analysingSTV.compute_stv_metric_of_directory(inputdir, options['algorithm'],
+        tools.stv_analysis.compute_stv_metric_of_directory(inputdir, options['algorithm'],
                                                            options['sampling_frequency'],
                                                            output_path=options["output_path"])
 

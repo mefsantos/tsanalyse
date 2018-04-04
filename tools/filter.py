@@ -121,7 +121,7 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
                             time = data[0]
                             fdout.write("%s " % time)
                         fdout.write(floating_point_param % hrf)
-    print("Storing files into: %s" % dest_file)
+    print("Storing files into: %s" % os.path.abspath(dest_file))
 
 
 # AUXILIARY FUNCTIONS

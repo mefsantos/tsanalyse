@@ -408,7 +408,7 @@ docs/_build/
 target/
 
 
-# Manually added to discard user csv's folders generated from the evaluations
+# Manually added to discard user csv's folders and files generated from the evaluations
 unittest_dataset_filtered/
 unittest_dataset_filtered*/
 unittest_dataset_parts*/

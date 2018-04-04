@@ -26,31 +26,31 @@ class TestCompressModule(unittest.TestCase):
 
     def test_gzip_max(self):
         """
-    Test the result of calling the gzip compression for the file with maximum
-    compression level.
+        Test the result of calling the gzip compression for the file with maximum
+        compression level.
 
-    """
+        """
         cd = tools.compress.gzip_compress('unittest_dataset_filtered/adulterado.txt', 9, False)
         self.assertEqual(cd.original, 47385)
         self.assertEqual(cd.compressed, 17029)
 
     def test_brotli_max(self):
         """
-    Test the result of calling the brotli compression for the file with maximum
-    compression level.
+        Test the result of calling the brotli compression for the file with maximum
+        compression level.
 
-    """
+        """
         cd = tools.compress.brotli_compress('unittest_dataset_filtered/adulterado.txt', 11, False)
         self.assertEqual(cd.original, 47385)
-        self.assertEqual(cd.compressed, 13969)
+        self.assertEqual(cd.compressed, 13980)  # old value: 13969
 
     @unittest.skipIf('paq8l' not in tools.compress.AVAILABLE_COMPRESSORS,
-                     "Paq8l not installed: paq8l avalable at cs.fit.edu/~mmahoney/compression/")
+                     "Paq8l not installed: paq8l available at cs.fit.edu/~mmahoney/compression/")
     def test_paq8l_max(self):
         """
-    Test the result of calling the paq8l compressor with maximum compression level
-    for the file.
-    """
+        Test the result of calling the paq8l compressor with maximum compression level
+        for the file.
+        """
         cd = tools.compress.paq8l_compress('unittest_dataset_filtered/adulterado.txt', 8, False)
         self.assertEqual(cd.original, 47385)
         self.assertEqual(cd.compressed, 9741)
@@ -59,19 +59,19 @@ class TestCompressModule(unittest.TestCase):
                      "Lzma not installed: please install python-lzma")
     def test_lzma_max(self):
         """
-    Test the result of calling the lzma compressor, with max level(the level is
-    not used, rather it serves to show that it is in fact not being used -- see
-    test_lzma_min the values are the same)
-    """
+        Test the result of calling the lzma compressor, with max level(the level is
+        not used, rather it serves to show that it is in fact not being used -- see
+        test_lzma_min the values are the same)
+        """
         cd = tools.compress.lzma_compress('unittest_dataset_filtered/adulterado.txt', 9, False)
         self.assertEqual(cd.original, 47385)
         self.assertEqual(cd.compressed, 13282)
 
     def test_bzip2_max(self):
         """
-    Test the results of calling the bzip2 compressor with maximum level of
-    compression.
-    """
+        Test the results of calling the bzip2 compressor with maximum level of
+        compression.
+        """
         cd = tools.compress.bzip2_compress('unittest_dataset_filtered/adulterado.txt', 9, False)
         self.assertEqual(cd.original, 47385)
         self.assertEqual(cd.compressed, 13040)
@@ -80,9 +80,9 @@ class TestCompressModule(unittest.TestCase):
                      "Ppmd not installed in path")
     def test_ppmd_max(self):
         """
-    Test the results of calling the ppmd compressor with maximum level of
-    compression.
-    """
+        Test the results of calling the ppmd compressor with maximum level of
+        compression.
+        """
         cd = tools.compress.ppmd_compress('unittest_dataset_filtered/adulterado.txt', 16, False)
         self.assertEqual(cd.original, 47385)
         self.assertEqual(cd.compressed, 12950)
@@ -91,9 +91,9 @@ class TestCompressModule(unittest.TestCase):
                      "Spbio not installed in path")
     def test_spbio_max(self):
         """
-    Test the result of calling the spbio compressor with maximum compression level
-    for the file.
-    """
+        Test the result of calling the spbio compressor with maximum compression level
+        for the file.
+        """
         cd = tools.compress.spbio_compress('unittest_dataset_filtered/adulterado.txt', 8, False)
         self.assertEqual(cd.original, 47385)
         self.assertEqual(cd.compressed, 9741)

@@ -2,16 +2,16 @@ import os
 import shutil
 import unittest
 
-from tools import entropy
+from tools import utilityFunctions
 import tools.filter
 
 
-class TestEntropyModule(unittest.TestCase):
+class TestUtilityFunctionsModule(unittest.TestCase):
     """
-    Tests for the entropy module
+    Tests for the utilityFunctions module
 
     All the test use a predetermined file adulterado in the unittest_dataset_filtered
-        
+
     """
 
     @classmethod
@@ -24,7 +24,7 @@ class TestEntropyModule(unittest.TestCase):
     def tearDownClass(cls):
         shutil.rmtree('unittest_dataset_filtered')
 
-    # TODO: add unit-tests similar to "compressUnit_test.py"
+    # TODO: add unit-tests for all (most of) the functions created
 
 if __name__ == '__main__':
     unittest.main(exit=False, verbosity=2)

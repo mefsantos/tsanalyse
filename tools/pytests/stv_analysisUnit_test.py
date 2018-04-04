@@ -2,16 +2,16 @@ import os
 import shutil
 import unittest
 
-from tools import entropy
+from tools import stv_analysis
 import tools.filter
 
 
-class TestEntropyModule(unittest.TestCase):
+class TestSTVAnalysisModule(unittest.TestCase):
     """
-    Tests for the entropy module
+    Tests for the stv_analysis module
 
     All the test use a predetermined file adulterado in the unittest_dataset_filtered
-        
+
     """
 
     @classmethod

@@ -40,7 +40,7 @@ pyeeg -- an entropy library made available by Forrest S. Bao, Xin Liu and Christ
 separate_blocks -- Using some metric define upper and lower limits and
                 mark block that are above upper limits or below lower limits.
 
-analysingSTV - module comprised by different algorithms to enable Short Term Variability (STV) analysis
+stv_analysis - module comprised by different algorithms to enable Short Term Variability (STV) analysis
 
 utilityFunctions -- several utility functions to extend the python functionality and simple formulas used within
                     the modules of the package.
