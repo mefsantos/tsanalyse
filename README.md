@@ -3,10 +3,16 @@
 
 ## Installation Notes
 
-The tool set requires some external libraries described in _Requirements.txt_, along with instructions.
-**env_setup.sh** script automatically install and link all the dependencies required for UBUNTU systems.
-Moreover, the following examples refer to an existing folder, however as the functions require different inputs, 
- the name 'unittest_dataset' in in some examples is merely a placeholder.
+The tool set requires some external libraries described in _requirements:info.txt_, along with instructions.
+However, first run the following command: 
+        
+        pip install -r < requirements.txt
+
+if some libraries are not installed, try running it with admin permissions:
+
+        sudo pip install -r < requirements.txt
+
+Alternativelly, you can run **env_setup.sh** that will automatically install and link all the dependencies required for UBUNTU systems.
 
 ## Documentation
 
@@ -37,10 +43,6 @@ The main interface TSAnalyseDirect allows for operations to be applied to files 
     Retrieve the hrf of the file discarding the first 60 seconds
         
         ./TSAnalyseDirect.py unittest_dataset filter -ds 60
-    
-    Retrieve the hrf from first 2000 lines:
-        
-        ./TSAnalyseDirect.py unittest_dataset filter -s 2000 --use_lines
 
 
 * Compress
