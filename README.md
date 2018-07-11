@@ -6,7 +6,7 @@
 The tool set requires some external libraries described in _requirements:info.txt_, along with instructions.
 However, first run the following command: 
         
-        pip install -r < requirements.txt
+        pip install -r requirements.txt
 
 if some libraries are not installed, try running it with admin permissions:
 
