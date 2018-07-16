@@ -20,8 +20,7 @@ install:
   - chmod +x $TRAVIS_BUILD_DIR/algo/ppmd_src/ppmd
   - chmod +x $TRAVIS_BUILD_DIR/algo/paq8l_src/paq8l
   - ln -s $TRAVIS_BUILD_DIR/algo/ppmd_src/ppmd $TRAVIS_BUILD_DIR/algo/ppmd
-  - ln -s $TRAVIS_BUILD_DIR/algo/paq8l_src/paq8l $TRAVIS_BUILD_DIR/algo/paq8l
-
+  
 # command to run tests
 script:
   - pytest # or py.test for Python versions 3.5 and below
