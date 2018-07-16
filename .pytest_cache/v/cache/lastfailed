@@ -1,6 +1,0 @@
-{
-  "algo/brotli_src/python/tests/compatibility_test.py": true, 
-  "algo/brotli_src/python/tests/custom_dictionary_test.py": true, 
-  "algo/brotli_src/python/tests/roundtrip_test.py": true, 
-  "pytests/compressUnit_test.py::TestCompressModule::test_brotli_max": true
-}
