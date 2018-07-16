@@ -3,16 +3,13 @@
 
 ## Installation Notes
 
-The tool set requires some external libraries described in _requirements:info.txt_, along with instructions.
-However, first run the following command: 
-        
-        pip install -r requirements.txt
+The tool set requires some external libraries described in _requirements_info.txt_, along with instructions. It is implemented to work on Linux and MacOS.
 
-if some libraries are not installed, try running it with admin permissions:
+To install the requirements and link the compilers to the envirnoment run the following command:
 
-        sudo pip install -r < requirements.txt
+        ./install_package.sh
 
-Alternativelly, you can run **env_setup.sh** that will automatically install and link all the dependencies required for UBUNTU systems.
+This script will run **python setup.py install --user** and add the path for the compilers' source code to the your environment, aka, '$PATH'
 
 ## Documentation
 
