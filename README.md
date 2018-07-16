@@ -3,13 +3,36 @@
 
 ## Installation Notes
 
-The tool set requires some external libraries described in _requirements_info.txt_, along with instructions. It is implemented to work on Linux and MacOS.
+### Pre-requisites:
 
-To install the requirements and link the compilers to the envirnoment run the following command:
+* Python
+* pip
+* python-dev
 
-        ./install_package.sh
+
+#### Installing pip:
+
+        curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+        sudo python get-pip.py
+
+
+This tool may also require some external libraries in order to work on 64-bit processors. namely:
+
+* lib32z1
+* lib32stdc++6
+
+
+To install the requirements and link the compilers to the environment run the following command:
+
+        bash install_package.sh
 
 This script will run **python setup.py install --user** and add the path for the compilers' source code to the your environment, aka, '$PATH'
+
+Alternativelly you can run the script as root adding su, sudo or root:
+
+        bash install_package.sh sudo
+
+This script will then run **sudo python setup.py install** instead. It will still add the source paths to the environment.
 
 ## Documentation
 

@@ -420,8 +420,9 @@ def test_compressors():
     exec_path = exec_path.split(';')
     if len(exec_path) == 1:
         exec_path = exec_path[0].split(':')
-    for compressor in compressor_list:
+    for compressor in compressor_list.keys():
         for dir_in_path in exec_path:
+            print os.path.join(dir_in_path, compressor)
             if os.path.exists(os.path.join(dir_in_path, compressor)) or os.path.exists(
                     os.path.join(dir_in_path, compressor + '.exe')):
                 available[compressor] = compressor_list[compressor]
