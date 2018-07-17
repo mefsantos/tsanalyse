@@ -57,7 +57,7 @@ def partition(input_name, dest_dir, starting_point=0, section=-1, gap=-1, start_
     """
     (str,str,int,int,int,bool,bool,bool) -> ( dict of str: list of tuples(float, float))
 
-    Partition all the file in input_name, start the first cut at at starting_point and cut a section sized chunck of the
+    Partition all the file in input_name, start the first cut at at starting_point and cut a section sized chunk of the
     file, if full_file option is activated cut the hole file into sections, where each section(si) starts at starting_point+gap*si.
     If start_at_end is used partition from the file\'s end. Partitions can be done by time(default) or by number of lines (
     by activating the lines option).
@@ -84,7 +84,7 @@ def partition_file(input_name, dest_dir, starting_point, section, gap, start_at_
     """
     (str,str,int,int,int,bool, bool, bool) -> list of tuples (float, float)
 
-    Partition a single file, start the first partition at starting_point, and cut a section sized chunck of the
+    Partition a single file, start the first partition at starting_point, and cut a section sized chunk of the
     file, if full_file option is activated cut the hole file into sections, where each section(si) starts at starting_point+gap*si.
     If start_at_end is used partition from the file\'s end. Partitions can be done by time(default) or by number of lines (
     by activating the lines option)
@@ -102,7 +102,7 @@ def partition_by_lines(input_name, dest_dir, starting_point, section, gap, start
 
 
     Partition a single file using the number of lines to measure the size of the partition. Returns the real
-    (not just aquired signal time) times for beginning and end of the partitions.
+    (not just acquired signal time) times for beginning and end of the partitions.
     """
 
     with open(input_name, 'rU') as fdin:
@@ -197,7 +197,7 @@ def partition_by_time(input_name, dest_dir, starting_point, section, gap, start_
 
 
     Partition a single file using the elapsed time to measure the size of the partition. Returns the real
-    (not just aquired signal time) times for beginning and end of the partitions.
+    (not just acquired signal time) times for beginning and end of the partitions.
     """
     with open(input_name, 'rU') as fdin:
         lines = fdin.readlines()
@@ -317,10 +317,10 @@ def test_time_limit(cumulative, time, time_stamp, time_elapsed, desired_time):
     """
     (bool, float, float, float, float) -> bool
 
-    Auxilary function to help test a current time agains a spipulated time limit.
+    Auxiliary function to help test a current time against a stipulated time limit.
 
     If the time series is cumulative then we test how much time has passed by
-    subtracting the last time read from the inital time read at the beginning of the
+    subtracting the last time read from the initial time read at the beginning of the
     partition.
     If the time series is not cumulative then time_elapsed keep track of how much
     time has passed since the beginning of the partition.

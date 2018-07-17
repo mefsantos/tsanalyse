@@ -58,6 +58,7 @@ if not os.path.exists(RUN_ISOLATED_FILES_PATH):
 # DEBUG FLAG
 DEBUG = False
 
+
 # List utility functions
 def head(v_list, num_elements=1):
     """
@@ -424,7 +425,6 @@ def compression_ratio(original, compressed, round_digits=4):
 
 
 # Confidence Interval
-# debug_fl = "/home/msantos/Desktop/CINTESIS/Rotinas/Datasets/Entropy_DS/MultiScale/N_clean_multiscale_1_20_1_sampen20.10.csv"
 def conf_interval(data_frame, conf_percent=0.95, string_4_header=None, round_digits=None):
     """
     Computes the Mean, Std. Deviation and Upper and Lower Confidence Intervals on a given dataset.

@@ -274,18 +274,6 @@ def stv_sd_subsets(time_series_to_eval,  sampling_frequency=4, duration_in_secon
 def stv_sd(time_series_to_eval, sampling_frequency=4):
     return np.std(time_series_to_eval)
 
-# # test example - arduini standard
-# csv_path = "/home/msantos/Desktop/CINTESIS/Rotinas/hrfanalyse-master/unittest_dataset_clean/S0001312.txt"
-# dataframe = pandas.read_csv(csv_path)
-# simple_list = list(dataframe.ix[:, 0])
-# # l1 = stv_arduini(simple_list)
-# # l2 = stv_arduini_mod(simple_list)
-# # l3 = stv_dalton(simple_list)
-# # l4 = stv_organ(simple_list)
-# # l5 = stv_sonicaid(simple_list)
-# # l6 = stv_zugaiv(simple_list)
-# l7 = stv_van_geijn(simple_list)
-
 
 # TODO: add entry point for a single file and not only a directory
 # TODO: add parameter for duration of the subsets if needed and standardize every function to the same parameters

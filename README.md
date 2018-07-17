@@ -33,7 +33,7 @@ To install the requirements and link the compilers to the environment run the fo
 
 This script will run **python setup.py install --user** and add the path for the compilers' source code to the your environment, aka, '$PATH'
 
-Alternativelly you can run the script as root adding su, sudo or root:
+Alternatively you can run the script as root adding su, sudo or root:
 
         bash install_package.sh sudo
 

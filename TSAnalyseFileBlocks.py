@@ -81,7 +81,7 @@ entropy: This command allows you to calculate the entropy for all
 
      OUTCOME: Calling this command will create a csv file using ';'
      as a field delimiter. The entropy measure and the
-     optons used are appended to name the resulting file. This
+     options used are appended to name the resulting file. This
      file will be created in the parent of the directory we are
      working with. Each file is represented by a row with two columns,
      the number of the block and it's entropy.

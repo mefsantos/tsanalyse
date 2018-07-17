@@ -109,15 +109,8 @@ rounds those numbers to an integer.
 ./TSAnalyseMultiScale.py unittest_dataset --round-to-int compress
 
 Multiscale compression with rounded results for scale, multiplied by 10, the scale
-point is multiplied by 10 and rounded.
-./TSAnalyseMultiScale.py unittest_dataset --round-to-int --multiply 10 compress -c paq8l
-
-Compression Ratio
-./TSAnalyseMultiScale.py ../Datasets/Compression_Results/ cr
-
-Confidence Intervals with Slope Analysis:
-./TSAnalyseMultiScale.py ../Datasets/Entropy_DS/MultiScale cisa -mo
-
+point is multiplied by 10 and rounded. The final dataset also contains the compression ratio
+./TSAnalyseMultiScale.py unittest_dataset --round-to-int --multiply 10 compress -c paq8l -cr
 """
 
 import os
