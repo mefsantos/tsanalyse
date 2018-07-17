@@ -15,6 +15,11 @@
         curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
         sudo python get-pip.py
 
+### Further Information on pip:
+
+        https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip
+
+
 
 This tool may also require some external libraries in order to work on 64-bit processors. namely:
 
