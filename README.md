@@ -20,7 +20,6 @@
         https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip
 
 
-
 This tool may also require some external libraries in order to work on 64-bit processors. namely:
 
 * lib32z1
@@ -29,13 +28,13 @@ This tool may also require some external libraries in order to work on 64-bit pr
 
 To install the requirements and link the compilers to the environment run the following command:
 
-        bash install_package.sh
+        source install_package.sh
 
 This script will run **python setup.py install --user** and add the path for the compilers' source code to the your environment, aka, '$PATH'
 
 Alternatively you can run the script as root adding su, sudo or root:
 
-        bash install_package.sh sudo
+        source install_package.sh sudo
 
 This script will then run **sudo python setup.py install** instead. It will still add the source paths to the environment.
 

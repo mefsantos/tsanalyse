@@ -14,24 +14,31 @@ else
 	fi
 fi
 
-
-# python setup.py install --user 
-
 echo ""
-echo "Adding PAQ8L and PPMD source files to PATH"
-echo "#add paq8l and ppmd source files to PATH" >> ~/.bashrc
-# echo "#add paq8l and ppmd source files to PATH" >> ~/.profile
 
 PACKAGE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-echo export PATH='${PATH}':${PACKAGE_DIR}/algo/paq8l_src >> ~/.bashrc
-echo export PATH='${PATH}':${PACKAGE_DIR}/algo/ppmd_src >> ~/.bashrc
-echo -e "\n" >> ~/.bashrc
 
-export PATH=$PATH:$PACKAGE_DIR/algo/paq8l_src
-export PATH=$PATH:$PACKAGE_DIR/algo/ppmd_src
+# only add to bashrc if path does not exists in $PATH
+if ! echo $PATH | grep -Fq "/algo/paq8l_src"
+then
+	echo "Adding PAQ8L source files to PATH"
+	echo "" >> ~.bashrc
+	echo "# PAQ8L" >> ~.bashrc
+	echo export PATH='${PATH}':${PACKAGE_DIR}/algo/paq8l_src >> ~/.bashrc
+	export PATH=$PATH:$PACKAGE_DIR/algo/paq8l_src
+fi
+
+if ! echo $PATH | grep -Fq "/algo/ppmd_src"
+then
+	echo "Adding PPMD source files to PATH"
+	echo "" >> ~.bashrc
+	echo "# PPMD" >> ~/.bashrc
+	echo export PATH='${PATH}':${PACKAGE_DIR}/algo/ppmd_src >> ~/.bashrc
+	export PATH=$PATH:$PACKAGE_DIR/algo/ppmd_src
+fi
 
 echo ""
 echo "Done"
-
+echo ""
 
