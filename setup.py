@@ -23,17 +23,15 @@ except sp.CalledProcessError as e:
 # copy the ppmd binary depending on the OS
 
 if LINUX in sys.platform:
-  try:
-      sp.check_output('cp algo/ppmd_src/ppmd_linux algo/ppmd_src/ppmd',
-        shell=True, stderr=sp.STDOUT)
-  except sp.CalledProcessError as e:
-      print(e.output)  
+    try:
+        sp.check_output('cp -f algo/ppmd_src/ppmd_linux algo/ppmd_src/ppmd', shell=True, stderr=sp.STDOUT)
+    except sp.CalledProcessError as e:
+        print(e.output)
 else:
     try:
-      sp.check_output('cp algo/ppmd_src/ppmd_darwin algo/ppmd_src/ppmd',
-        shell=True, stderr=sp.STDOUT)
-  except sp.CalledProcessError as e:
-      print(e.output)  
+        sp.check_output('cp -f algo/ppmd_src/ppmd_darwin algo/ppmd_src/ppmd', shell=True, stderr=sp.STDOUT)
+    except sp.CalledProcessError as e1:
+        print(e1.output)
 
 setup(name='TSAnalyse',
       version='1.0',
