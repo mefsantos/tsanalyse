@@ -2,18 +2,19 @@
 
 import setuptools
 from setuptools import setup
+import subprocess as sp
 
-requirements = ""
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
-# setup(name='TSAnalyse',
-#       maintainer='Marcelo Santos',
-#       maintainer_email='marcelo.santos@fc.up.pt',
-#       url='https://github.com/mefsantos/tsanalyse',
-#       version='1.0',
-#       py_modules=['TSAnalyseDirect','TSAnalyseMultiScale','TSAnalyseFileBlocks'],
-#       )
+# since the binary changes when built in linux and mac (and are incompatible) we need to build paq8l each time
+# we install the package
+try:
+    sp.check_output('g++ algo/paq8l_src/paq8l.cpp -DUNIX -DNOASM -O2 -Os -s -fomit-frame-pointer -o algo/paq8l_src/paq8l',
+                    shell=True,
+                    stderr=sp.STDOUT)
+except sp.CalledProcessError as e:
+    print(e.output)
 
 
 setup(name='TSAnalyse',
@@ -23,7 +24,6 @@ setup(name='TSAnalyse',
       author_email='marcelo.santos@fc.up.pt',
       url='https://github.com/mefsantos/tsanalyse',
       packages=setuptools.find_packages(),
-#      dependency_links=['https://github.com/JohannesBuchner/paq/tree/master/paq8l'],
       install_requires=requirements
       )
 

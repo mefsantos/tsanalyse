@@ -309,7 +309,7 @@ def ppmd_compress(input_file, level, decompress, compute_compression_rate=None, 
     """
     # subprocess.call('ppmd e -s -f"%s.ppmd" -m256 -o%d "%s"' % (input_file, level, input_file), shell=True)
 
-    # change the previous line to this so the ppmd comrpessor does not output an empty line into the shell
+    # change the previous line to this so the ppmd compressor does not output an empty line into the shell
     subprocess.check_output('ppmd e -s -f"%s.ppmd" -m256 -o%d "%s"' % (input_file, level, input_file), shell=True,
                             stderr=subprocess.STDOUT)
 
