@@ -38,6 +38,28 @@ Alternatively you can run the script as root adding su, sudo or root:
 
 This script will then run **sudo python setup.py install** instead. It will still add the source paths to the environment.
 
+### External Compressors
+
+This tool was implemented to support additional compressors, namely paq8l and ppmd. *algo/* contains the paq8l sources and ppmd binaries. If the code/binaries no longer work on your system try using your archive manager to install them. 
+
+#### Linux
+(see https://debian.pkgs.org/7/debian-main-amd64/ppmd_10.1-5_amd64.deb.html)
+
+TL;DR:
+
+        sudo apt-get update
+        sudo apt-get install ppmd
+
+#### MacOS
+(see https://guide.macports.org/chunked/using.html#using.port.selfupdate
+also https://github.com/macports/macports-ports/blob/master/archivers/ppmd/Portfile)
+
+TL;DR:
+
+        sudo port selfupdate
+        sudo port install ppmd
+
+
 ## Documentation
 
 The tool set is extensively documented using pydoc. To launch the graphical interface run:

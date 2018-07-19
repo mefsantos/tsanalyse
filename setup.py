@@ -3,6 +3,10 @@
 import setuptools
 from setuptools import setup
 import subprocess as sp
+import sys
+
+LINUX = "linux"
+MACOS = "darwin"
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
@@ -16,6 +20,20 @@ try:
 except sp.CalledProcessError as e:
     print(e.output)
 
+# copy the ppmd binary depending on the OS
+
+if LINUX in sys.platform:
+  try:
+      sp.check_output('cp algo/ppmd_src/ppmd_linux algo/ppmd_src/ppmd',
+        shell=True, stderr=sp.STDOUT)
+  except sp.CalledProcessError as e:
+      print(e.output)  
+else:
+    try:
+      sp.check_output('cp algo/ppmd_src/ppmd_darwin algo/ppmd_src/ppmd',
+        shell=True, stderr=sp.STDOUT)
+  except sp.CalledProcessError as e:
+      print(e.output)  
 
 setup(name='TSAnalyse',
       version='1.0',
