@@ -23,8 +23,8 @@ PACKAGE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 if ! echo $PATH | grep -Fq "/algo/paq8l_src"
 then
 	echo "Adding PAQ8L source files to PATH"
-	echo "" >> ~.bashrc
-	echo "# PAQ8L" >> ~.bashrc
+	echo "" >> ~/.bashrc
+	echo "# PAQ8L" >> ~/.bashrc
 	echo export PATH='${PATH}':${PACKAGE_DIR}/algo/paq8l_src >> ~/.bashrc
 	export PATH=$PATH:$PACKAGE_DIR/algo/paq8l_src
 fi
@@ -32,7 +32,7 @@ fi
 if ! echo $PATH | grep -Fq "/algo/ppmd_src"
 then
 	echo "Adding PPMD source files to PATH"
-	echo "" >> ~.bashrc
+	echo "" >> ~/.bashrc
 	echo "# PPMD" >> ~/.bashrc
 	echo export PATH='${PATH}':${PACKAGE_DIR}/algo/ppmd_src >> ~/.bashrc
 	export PATH=$PATH:$PACKAGE_DIR/algo/ppmd_src
