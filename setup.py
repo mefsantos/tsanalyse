@@ -11,6 +11,10 @@ MACOS = "darwin"
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
+# this may be useful for development only
+# with open('pytest_requirements.txt') as f:
+#     requirements.extend(f.read().splitlines())
+
 # since the binary changes when built in linux and mac (and are incompatible) we need to build paq8l each time
 # we install the package
 try:
