@@ -1,5 +1,5 @@
 [![Coverage Status](https://coveralls.io/repos/github/mefsantos/tsanalyse/badge.svg?branch=master)](https://coveralls.io/github/mefsantos/tsanalyse?branch=master)
-
+[![Build Status](https://travis-ci.org/mefsantos/branch-testing.svg?branch=master)](https://travis-ci.org/mefsantos/branch-testing)
 
 ## Installation Notes
 
