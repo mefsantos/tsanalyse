@@ -31,6 +31,8 @@ then
 	echo "" >> ~/.bashrc
 	echo "# PAQ8L" >> ~/.bashrc
 	echo export PATH='${PATH}':${PACKAGE_DIR}/algo/paq8l_src >> ~/.bashrc
+	# for macOS add to bash profile
+    echo export PATH='${PATH}':${PACKAGE_DIR}/algo/paq8l_src >> ~/.bash_profile
 	export PATH=$PATH:$PACKAGE_DIR/algo/paq8l_src
 fi
 
@@ -40,8 +42,12 @@ then
 	echo "" >> ~/.bashrc
 	echo "# PPMD" >> ~/.bashrc
 	echo export PATH='${PATH}':${PACKAGE_DIR}/algo/ppmd_src >> ~/.bashrc
+	# for macOS add to bash profile
+    echo export PATH='${PATH}':${PACKAGE_DIR}/algo/paq8l_src >> ~/.bash_profile
 	export PATH=$PATH:$PACKAGE_DIR/algo/ppmd_src
 fi
+
+# TODO: later detect here the OS type to know where to print the export PATH line
 
 echo ""
 echo "Done"
