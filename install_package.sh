@@ -18,7 +18,11 @@ echo ""
 
 #PACKAGE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-PACKAGE_DIR="$(dirname ${BASH_SOURCE[0]})"
+#PACKAGE_DIR="$(dirname ${BASH_SOURCE[0]})"
+
+cd "$(dirname -- "$0")"
+PACKAGE_DIR="$PWD"
+cd - > /dev/null
 
 # only add to bashrc if path does not exists in $PATH
 if ! echo $PATH | grep -Fq "/algo/paq8l_src"
