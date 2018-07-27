@@ -426,13 +426,13 @@ def test_compressors():
             if os.path.exists(os.path.join(dir_in_path, compressor)) or os.path.exists(
                     os.path.join(dir_in_path, compressor + '.exe')):
                 available[compressor] = compressor_list[compressor]
-                print "PATH %s EXIST!!!" % os.path.join(dir_in_path, compressor)
+                # print "PATH %s EXIST!!!" % os.path.join(dir_in_path, compressor)
     return available
 
 
 # A constant variable with the list of available compressors in the path
 AVAILABLE_COMPRESSORS = test_compressors()
-print AVAILABLE_COMPRESSORS
+# print AVAILABLE_COMPRESSORS
 
 
 def add_parser_options(parser):

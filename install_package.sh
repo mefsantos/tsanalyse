@@ -28,7 +28,7 @@ cd - > /dev/null
 if [[ $OSTYPE == *"linux"* ]]; then
     FILETOWRITE="$HOME/.bashrc"
 else
-    FILETOWRITE="$HOME/.bash_profile"
+    FILETOWRITE="$HOME/.bash_profile" # we need sudo permissions. Write to .profile aswell ?!
 fi
 
 
