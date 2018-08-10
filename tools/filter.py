@@ -47,7 +47,7 @@ module_logger = logging.getLogger('tsanalyse.filter')
 
 # ENTRY POINT FUNCTIONS
 
-def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_to_int=False):
+def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_to_int=False, hrf_col=1):
     """
     (str,str,bool,bool,bool) -> Nonetype
 
@@ -68,17 +68,18 @@ def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_t
         for filename in filelist:
             clean_file(os.path.join(input_name, filename.strip()),
                        os.path.join(dest_dir, filename.strip()),
-                       keep_time, apply_limits, round_to_int=round_to_int)
+                       keep_time, apply_limits, round_to_int=round_to_int, hrf_col=hrf_col)
     else:
         filename = os.path.basename(input_name)
         clean_file(input_name,
                    os.path.join(dest_dir, filename.strip()),
-                   keep_time, apply_limits, round_to_int=round_to_int)
+                   keep_time, apply_limits, round_to_int=round_to_int, hrf_col=hrf_col)
 
 
 # IMPLEMENTATION
 
-def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=False):
+# TODO: add a flag that allows defining in which column the hrf is
+def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=False, hrf_col=1):
     """
 
     (str, str, bool, bool) -> NoneType
@@ -107,9 +108,21 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
                 except ValueError:
                     continue
                 if len(data) != 0:
-                    hrf = float(data[1])
+
+                    # we may need to fallback to the first column if the hrf_col doesnt contain numbers
+                    try:
+                        float(data[hrf_col])
+                    except IndexError:
+                        print("Index out of range. Falling back to column 1")
+                        hrf_col = 1
+                        continue
+                    except ValueError:
+                        print("Value Error. Falling back to column 1")
+                        hrf_col = 1
+                        continue
+                    hrf = float(data[hrf_col])
                     if hrf >= 1000:
-                        hrf = round(float(data[1]) / 1000)
+                        hrf = round(float(data[hrf_col]) / 1000)
                     if not apply_limits:
                         if keep_time:
                             time = data[0]
@@ -137,6 +150,14 @@ def add_parser_options(parser):
 
     """
 
+    parser.add_argument("-col",
+                        "--hrf-column",
+                        dest="hrf-col",
+                        metavar="HRF-COLUMN",
+                        action="store",
+                        default=1,
+                        type=int,
+                        help="column in the dataset to extract hrf from; [default: %(default)s]")
     parser.add_argument("-kt",
                         "--keep-time",
                         dest="keep_time",
