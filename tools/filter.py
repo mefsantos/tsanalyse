@@ -121,6 +121,8 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
                         hrf_col = 1
                         continue
                     hrf = float(data[hrf_col])
+                    if round_to_int:
+                        round(float(data[hrf_col]))
                     if hrf >= 1000:
                         hrf = round(float(data[hrf_col]) / 1000, 3)
                     if not apply_limits:
