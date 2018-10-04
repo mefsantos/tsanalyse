@@ -435,3 +435,7 @@ block_analysis/
 
 algo/paq8l_src/paq8l # this will be obtained depending on the operating system
 algo/ppmd_src/ppmd  # this will be obtained depending on the operating system
+
+*.SIM
+
+unittest_dataset/test_milis\.txt
