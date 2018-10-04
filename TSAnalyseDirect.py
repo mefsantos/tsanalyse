@@ -25,7 +25,7 @@ _______________________________________________________________________________
 
 
 TSAnalyseDirect is a command line interface to apply operations
-(compression, entropy, filter, partition) from the tools module
+(compression, entropy, stv) from the tools module
 directly to a file or files in a directory. The objective here is
 to study the results of applying the compression or entropy directly on the files.
 
@@ -38,32 +38,6 @@ Four COMMANDS are available: filter, compress, entropy and stv.
 It is assumed that when using compress or entropy the files only
 contain the one column with the relevant information (hrf in our
 case).
-
-filter: This command allows you to apply filter and partitioning
-      operations. Cleaning a file means extracting the heart rate
-      frequencies (timestamps may also be saved).  Partitioning cuts
-      the file according to a given interval. Note that partitions
-      starting at the end of file will generate files where the data
-      is inverted.
-
-      OUTCOME: Calling this command will create a new directory with a
-      _clean appended to the original directory's name were all the
-      filter files are saved (this directory is created whether you
-      call this interface on a directory or file).
-
-      COMMAND_OPTIONS for this command are:
-
-       -lim, --apply-limits When filtering apply limit cutoffs (50<=hrf<=250)
-
-       -kt, --keep-time     When cleaning keep both the hrf and the timestamp
-
-       -ds SECONDS, --deferred-start SECONDS
-                        Time gap between the start of the file and the start
-                        of the interval; default:[0]
-
-       -ul, --use-lines         Partition using line count instead of time
-       -rint, --round-to-int    Round the hrf values to int
-
 
 compress: This command allows you to compress all the files in the
      given directory. The list of available compressors is
@@ -121,24 +95,6 @@ entropy: This command allows you to calculate the entropy for all
 
 Examples :
 
-
-  =>Filter:
-     Retrieve the hrf:
-     ./TSAnalyseDirect.py unittest_dataset filter
-
-      Retrieve the timestamps and hrf
-     ./TSAnalyseDirect.py unittest_dataset filter -kt
-
-     Retrieve the valid hrf(50<=hrf<=250) for the last hour:
-     ./TSAnalyseDirect.py unittest_dataset filter -s 3600 --apply-limits
-
-     discards the first 30 seconds of recordings and retrieve the remaining hrf data
-     ./TSAnalyseDirect.py unittest_dataset filter -ds 30
-
-     Retrieve the hrf from first 2000 lines:
-     ./TSAnalyseDirect.py unittest_dataset filter -s 2000 --use-lines
-
-
   =>Compress
      Compress using the gzip algorithm (maximum compression level will be used)
          ./TSAnalyseDirect.py unittest_dataset compress -c gzip
@@ -152,6 +108,13 @@ Examples :
       dimension 2 (reference values for the analysis of biological data)
      ./TSAnalyseDirect.py unittest_dataset entropy apen -t 0.2
 
+  =>stv
+     Compress using the gzip algorithm (maximum compression level will be used)
+         ./TSAnalyseDirect.py unittest_dataset stv
+
+     Compress using the bzip2 algorithm with minimum compression(1 in this case):
+     ./TSAnalyseDirect.py unittest_dataset compress -c bzip2 --level 1
+
 """
 
 # TODO: add pydocs above regarding the new modules (stv analysis) and complete with the remaining optional params
@@ -161,121 +124,11 @@ import os
 import csv
 import logging
 import argparse
-import tools.filter
 import tools.entropy
 import tools.compress
-import tools.partition
 import tools.stv_analysis as stv
 import tools.utilityFunctions as util
 
-# Flag to control argparser based on the imports
-import_logger = logging.getLogger('tsanalyse')
-import_logger.info(" ###### Imports: ###### ")
-
-csv2txsp3_exists = False
-recordDuration_exists = False
-fma_exists = False
-csa_exists = False
-dsduration_exists = False
-
-# under development / unnecessary tools
-# try:
-#     import tools.csv2txsp3
-#     csv2txsp3_exists = True
-# except ImportError:
-#     #  module missing - gitIgnore
-#     import_logger.info("Missing module: csv2txsp3. Ignoring...")
-
-# try:
-#     import tools.recordDuration
-#     recordDuration_exists = True
-# except ImportError:
-#     #  module missing - gitIgnore
-#     import_logger.info("Missing module: recordDuration. Ignoring...")
-#
-# try:
-#     import tools.fetalMaturationAnalysis
-#     fma_exists = True
-# except ImportError:
-#     #  module missing - gitIgnore
-#     import_logger.info("Missing module: fetalMaturationAnalysis. Ignoring...")
-#
-# try:
-#     import tools.clampStateAnalysis
-#     csa_exists = True
-# except ImportError:
-#     #  module missing - gitIgnore
-#     import_logger.info("Missing module: clampStateAnalysis. Ignoring...")
-#
-# try:
-#     import tools.durationFromSingleDS as dsd
-#     dsduration_exists = True
-# except ImportError:
-#     #  module missing - gitIgnore
-#     import_logger.info("Missing module: durationFromSingleDS. Ignoring...")
-
-import_logger.info(" ###################### ")
-
-
-def partition_procedures(inputdir, options):
-    if options['start_at_end']:
-        outputdir = "%s_last_%d_%d" % (inputdir, options['partition_start'], options['section'])
-    else:
-        outputdir = "%s_%d_%d" % (inputdir, options['partition_start'], options['section'])
-
-    if not os.path.isdir(outputdir):
-        logger.info("Creating %s for partitions" % outputdir)
-        os.makedirs(outputdir)
-    logger.info("Starting partition")
-    tools.partition.partition(inputdir,
-                              outputdir,
-                              options['partition_start'],
-                              options['section'],
-                              options['gap'],
-                              options['start_at_end'],
-                              options['full_file'],
-                              options['using_lines'])
-    logger.info("Finished partitioning")
-    return outputdir
-
-
-def clean_procedures(inputdir, options):
-    round_to_int = options["round_to_int"]
-    logger.info("Starting filter procedures")
-    if options['keep_time'] or options['section']:
-        if not os.path.isdir(inputdir):
-            outputdir = os.path.dirname(inputdir) + "_filtered_wtime"
-        else:
-            outputdir = inputdir + "_filtered"
-        if not os.path.isdir(outputdir):
-            logger.info("Creating partition directory %s" % outputdir)
-            os.makedirs(outputdir)
-        tools.filter.ds_filter(inputdir, outputdir, keep_time=True, apply_limits=options['apply_limits'],
-                               round_to_int=round_to_int, hrf_col=options["hrf-col"])
-    else:
-        if not os.path.isdir(inputdir):
-            outputdir = os.path.dirname(inputdir) + "_filtered"
-        else:
-            outputdir = inputdir + "_filtered"
-        if not os.path.isdir(outputdir):
-            logger.info("Creating filter directory %s" % outputdir)
-            os.makedirs(outputdir)
-        tools.filter.ds_filter(inputdir, outputdir, apply_limits=options['apply_limits'],
-                               round_to_int=round_to_int, hrf_col=options["hrf-col"])
-    logger.info("Finished filter procedures")
-    return outputdir
-
-
-def set_disabled_parser_options_values(parser_args, parser_options):
-    # filter
-    if not hasattr(parser_args, "start_at_end"):
-        parser_options["start_at_end"] = False
-    if not hasattr(parser_args, "section"):
-        parser_options["section"] = None
-    if not hasattr(parser_args, "gap"):
-        parser_options["gap"] = None
-    if not hasattr(parser_args, "full_file"):
-        parser_options["full_file"] = True
 
 if __name__ == "__main__":
 
@@ -295,11 +148,6 @@ if __name__ == "__main__":
 
     subparsers = parser.add_subparsers(help='Different commands/operations to execute on the data sets', dest="command")
 
-    ds_filter = subparsers.add_parser('filter', help='Filter all the files in the given directory')
-    tools.filter.add_parser_options(ds_filter)
-    tools.partition.add_parser_options(ds_filter, full_file_option=True)
-    tools.utilityFunctions.add_csv_parser_options(ds_filter)
-
     compress = subparsers.add_parser('compress', help='Compress all the files in the given directory')
     tools.compress.add_parser_options(compress)
     tools.utilityFunctions.add_csv_parser_options(compress)
@@ -307,45 +155,7 @@ if __name__ == "__main__":
 
     entropy = subparsers.add_parser('entropy', help='Calculate entropy for all the files in the given directory')
     tools.entropy.add_parser_options(entropy)
-
-    # import try/catch not working properly - commented to disable these commands to be displayed
-    # if dsduration_exists:
-    #     dsduration = subparsers.add_parser('duration',
-    #                                        help='Calculate the duration of recordings for all the files in the given directory')
-    # if csv2txsp3_exists:
-    #     sisporto = subparsers.add_parser('sisporto_format',
-    #                                      help='Transform csv-like files into sisporto TxSP3 format files')
-    #
-    # if csa_exists:
-    #     clamp_analysis = subparsers.add_parser('clamp_analysis',
-    #                                            help='Computes the entropy and compression for PIAS, PIAD and PIAM '
-    #                                                 'for the given datasets. Also enables the division of the dataset '
-    #                                                 'by state and storing intermediary data sets.')
-    #
-    #     tools.utilityFunctions.add_csv_parser_options(clamp_analysis)
-    #     tools.compress.add_parser_options(clamp_analysis)
-    #     tools.entropy.add_parser_options(clamp_analysis)
-    #     tools.clampStateAnalysis.add_parser_options(clamp_analysis)
-    #
-    #     ca = subparsers.add_parser('ca', help='Executes clamp_analysis command')
-    #     tools.utilityFunctions.add_csv_parser_options(ca)
-    #     tools.compress.add_parser_options(ca)
-    #     tools.entropy.add_parser_options(ca)
-    #     tools.clampStateAnalysis.add_parser_options(ca)
-    #
-    # if fma_exists:
-    #     longit_base_analysis = subparsers.add_parser('maturation',
-    #                                                  help='Compute the confidence intervals for the longitudinal base '
-    #                                                       'dataset.')
-    #     tools.fetalMaturationAnalysis.add_parser_options(longit_base_analysis)
-    #     tools.utilityFunctions.add_csv_parser_options(longit_base_analysis)
-    #
-    #     fma = subparsers.add_parser('fma', help='Execute maturation command')
-    #     tools.fetalMaturationAnalysis.add_parser_options(fma)
-    #     tools.utilityFunctions.add_csv_parser_options(fma)
-
-    # if dsduration_exists:
-    #     singleRun = subparsers.add_parser('clean_duration', help='DS Duration after cleaning file')
+    # TODO: need to add csv parser options to entropy module
 
     stv = subparsers.add_parser('stv', help='Perform Short-term Variability analysis with the following algorithms: '
                                             '%s' % stv.AVAILABLE_ALGORITHMS)
@@ -354,11 +164,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     options = vars(args)
-
     # parser definition ends
-
-    # disabled filter parser options:
-    set_disabled_parser_options_values(args, options)
 
     logger = logging.getLogger('tsanalyse')
     logger.setLevel(getattr(logging, options['log_level']))
@@ -385,13 +191,6 @@ if __name__ == "__main__":
     inputdir = options['inputdir'].strip()
     inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
 
-    # TODO: move the filter command to be an individual interface
-    if options['command'] == 'filter':
-        outputdir = clean_procedures(inputdir, options)
-        if options['section']:
-            outputdir = partition_procedures(outputdir, options)
-        inputdir = outputdir
-
     if not os.path.isdir(inputdir):
         output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH, os.path.basename(util.remove_file_extension(inputdir)))
     else:
@@ -403,9 +202,6 @@ if __name__ == "__main__":
         resulting_dict = tools.compress.compress(inputdir, compressor, level, False,
                                                  options['comp_ratio'], round_digits)
 
-        # if options['decompress']:
-        # #     outfile = "%s_decompress_%s_%d" % (output_name, compressor, level)
-        # else:
         outfile = "%s_%s_lvl_%d" % (output_name, compressor, level)
         if options['comp_ratio']:
             outfile += "_wCR"
@@ -416,20 +212,15 @@ if __name__ == "__main__":
         header = ["Filename", "Original_Size", "Compressed_Size"]
         if options['comp_ratio']:
             header.append("CRx100")
-        # if options['decompress']:
-        #     header.append("Decompression_Time")
+
         writer.writerow(header)
 
         for filename in sorted(resulting_dict.keys()):
             cd = resulting_dict[filename]
-            # data_row = [filename, cd.original, cd.compression_rate, cd.compressed]
             data_row = [filename, cd.original, cd.compressed]
             if options['comp_ratio']:
                 data_row.append(cd.compression_rate)
-            # else:
-            #   del (data_row[2])
-            # if options['decompress']:
-            #     data_row.append(cd.time)
+
             writer.writerow(data_row)
         output_file.close()
         print("Storing into: %s" % os.path.abspath(outfile))
@@ -458,46 +249,3 @@ if __name__ == "__main__":
         tools.stv_analysis.compute_stv_metric_of_directory(inputdir, options['algorithm'],
                                                            options['sampling_frequency'],
                                                            output_path=options["output_path"])
-
-    # The following commands are disabled
-    # elif options['command'] == 'duration':
-    #     # add option to define the file separator to use
-    #     # default is ";"
-    #     output_dir = os.path.abspath(".")
-    #     tools.recordDuration.parse_input_path(inputdir, output_dir)
-    #
-    # elif options['command'] == 'sisporto_format':
-    #     # add option to define the file separator to use
-    #     # default is space ("\s")  - to read and to write
-    #     tools.csv2txsp3.parse_input_path(inputdir)
-    #
-    # elif options['command'] == 'clamp_analysis' or options['command'] == 'ca':
-    #     input_is = "dir"
-    #     compressor = options['compressor']
-    #     level = tools.compress.set_level(options)
-    #     if os.path.isfile(inputdir):
-    #         input_is = "file"
-    #     method_2_call = getattr(sys.modules[tools.clampStateAnalysis.__name__], "clamp_analysis_from_%s" % input_is)
-    #
-    #     method_2_call(input_path=inputdir, entropy_2_use=options['entropy'],
-    #                   entropy_tolerance=options['tolerance'], entropy_dimension=options['dimension'],
-    #                   compressor_2_use=compressor, compressor_level=level,
-    #                   with_compression_ratio=options["compression_ratio"],
-    #                   sep2read=read_sep, sep2write=write_sep, line_term=line_term,
-    #                   store_by_state=options['store_by_state'],
-    #                   output_path=util.remove_slash_from_path(options['output_path']),
-    #                   compute_all=options['compute_all'])
-    #
-    # elif options['command'] == 'maturation' or options['command'] == 'fma':
-    #     tools.fetalMaturationAnalysis.fetal_maturation_analysis(inputdir, round_digits=round_digits,
-    #                                                             sep2read=read_sep, sep2write=write_sep,
-    #                                                             line_term=line_term,
-    #                                                             specific_storage=options["output_path"],
-    #                                                             num_of_columns_to_keep=options["cols_2_keep"],
-    #                                                             encoding=options["encoding"],
-    #                                                             debug_flag=options["debug_mode"],
-    #                                                             number_of_groups=options['number_of_groups'],
-    #                                                             group_by=options['group_by'])
-    #
-    # elif options['command'] == 'clean_duration':
-    #     tools.durationFromSingleDS.compute_duration_from_dirs(inputdir)

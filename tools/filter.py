@@ -32,7 +32,7 @@ Depending on the passed options the module either extracts the timestamp and
 heart rate frequency(hrf) or just the hrf. 
 
 Optionally a limit may be applied to eliminate signal loss, we consider the
-signal to be lost if hrf is bellow 50 or above 250. If a particular line is 
+signal to be lost if hrf is below 50 or above 250. If a particular line is
 considered as signal lost it is omitted from the resulting file.
 
 ENTRY POINT: clean(input_name,dest_dir, keep_time=False, apply_limits=False)
@@ -77,8 +77,6 @@ def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_t
 
 
 # IMPLEMENTATION
-
-# TODO: add a flag that allows defining in which column the hrf is
 def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=False, hrf_col=1):
     """
 
@@ -165,19 +163,19 @@ def add_parser_options(parser):
                         dest="keep_time",
                         action="store_true",
                         default=False,
-                        help="When cleaning keep both the hrf and time stamp")
+                        help="When filtering keep both the hrf and time stamp")
 
     parser.add_argument("-lim",
                         "--apply-limits",
                         dest="apply_limits",
                         action="store_true",
                         default=False,
-                        help="When cleaning apply limit cutoffs")
+                        help="When filtering apply limit cutoffs, i.e., 50 <= hrf <= 250")
 
     parser.add_argument("-rint",
                         "--round-to-int",
                         dest="round_to_int",
                         action="store_true",
                         # default=False,
-                        help="Round hrf values to integer; [default: %(default)s]")
+                        help="Round hrf values to integer")
 
