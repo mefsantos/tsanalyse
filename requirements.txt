@@ -1,5 +1,6 @@
-numpy
-scipy
-pandas
-pylzma
-brotli
+pandas>=0.16.0
+setuptools>=38.5.1
+scipy>=0.17.0
+pylzma>=0.4.8
+Brotli>=0.3.0
+numpy>=1.13.3

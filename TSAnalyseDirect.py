@@ -251,7 +251,7 @@ def clean_procedures(inputdir, options):
             logger.info("Creating partition directory %s" % outputdir)
             os.makedirs(outputdir)
         tools.filter.ds_filter(inputdir, outputdir, keep_time=True, apply_limits=options['apply_limits'],
-                               round_to_int=round_to_int)
+                               round_to_int=round_to_int, hrf_col=options["hrf-col"])
     else:
         if not os.path.isdir(inputdir):
             outputdir = os.path.dirname(inputdir) + "_filtered"
@@ -260,7 +260,8 @@ def clean_procedures(inputdir, options):
         if not os.path.isdir(outputdir):
             logger.info("Creating filter directory %s" % outputdir)
             os.makedirs(outputdir)
-        tools.filter.ds_filter(inputdir, outputdir, apply_limits=options['apply_limits'], round_to_int=round_to_int)
+        tools.filter.ds_filter(inputdir, outputdir, apply_limits=options['apply_limits'],
+                               round_to_int=round_to_int, hrf_col=options["hrf-col"])
     logger.info("Finished filter procedures")
     return outputdir
 

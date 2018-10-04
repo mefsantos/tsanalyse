@@ -129,13 +129,12 @@ def sampen(filename, dimension, tolerance, round_digits=None):
     """
     with open(filename, 'r') as file_d:
         file_data = file_d.readlines()
-    # file_data = list(map(float, file_data))
     file_data = numpy.array(map(float, file_data))  # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
-
     samp_ent = samp_entropy(file_data, dimension, tolerance)
     if round_digits:
         samp_ent = round(samp_ent, round_digits)
 
+    file_d.close()
     return EntropyData(len(file_data), samp_ent)
 
 
@@ -157,6 +156,7 @@ def apen(filename, dimension, tolerance, round_digits=None):
     if round_digits:
         ap_ent = round(ap_ent, round_digits)
 
+    file_d.close()
     return EntropyData(len(file_data), ap_ent)
 
 
@@ -266,6 +266,7 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
     if round_digits:
         ap_en = round(ap_en, round_digits)
 
+    file_d.close()
     return EntropyData(len(file_data), ap_en)
 
 

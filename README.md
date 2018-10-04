@@ -1,12 +1,64 @@
 [![Coverage Status](https://coveralls.io/repos/github/mefsantos/tsanalyse/badge.svg?branch=master)](https://coveralls.io/github/mefsantos/tsanalyse?branch=master)
-
+[![Build Status](https://travis-ci.org/mefsantos/tsanalyse.svg?branch=master)](https://travis-ci.org/mefsantos/tsanalyse)
 
 ## Installation Notes
 
-The tool set requires some external libraries described in _Requirements.txt_, along with instructions.
-**env_setup.sh** script automatically install and link all the dependencies required for UBUNTU systems.
-Moreover, the following examples refer to an existing folder, however as the functions require different inputs, 
- the name 'unittest_dataset' in in some examples is merely a placeholder.
+### Pre-requisites:
+
+* Python
+* pip
+* python-dev
+
+
+#### Installing pip:
+
+        curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+        sudo python get-pip.py
+
+### Further Information on pip:
+
+        https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip
+
+
+This tool may also require some external libraries in order to work on 64-bit processors. namely:
+
+* lib32z1
+* lib32stdc++6
+
+
+To install the requirements and link the compilers to the environment run the following command:
+
+        source install_package.sh
+
+This script will run **python setup.py install --user** and add the path for the compilers' source code to the your environment, aka, '$PATH'
+
+Alternatively you can run the script as root adding su, sudo or root:
+
+        source install_package.sh sudo
+
+This script will then run **sudo python setup.py install** instead. It will still add the source paths to the environment.
+
+### External Compressors
+
+This tool was implemented to support additional compressors, namely paq8l and ppmd. *algo/* contains the paq8l sources and ppmd binaries. If the code/binaries no longer work on your system try using your archive manager to install them. 
+
+#### Linux
+(see https://debian.pkgs.org/7/debian-main-amd64/ppmd_10.1-5_amd64.deb.html)
+
+TL;DR:
+
+        sudo apt-get update
+        sudo apt-get install ppmd
+
+#### MacOS
+(see https://guide.macports.org/chunked/using.html#using.port.selfupdate
+also https://github.com/macports/macports-ports/blob/master/archivers/ppmd/Portfile)
+
+TL;DR:
+
+        sudo port selfupdate
+        sudo port install ppmd
+
 
 ## Documentation
 
@@ -37,10 +89,6 @@ The main interface TSAnalyseDirect allows for operations to be applied to files 
     Retrieve the hrf of the file discarding the first 60 seconds
         
         ./TSAnalyseDirect.py unittest_dataset filter -ds 60
-    
-    Retrieve the hrf from first 2000 lines:
-        
-        ./TSAnalyseDirect.py unittest_dataset filter -s 2000 --use_lines
 
 
 * Compress

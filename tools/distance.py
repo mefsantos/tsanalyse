@@ -103,6 +103,8 @@ def nid(filename1, filename2, compressor, level, decompress):
                 max(file1_cdata.compressed, file2_cdata.compressed))
 
     os.unlink(temp_file.name)
+    file1.close()
+    file2.close()
     return dist
 
 
@@ -110,7 +112,7 @@ def nid(filename1, filename2, compressor, level, decompress):
 def d1(filename1, filename2, compressor, level, decompress):
     """
     Use the compressor to calculate respectively c(f1.f2),c(f1) and
-    c(f2) and calculate the distance acording to the definition
+    c(f2) and calculate the distance according to the definition
     presented by Mirko Degli Esposti , Chiara Farinelli , Marco
     Manca , Andrea Tolomelli in their article -- A similarity
     measure for biological signals: new applications to HRV analysis :

@@ -34,8 +34,8 @@ the temporary file before the other was finished using it!!!
 
 MODULE EXTERNAL DEPENDENCIES: 
                      lzma module for python.
-                     ppmd, paq8l and spbio(Windows only) have to be installed in the system
-                     path if you would like to use them.
+                     ppmd and paq8l - sources included in the package, and spbio(Windows only) have to be installed in
+                      the system path if you would like to use them.
 
 
 ENTRY POINT: compress(input_name, compression_algorithm, level, decompress=False, with_compression_rate=False,
@@ -171,7 +171,7 @@ def gzip_compress(inputfile, level, decompress, compute_compression_rate=None, d
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-
+    fdorig.close()
     return cd
 
 
@@ -250,7 +250,7 @@ def lzma_compress(input_file, level, decompress, compute_compression_rate=None, 
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-
+    fdorig.close()
     return cd
 
 
@@ -286,7 +286,7 @@ def bzip2_compress(input_file, level, decompress, compute_compression_rate=None,
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-
+    fdorig.close()
     return cd
 
 
@@ -309,7 +309,7 @@ def ppmd_compress(input_file, level, decompress, compute_compression_rate=None, 
     """
     # subprocess.call('ppmd e -s -f"%s.ppmd" -m256 -o%d "%s"' % (input_file, level, input_file), shell=True)
 
-    # change the previous line to this so the ppmd comrpessor does not output an empty line into the shell
+    # change the previous line to this so the ppmd compressor does not output an empty line into the shell
     subprocess.check_output('ppmd e -s -f"%s.ppmd" -m256 -o%d "%s"' % (input_file, level, input_file), shell=True,
                             stderr=subprocess.STDOUT)
 
@@ -392,7 +392,7 @@ def brotli_compress(input_file, level, decompress, compute_compression_rate=None
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-
+    fdorig.close()
     return cd
 
 
@@ -420,16 +420,19 @@ def test_compressors():
     exec_path = exec_path.split(';')
     if len(exec_path) == 1:
         exec_path = exec_path[0].split(':')
-    for compressor in compressor_list:
+    for compressor in compressor_list.keys():
         for dir_in_path in exec_path:
+            # print os.path.join(dir_in_path, compressor)
             if os.path.exists(os.path.join(dir_in_path, compressor)) or os.path.exists(
                     os.path.join(dir_in_path, compressor + '.exe')):
                 available[compressor] = compressor_list[compressor]
+                # print "PATH %s EXIST!!!" % os.path.join(dir_in_path, compressor)
     return available
 
 
 # A constant variable with the list of available compressors in the path
 AVAILABLE_COMPRESSORS = test_compressors()
+# print AVAILABLE_COMPRESSORS
 
 
 def add_parser_options(parser):
