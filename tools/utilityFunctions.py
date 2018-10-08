@@ -284,6 +284,7 @@ def get_file_extension(file_name):
 
 
 def remove_slash_from_path(path):
+    # type: (object) -> object
     """
     remove the tailing '/' from the path argument
     :param path: path to be processed
@@ -523,6 +524,13 @@ def compute_least_squares(x_array, y_array, round_digits=None):
     return round(slope, round_digits)
 
 
+# Parse arguments validation
+def path_exists(dataset_path):
+    if not os.path.exists(dataset_path):
+        raise os.FileNotFound  # or TypeError, or `argparse.ArgumentTypeError
+    return dataset_path
+
+
 # TODO: use existing debug-level to activate debug mode and debug directory
 # STDIN parser
 # Common parser options when dealing with csv files
@@ -574,19 +582,3 @@ def add_numbers_parser_options(parser):
                         dest="round_digits",
                         action="store",
                         help="Specifies number of digits to use when rounding values; [default: %(default)s]")
-
-
-def add_debug_parser_options(parser):
-    """
-    (argparse.ArgumentParser) -> NoneType
-
-    !!!Auxiliary function!!!  These are arguments for an argparse parser or subparser,
-    and are the optional arguments for the invoked modules
-    """
-    parser.add_argument("-dbg",
-                        "--debug",
-                        dest="debug_mode",
-                        action="store_true",
-                        default=False,
-                        help="Run in debug mode.")
-# help="Run in debug mode. Storage path is set to ;[default: %(default)s]")

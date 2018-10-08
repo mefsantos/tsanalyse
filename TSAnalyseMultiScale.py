@@ -161,41 +161,17 @@ if __name__ == "__main__":
 
     tools.multiscale.add_parser_options(parser)
 
+    # tools.utilityFunctions.add_csv_parser_options(parser)
+
     subparsers = parser.add_subparsers(help='Different commands/operations to execute on the data sets', dest="command")
 
     compress = subparsers.add_parser("compress", help="use compression on multiscale")
     tools.compress.add_parser_options(compress)
-    tools.utilityFunctions.add_csv_parser_options(compress)
     tools.utilityFunctions.add_numbers_parser_options(compress)
 
-    entropy = subparsers.add_parser("entropy", help="use entropy on multiscale")
-
+    entropy = subparsers.add_parser('entropy', help='Calculate multiscale entropy')
     tools.entropy.add_parser_options(entropy)
-
-    # 28/02/18 - removed flags to avoid excessive unexplained functionalities (paper review)
-    # if cr_exists:
-    #     comp_ratio = subparsers.add_parser('comp_ratio',
-    #                                        help='Compute the compression Rate and Confidence Interval of the a given '
-    #                                             'dataset. Receives a dataset (file or folder) with the compression '
-    #                                             'result and calculate both the compression ratio and the confidence '
-    #                                             'interval, generating new datasets with the computed metrics appended.')
-    #     tools.utilityFunctions.add_csv_parser_options(comp_ratio)
-    #     cr = subparsers.add_parser('cr', help='Execute comp_ratio command')
-    #     tools.utilityFunctions.add_csv_parser_options(cr)
-
-    # import try/catch not working properly - commented to disable these commands to be displayed
-    # if cisa_exists:
-    #     confidence_interval = subparsers.add_parser('confidence_interval_slope_analysis',
-    #                                                 help='Compute the Confidence Interval for each scale (uniscale or '
-    #                                                      'multiscale). Receives a dataset (ex: entropy results), '
-    #                                                      'calculate the confidence interval and generates a new '
-    #                                                      'dataset with the metrics appended.')
-    #     cisa.add_parser_options(confidence_interval)
-    #     tools.utilityFunctions.add_csv_parser_options(confidence_interval)
-    #
-    #     conf_int = subparsers.add_parser('cisa', help='Execute confidence_interval_slope_analysis command')
-    #     cisa.add_parser_options(conf_int)
-    #     tools.utilityFunctions.add_csv_parser_options(conf_int)
+    tools.utilityFunctions.add_numbers_parser_options(entropy)
 
     args = parser.parse_args()
     options = vars(args)
@@ -320,12 +296,13 @@ if __name__ == "__main__":
             print("Storing into: %s" % os.path.abspath(outfile))
 
         elif options["command"] == "entropy":
-            if options['entropy'] == 'apen' or options['entropy'] == 'apenv2' or options['entropy'] == "sampen":
+            algorithm = options['algorithm']
+            if algorithm == 'apen' or algorithm == 'apenv2' or algorithm == "sampen":
                 outfile = "%s_multiscale_start_%d_end_%d_step_%d_%s_dim_%d_tol_%.2f.csv" % (output_name,
                                                                                             options["scale_start"],
                                                                                             options["scale_stop"],
                                                                                             options["scale_step"],
-                                                                                            options["entropy"],
+                                                                                            algorithm,
                                                                                             options["dimension"],
                                                                                             options["tolerance"])
 
@@ -333,7 +310,7 @@ if __name__ == "__main__":
 
                 entropy_table = tools.multiscale.multiscale_entropy(input_dir, scales_dir,
                                                                     options["scale_start"], options["scale_stop"] + 1,
-                                                                    options["scale_step"], options["entropy"],
+                                                                    options["scale_step"], algorithm,
                                                                     options["dimension"], options["tolerance"],
                                                                     round_digits)
 
@@ -351,39 +328,4 @@ if __name__ == "__main__":
                 # logger.info("Storing into: %s" % os.path.abspath(outfile))
 
             else:
-                logger.error("Multiscale not implemented for %s" % options["entropy"])
-
-    # the following commands are disabled
-    # else:   # command doesn't need to compute multiscale
-    #     read_sep, write_sep, line_term = options['read_separator'], options['write_separator'], options['line_terminator']
-    #
-    #     if options['round_digits'] is not None:
-    #         round_digits = int(options['round_digits'])
-    #     else:
-    #         round_digits = None
-    #
-    #     inputdir = input_dir
-    #     if options['command'] == 'comp_ratio' or options['command'] == 'cr':
-    #         if os.path.isfile(inputdir):
-    #             compratio.compression_ratio_from_file(inputdir, round_digits=round_digits, sep2read=read_sep,
-    #                                            sep2write=write_sep, line_term=line_term)
-    #         else:
-    #             compratio.compression_ratio_from_dir(inputdir, round_digits=round_digits, sep2read=read_sep,
-    #                                           sep2write=write_sep, line_term=line_term)
-    #
-    #     elif options['command'] == 'confidence_interval_slope_analysis' or options['command'] == 'cisa':
-    #         util.DEBUG = options['debug_mode']
-    #         if os.path.isfile(inputdir):
-    #                 cisa.confidence_intervals_with_slope_analysis_from_file(inputdir, round_digits=round_digits,
-    #                                                                         sep2read=read_sep, sep2write=write_sep,
-    #                                                                         line_term=line_term,
-    #                                                                         no_slope_analysis_flag=options['no_slope_analysis'])
-    #         else:
-    #             metrics_output_path = util.remove_slash_from_path(options['output_path'])
-    #             cisa.confidence_intervals_with_slope_analysis_from_dir(inputdir,
-    #                                                                    single_dataset_flag=options['single_dataset'],
-    #                                                                    metrics_output_path= metrics_output_path,
-    #                                                                    round_digits=options['round_digits'],
-    #                                                                    sep2read=read_sep, sep2write=write_sep,
-    #                                                                    line_term=line_term,
-    #                                                                    no_slope_analysis_flag=options['no_slope_analysis'])
+                logger.error("Multiscale not implemented for %s" % algorithm)

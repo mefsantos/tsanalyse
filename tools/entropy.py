@@ -49,6 +49,8 @@ try:
 except ImportError:
     import tools.utilityFunctions as util
 
+AVAILABLE_ALGORITHMS = ["sampen", "apen", "apenv2"]
+
 # DATA TYPE DEFINITIONS
 """This is a data type defined to be used as a return for entropy; it
 contains the number of points in the file, and the file's entropy"""
@@ -296,28 +298,43 @@ def add_parser_options(parser):
     the entry function in this module
 
     """
-    entropy_parsers = parser.add_subparsers(help='Different methods for calculating entropy', dest="entropy")
 
-    samp_en = entropy_parsers.add_parser('sampen', help="Sample Entropy")
-    samp_en.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
-                         help="Tolerance level to be used when calculating sample entropy. [default:%(default)s]",
-                         default=0.1)
-    samp_en.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
+    parser.add_argument(dest="algorithm", action="store", default="apen", metavar="ALGORITHM",
+                        help="Specifies the entropy algorithm to use. "
+                             "Available algorithms: " + ", " .join(AVAILABLE_ALGORITHMS))
+
+    parser.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
+                        help="Tolerance level to be used when calculating sample entropy. [default:%(default)s]",
+                        default=0.1)
+    parser.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
                          help="Matrix Dimension. [default:%(default)s]", default=2)
-    util.add_numbers_parser_options(samp_en)
 
-    ap_en = entropy_parsers.add_parser('apen', help="Aproximate Entropy")
-    ap_en.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
-                       help="Tolerance level to be used when calculating aproximate entropy. [default:%(default)s]",
-                       default=0.1)
-    ap_en.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
-                       help="Matrix Dimension. [default:%(default)s]", default=2)
-    util.add_numbers_parser_options(ap_en)
+    # util.add_numbers_parser_options(parser)
 
-    ap_en_v2 = entropy_parsers.add_parser('apenv2', help="Aproximate Entropy version 2")
-    ap_en_v2.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
-                          help="Tolerance level to be used when calculating aproximate entropy. [default:%(default)s]",
-                          default=0.1)
-    ap_en_v2.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
-                          help="Matrix Dimension. [default:%(default)s]", default=2)
-    util.add_numbers_parser_options(ap_en_v2)
+
+    #
+    # entropy_parsers = parser.add_subparsers(help='Different methods for calculating entropy', dest="entropy")
+    #
+    # samp_en = entropy_parsers.add_parser('sampen', help="Sample Entropy")
+    # samp_en.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
+    #                      help="Tolerance level to be used when calculating sample entropy. [default:%(default)s]",
+    #                      default=0.1)
+    # samp_en.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
+    #                      help="Matrix Dimension. [default:%(default)s]", default=2)
+    # util.add_numbers_parser_options(samp_en)
+    #
+    # ap_en = entropy_parsers.add_parser('apen', help="Aproximate Entropy")
+    # ap_en.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
+    #                    help="Tolerance level to be used when calculating aproximate entropy. [default:%(default)s]",
+    #                    default=0.1)
+    # ap_en.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
+    #                    help="Matrix Dimension. [default:%(default)s]", default=2)
+    # util.add_numbers_parser_options(ap_en)
+    #
+    # ap_en_v2 = entropy_parsers.add_parser('apenv2', help="Aproximate Entropy version 2")
+    # ap_en_v2.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
+    #                       help="Tolerance level to be used when calculating aproximate entropy. [default:%(default)s]",
+    #                       default=0.1)
+    # ap_en_v2.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
+    #                       help="Matrix Dimension. [default:%(default)s]", default=2)
+    # util.add_numbers_parser_options(ap_en_v2)

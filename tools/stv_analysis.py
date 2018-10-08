@@ -46,6 +46,7 @@ import sys
 import glob
 import pandas
 import numpy as np
+import tools.utilityFunctions as util
 
 try:
     import utilityFunctions as util
@@ -275,7 +276,6 @@ def stv_sd(time_series_to_eval, sampling_frequency=4):
     return np.std(time_series_to_eval)
 
 
-# TODO: add entry point for a single file and not only a directory
 # TODO: add parameter for duration of the subsets if needed and standardize every function to the same parameters
 def compute_stv_metric_of_file(input_file_name, algorithm_name, sampling_frequency=4):
     dataframe = pandas.read_csv(input_file_name)
@@ -295,6 +295,7 @@ def compute_stv_metric_of_file(input_file_name, algorithm_name, sampling_frequen
 
 
 # ENTRY POINT
+# TODO: add entry point for a single file and not only a directory - use 'compute_stv_metrics'
 def compute_stv_metric_of_directory(input_path, algorithm_name, sampling_frequency=4,
                                     output_path=None, drop_na=False):
 
@@ -332,6 +333,25 @@ def compute_stv_metric_of_directory(input_path, algorithm_name, sampling_frequen
         else:
             raise IOError("Algorithm chosen is not available. Make sure you typed correctly using one of the "
                           "following options: all, " + ", " .join(AVAILABLE_ALGORITHMS))
+
+
+# need extra code to finish - decide how to output these small analysis
+#
+# def compute_stv_metrics(input_path, options):
+#     output_path = options["output_path"]
+#     if os.path.isfile(input_path):
+#         file_name = os.path.basename(input_path)
+#         output_dir_path = util.RUN_ISOLATED_FILES_PATH
+#         result_ds = compute_stv_metric_of_file(input_path, options['algorithm'], options['sampling_frequency'])
+#         if output_path:
+#             if os.path.exists(output_path): # otherwise we use the default
+#                 output_dir_path = output_path
+#         output_name = "%s_%s_%s.csv" % (output_dir_path, file_name.replace(".", "_"), options["algorithm"])
+#         output_file_path = os.path.join(output_dir_path, output_name)
+#         # result_ds.to_csv(output_file_path , sep=";", index=False)
+#         print(result_ds)
+#     else:
+#         compute_stv_metric_of_directory(input_path, options['algorithm'], options['sampling_frequency'], output_path=options["output_path"])
 
 
 # TODO: validate parser input
