@@ -162,6 +162,8 @@ Temporary Items
 .idea/**/workspace.xml
 .idea/**/tasks.xml
 .idea/dictionaries
+.idea/inspectionProfiles
+
 
 # Sensitive or high-churn files:
 .idea/**/dataSources/
@@ -439,3 +441,4 @@ algo/paq8l_src/paq8l # this will be obtained depending on the operating system
 algo/ppmd_src/ppmd  # this will be obtained depending on the operating system
 
 *.SIM
+
