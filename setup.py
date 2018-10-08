@@ -44,6 +44,7 @@ setup(name='TSAnalyse',
       author_email='marcelo.santos@fc.up.pt',
       url='https://github.com/mefsantos/tsanalyse',
       packages=setuptools.find_packages(),
+      python_requires='>=2.7.0',
       install_requires=requirements
       )
 
