@@ -85,6 +85,18 @@ This is a data type defined to be used as a return for compression it has three 
 CompressionData = namedtuple('CompressionData', 'original compressed compression_rate time')
 
 
+# lets start by adding the path for the compressor binaries we need HERE
+
+paq8l_bin_path = os.path.join(util.TSA_HOME, "algo", "ppmd_src")
+ppmd_bin_path = os.path.join(util.TSA_HOME, "algo", "ppmd_src")
+
+if os.path.exists(paq8l_bin_path) and paq8l_bin_path not in os.environ["PATH"]:
+    os.environ["PATH"] += ":"+paq8l_bin_path
+
+if os.path.exists(ppmd_bin_path) and ppmd_bin_path not in os.environ["PATH"]:
+    os.environ["PATH"] += ":"+ppmd_bin_path
+
+
 # ENTRY POINT FUNCTION
 def compress(input_name, compression_algorithm, level, decompress=False,
              with_compression_rate=False, digits_to_round=None):
@@ -420,12 +432,29 @@ def test_compressors():
     if len(exec_path) == 1:
         exec_path = exec_path[0].split(':')
     for compressor in compressor_list.keys():
-        for dir_in_path in exec_path:
-            # print os.path.join(dir_in_path, compressor)
-            if os.path.exists(os.path.join(dir_in_path, compressor)) or os.path.exists(
-                    os.path.join(dir_in_path, compressor + '.exe')):
-                available[compressor] = compressor_list[compressor]
-                # print "PATH %s EXIST!!!" % os.path.join(dir_in_path, compressor)
+        # first check in the sys.path (python environment) - we cant - cus we use system call. we need it in $PATH
+        # compressors_in_syspath = [os.path.join(path, compressor)
+        #         for path in sys.path if os.path.isfile(os.path.join(path, compressor))]
+        # if len(compressors_in_syspath) > 0:
+        #     print("1 Compressor %s exists in %s" % (compressor, compressors_in_syspath))
+        #     available[compressor] = compressor_list[compressor]
+        # else: # otherwise try in the system environment
+        os_paths = [os.path.join(dirpath, compressor)
+                    for dirpath in exec_path if os.path.isfile(os.path.join(dirpath, compressor))]
+        os_paths_execs = [os.path.join(dirpath, compressor+".exe")
+                          for dirpath in exec_path if os.path.isfile(os.path.join(dirpath, compressor+".exe"))]
+        if len(os_paths) > 0 or len(os_paths_execs) > 0:
+            available[compressor] = compressor_list[compressor]
+            # print("2 Compressor %s exists in %s" % (compressor, os_paths))
+            # print("22 Compressor %s exists in %s" % (compressor, os_paths_execs))
+
+            # old code
+            # for dir_in_path in exec_path:
+            #     print os.path.join(dir_in_path, compressor)
+            #     if os.path.exists(os.path.join(dir_in_path, compressor)) or os.path.exists(
+            #             os.path.join(dir_in_path, compressor + '.exe')):
+            #         available[compressor] = compressor_list[compressor]
+            #         print "PATH %s EXIST!!!" % os.path.join(dir_in_path, compressor)
     return available
 
 
