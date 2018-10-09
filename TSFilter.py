@@ -64,33 +64,35 @@ import tools.utilityFunctions as util
 
 
 def clean_procedures(inputdir, options):
-    round_to_int = options["round_to_int"]
     logger.info("Starting filter procedures")
     if options['keep_time']:
         if not os.path.isdir(inputdir):
-            outputdir = os.path.dirname(inputdir) + "_filtered_wtime"
+            outputdir_path = os.path.dirname(inputdir) + "_filtered_wtime"
         else:
-            outputdir = inputdir + "_filtered"
-        if not os.path.isdir(outputdir):
-            logger.info("Creating directory %s" % outputdir)
-            os.makedirs(outputdir)
-        tools.filter.ds_filter(inputdir, outputdir, keep_time=True, apply_limits=options['apply_limits'],
-                               round_to_int=round_to_int, hrf_col=options["hrf-col"])
+            outputdir_path = inputdir + "_filtered_wtime"
+        if not os.path.isdir(outputdir_path):
+            logger.info("Creating directory %s" % outputdir_path)
+            os.makedirs(outputdir_path)
+        tools.filter.ds_filter(inputdir, outputdir_path, keep_time=True, apply_limits=options['apply_limits'],
+                               round_to_int=options["round_to_int"], hrf_col=options["hrf-col"])
     else:
         if not os.path.isdir(inputdir):
-            outputdir = os.path.dirname(inputdir) + "_filtered"
+            outputdir_path = os.path.dirname(inputdir) + "_filtered"
         else:
-            outputdir = inputdir + "_filtered"
-        if not os.path.isdir(outputdir):
-            logger.info("Creating filter directory %s" % outputdir)
-            os.makedirs(outputdir)
-        tools.filter.ds_filter(inputdir, outputdir, apply_limits=options['apply_limits'],
-                               round_to_int=round_to_int, hrf_col=options["hrf-col"])
+            outputdir_path = inputdir + "_filtered"
+        if not os.path.isdir(outputdir_path):
+            logger.info("Creating filter directory %s" % outputdir_path)
+            os.makedirs(outputdir_path)
+        tools.filter.ds_filter(inputdir, outputdir_path, apply_limits=options['apply_limits'],
+                               round_to_int=options["round_to_int"], hrf_col=options["hrf-col"])
     logger.info("Finished filter procedures")
-    return outputdir
+    return outputdir_path
 
 
 if __name__ == "__main__":
+
+    # from sys import path
+    # path.append(os.path.join(util.TSA_HOME, "algo/ppmd_src"))
 
     # lets evaluate the directory for individual runs here
     if not os.path.exists(util.RUN_ISOLATED_FILES_PATH):

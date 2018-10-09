@@ -141,34 +141,35 @@ if __name__ == "__main__":
                                                  "(when needed) for a given file or directory")
     parser.add_argument("inputdir", metavar="INPUT PATH", action="store",
                         help="Path for a file or directory containing the datasets to be used as input")
-    parser.add_argument("--log", action="store", metavar="LOGFILE", default=None, dest="log_file",
-                        help="Use LOGFILE to save logs.")
-    parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
-                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default="WARNING")
+
+    # parser.add_argument("--log", action="store", metavar="LOGFILE", default=None, dest="log_file",
+    #                     help="Use LOGFILE to save logs.")
+    # parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
+    #                     choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default="WARNING")
+    tools.utilityFunctions.add_logger_parser_options(parser)
 
     tools.utilityFunctions.add_csv_parser_options(parser)
     subparsers = parser.add_subparsers(help='Different commands/operations to execute on the data sets', dest="command")
 
     compress = subparsers.add_parser('compress', help='Compress all the files in the given directory')
     tools.compress.add_parser_options(compress)
-    # tools.utilityFunctions.add_csv_parser_options(compress)
     tools.utilityFunctions.add_numbers_parser_options(compress)
 
     entropy = subparsers.add_parser('entropy', help='Calculate entropy for all the files in the given directory')
     tools.entropy.add_parser_options(entropy)
-    # tools.utilityFunctions.add_csv_parser_options(entropy)
     tools.utilityFunctions.add_numbers_parser_options(entropy)
     # TODO: need to add csv parser options to entropy module
 
     stv = subparsers.add_parser('stv', help='Perform Short-term Variability analysis of the files of a given directory '
                                             'with the following algorithms: %s' % stv.AVAILABLE_ALGORITHMS)
     tools.stv_analysis.add_parser_options(stv)
-    # tools.utilityFunctions.add_csv_parser_options(stv)
+    tools.utilityFunctions.add_numbers_parser_options(stv)
 
     args = parser.parse_args()
     options = vars(args)
     # parser definition ends
 
+    # later convert this code into a method to initialize the logger
     logger = logging.getLogger('tsanalyse')
     logger.setLevel(getattr(logging, options['log_level']))
 
@@ -181,15 +182,9 @@ if __name__ == "__main__":
     formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
     log_output.setFormatter(formatter)
     logger.addHandler(log_output)
+    # ############################################################
 
     # TODO: later we might remove this when every command accepts these flags or use global variables in Utils' file
-    # Global options for csv's
-    read_sep = options['read_separator'] if hasattr(args, "read_separator") else ";"
-    write_sep = options['write_separator'] if hasattr(args, "write_separator") else ";"
-    line_term = options['line_terminator'] if hasattr(args, "line_terminator") else "\n"
-
-    round_digits = options['round_digits'] if hasattr(args, "round_digits") else None
-    round_digits = int(round_digits) if round_digits is not None else None
 
     inputdir = options['inputdir'].strip()
     inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
@@ -203,7 +198,7 @@ if __name__ == "__main__":
         compressor = options['compressor']
         level = tools.compress.set_level(options)
         resulting_dict = tools.compress.compress(inputdir, compressor, level, False, options['comp_ratio'],
-                                                 round_digits)
+                                                 options['round_digits'])
 
         outfile = "%s_%s_lvl_%d" % (output_name, compressor, level)
         if options['comp_ratio']:
@@ -235,7 +230,7 @@ if __name__ == "__main__":
         tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
 
         resulting_dict = tools.entropy.entropy(inputdir, algorithm, options['dimension'], tolerances,
-                                               round_digits)
+                                               options['round_digits'])
 
         outfile = "%s_%s_dim_%d_tol_%.2f.csv" % (
             output_name, algorithm, options['dimension'], options['tolerance'])
@@ -249,5 +244,8 @@ if __name__ == "__main__":
         print("Storing into: %s" % os.path.abspath(outfile))
 
     elif options['command'] == 'stv':
-        tools.stv_analysis.compute_stv_metric_of_directory(inputdir, options['algorithm'], options['sampling_frequency'], output_path=options["output_path"])
-        # print("Storing into: %s" % os.path.abspath(outfile))
+        tools.stv_analysis.compute_stv_metrics(inputdir, options)
+
+        # tools.stv_analysis.compute_stv_metric_of_directory(inputdir, options['algorithm'],
+        #                                                    options['sampling_frequency'], options['round_digits'],
+        #                                                    output_path=options["output_path"])

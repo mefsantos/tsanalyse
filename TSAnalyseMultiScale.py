@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
     tools.multiscale.add_parser_options(parser)
 
-    # tools.utilityFunctions.add_csv_parser_options(parser)
+    tools.utilityFunctions.add_csv_parser_options(parser)
 
     subparsers = parser.add_subparsers(help='Different commands/operations to execute on the data sets', dest="command")
 
@@ -180,14 +180,6 @@ if __name__ == "__main__":
 
     options["decompress"] = None  # decompress is disabled. This os the shortest mod without deleting code
 
-    # TODO: later we might remove this when every command accepts these flags
-    read_sep = options['read_separator'] if hasattr(args, "read_separator") else ";"
-    write_sep = options['write_separator'] if hasattr(args, "write_separator") else ";"
-    line_term = options['line_terminator'] if hasattr(args, "line_terminator") else "\n"
-
-    round_digits = options['round_digits'] if hasattr(args, "round_digits") else None
-    round_digits = int(round_digits) if round_digits is not None else None
-
     logger = logging.getLogger('tsanalyse')
     logger.setLevel(getattr(logging, options['log_level']))
 
@@ -195,6 +187,7 @@ if __name__ == "__main__":
         log_output = logging.StreamHandler()
     else:
         log_output = logging.FileHandler(options['log_file'])
+
     log_output.setLevel(getattr(logging, options['log_level']))
     formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
     log_output.setFormatter(formatter)
@@ -312,10 +305,10 @@ if __name__ == "__main__":
                                                                     options["scale_start"], options["scale_stop"] + 1,
                                                                     options["scale_step"], algorithm,
                                                                     options["dimension"], options["tolerance"],
-                                                                    round_digits)
+                                                                    options["round_digits"])
 
                 output_file = open(outfile, "w")
-                writer = csv.writer(output_file, delimiter=";")
+                writer = csv.writer(output_file, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
 
                 header = ["Filename"] + ["Scale_%d_Entropy" % s for s in
                                          range(options["scale_start"], options["scale_stop"] + 1, options["scale_step"])]

@@ -45,18 +45,11 @@ DEBUG_PATH = os.path.join(TSA_HOME, "debug_runs")
 RUN_ISOLATED_FILES_PATH = os.path.join(TSA_HOME, "individual_runs")
 BLOCK_ANALYSIS_OUTPUT_PATH = os.path.join(TSA_HOME, "block_analysis")
 FILE_BLOCKS_STORAGE_PATH = os.path.join(TSA_HOME, "file_blocks")
-# Check if the folder required for debug and individual runs exists and create them if necessary
+STV_ANALYSIS_STORAGE_PATH = os.path.join(TSA_HOME, "stv_analysis")
 
-
-# if not os.path.exists(DEBUG_PATH):
-#     os.mkdir(DEBUG_PATH)
 
 if not os.path.exists(RUN_ISOLATED_FILES_PATH):
     os.mkdir(RUN_ISOLATED_FILES_PATH)
-
-
-# DEBUG FLAG
-DEBUG = False
 
 
 # List utility functions
@@ -152,6 +145,18 @@ def alternate_merge_lists(fst_list, snd_list):
     return list(iter_item.next() for iter_item in it.cycle(iters))
 
 
+def my_round(arg, digits):
+
+    # protect from digits = None:
+    if digits is None:
+        return arg
+
+    if type(arg) == list:
+        return round_list(arg, digits)
+
+    return round(arg, digits)
+
+
 def round_list(l, digits):
     """
     Extends the round(value, ndigits) to a list
@@ -170,10 +175,11 @@ def round_list(l, digits):
             rl.append(round_list(v, digits))
         else:
             if is_number(v):
-                if digits == 0:
-                    rl.append(int(round(v, digits)))
-                else:
-                    rl.append(round(v, digits))
+                # doesnt make sense having mixed types(ex: [12.0, 4, ...])
+                # if digits == 0:
+                #     rl.append(int(round(v, digits)))
+                # else:
+                rl.append(round(v, digits))
             else:
                 rl.append(v)
     return rl
@@ -222,6 +228,10 @@ def slice_list_into_lists(input_list, n_lists_to_create):
     return result
 
 
+def is_nan_list(inlist):
+    return np.isnan(inlist).all()
+
+
 def compute_iqr(list_2_eval):
     """
     compute Inter-quartile range from list 'list_2_eval'
@@ -247,9 +257,10 @@ def is_number(v):
     """
     try:
         float(v)
-        return True
     except ValueError:
         return False
+    else:
+        return not np.isnan(v)
 
 
 # Data frames evaluation
@@ -524,13 +535,6 @@ def compute_least_squares(x_array, y_array, round_digits=None):
     return round(slope, round_digits)
 
 
-# Parse arguments validation
-def path_exists(dataset_path):
-    if not os.path.exists(dataset_path):
-        raise os.FileNotFound  # or TypeError, or `argparse.ArgumentTypeError
-    return dataset_path
-
-
 # TODO: use existing debug-level to activate debug mode and debug directory
 # STDIN parser
 # Common parser options when dealing with csv files
@@ -581,4 +585,12 @@ def add_numbers_parser_options(parser):
                         "--round-digits",
                         dest="round_digits",
                         action="store",
+                        type=int,
                         help="Specifies number of digits to use when rounding values; [default: %(default)s]")
+
+
+def add_logger_parser_options(parser):
+    parser.add_argument("--log", action="store", metavar="LOGFILE", default=None, dest="log_file",
+                        help="Use LOGFILE to save logs.")
+    parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
+                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default="WARNING")

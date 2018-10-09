@@ -37,6 +37,7 @@ ENTRY POINT: entropy(input_name,function,dimension,tolerances)
 import os
 import sys
 import numpy
+import logging
 from collections import namedtuple
 
 try:
@@ -50,6 +51,8 @@ except ImportError:
     import tools.utilityFunctions as util
 
 AVAILABLE_ALGORITHMS = ["sampen", "apen", "apenv2"]
+
+module_logger = logging.getLogger('tsanalyse.entropy')
 
 # DATA TYPE DEFINITIONS
 """This is a data type defined to be used as a return for entropy; it
@@ -299,7 +302,7 @@ def add_parser_options(parser):
 
     """
 
-    parser.add_argument(dest="algorithm", action="store", default="apen", metavar="ALGORITHM",
+    parser.add_argument(dest="algorithm", action="store", metavar="ALGORITHM",
                         help="Specifies the entropy algorithm to use. "
                              "Available algorithms: " + ", " .join(AVAILABLE_ALGORITHMS))
 

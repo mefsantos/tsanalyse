@@ -337,7 +337,7 @@ def write_partition(lines, output_file, i_index, f_index):
     """
     (list, str, int, int) -> NoneType
 
-    Take the hrf file contents ( in a list) and write the lines from a partition to
+    Take the hrf f  File "/home/msantos/PycharmProjects/TSAnalyse/tools/ile contents ( in a list) and write the lines from a partition to
     output_file.
     """
     with open(output_file, "w") as fdout:

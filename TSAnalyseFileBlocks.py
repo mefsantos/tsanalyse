@@ -149,17 +149,18 @@ if __name__ == "__main__":
                         choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default="WARNING")
 
     tools.partition.add_parser_options(parser, full_file_option=False, file_blocks_usage=True)
+    #    tools.separate_blocks.add_parser_options(parser)
+    tools.utilityFunctions.add_csv_parser_options(parser)
 
     subparsers = parser.add_subparsers(help='Different commands to be run on directory', dest="command")
 
     compress = subparsers.add_parser('compress', help='compress all the files in the given directory')
     tools.compress.add_parser_options(compress)
-    tools.utilityFunctions.add_csv_parser_options(compress)
     tools.utilityFunctions.add_numbers_parser_options(compress)
 
     entropy = subparsers.add_parser('entropy', help='calculate entropy for all the files in the given directory')
     tools.entropy.add_parser_options(entropy)
-    #    tools.separate_blocks.add_parser_options(parser)
+    tools.utilityFunctions.add_numbers_parser_options(entropy)
 
     args = parser.parse_args()
     options = vars(args)
@@ -171,13 +172,10 @@ if __name__ == "__main__":
     options['start_at_end'] = False
     options['decompress'] = None
 
-    # TODO: later we might remove this when every command accepts these flags
-    read_sep = options['read_separator'] if hasattr(args, "read_separator") else ";"
-    write_sep = options['write_separator'] if hasattr(args, "write_separator") else ";"
-    line_term = options['line_terminator'] if hasattr(args, "line_terminator") else "\n"
-
-    round_digits = options['round_digits'] if hasattr(args, "round_digits") else None
-    round_digits = int(round_digits) if round_digits is not None else None
+    # round_digits = options['round_digits'] if hasattr(args, "round_digits") else None
+    # round_digits = int(round_digits) if round_digits is not None else None
+    #
+    # print(type(options["round_digits"]))
 
     if options['log_file'] is None:
         log_output = logging.StreamHandler()
@@ -235,7 +233,8 @@ if __name__ == "__main__":
             # changes the filename
             compressed[bfile] = tools.compress.compress(os.path.join(dest_dir, "%s_blocks" % bfile),
                                                         options['compressor'], options['level'],
-                                                        options['decompress'], options['comp_ratio'], round_digits)
+                                                        options['decompress'], options['comp_ratio'],
+                                                        options["round_digits"])
             logger.info("Compression complete")
 
         for filename in compressed:
@@ -256,7 +255,8 @@ if __name__ == "__main__":
             fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
 
             file_to_write = open(fboutname, "w")
-            writer = csv.writer(file_to_write, delimiter=";")
+            writer = csv.writer(file_to_write, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
+
             header = ["Block", "Original Size", "Compressed Size"]
             if options['comp_ratio']:
                 header.append("CRx100")
@@ -277,25 +277,27 @@ if __name__ == "__main__":
             file_to_write.close()
 
     elif options['command'] == 'entropy':
+        algorithm = options['algorithm']
         entropy = {}
         for filename in block_minutes:
             bfile = os.path.splitext(filename)[0]
             logger.info("Entropy calculations started for %s" % os.path.join(dest_dir, "%s_blocks" % bfile))
             files_stds = tools.entropy.calculate_std(os.path.join(dest_dir, "%s_blocks" % bfile))
             tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
-            entropy[bfile] = tools.entropy.entropy(os.path.join(dest_dir, "%s_blocks" % bfile), options['entropy'],
-                                                   options['dimension'], tolerances, round_digits)
+            entropy[bfile] = tools.entropy.entropy(os.path.join(dest_dir, "%s_blocks" % bfile), algorithm,
+                                                   options['dimension'], tolerances, options["round_digits"])
             logger.info("Entropy calculations complete")
 
         for filename in entropy:
             fboutsuffix = "%s_%s_%s_dim_%d_tol_%.2f.csv" % (os.path.basename(filename), file_blocks_suffix,
-                                                            options['entropy'], options['dimension'],
+                                                            algorithm, options['dimension'],
                                                             options['tolerance'])
 
             fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
 
             file_to_write = open(fboutname, "w")
-            writer = csv.writer(file_to_write, delimiter=";")
+            writer = csv.writer(file_to_write, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
+
             header = ["Block", "Entropy"]
             writer.writerow(header)
             for blocknum in range(1, len(entropy[filename]) + 1):
