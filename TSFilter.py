@@ -91,6 +91,9 @@ def clean_procedures(inputdir, options):
 
 if __name__ == "__main__":
 
+    from sys import path
+    for entry in path:
+        print(entry)
     # from sys import path
     # path.append(os.path.join(util.TSA_HOME, "algo/ppmd_src"))
 
