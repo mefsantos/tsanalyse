@@ -96,6 +96,7 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
         floating_point_param = "%d\n"
     with open(input_file, "rU") as fdin:
         with open(dest_file, "w") as fdout:
+            module_logger.info("processing file: %s" % input_file)
             for line in fdin:
                 data = line.split()
 
@@ -106,7 +107,6 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
                 except ValueError:
                     continue
                 if len(data) != 0:
-                    module_logger.info("filtering file: %s" % input_file)
                     try:
                         float(data[hrf_col])
                     except IndexError:
