@@ -64,7 +64,7 @@ import tools.utilityFunctions as util
 
 
 def clean_procedures(inputdir, options):
-    logger.info("Starting filter procedures on '%s'" % inputdir)
+    logger.info("Starting filter procedures")
     if options['keep_time']:
         if not os.path.isdir(inputdir):
             outputdir_path = os.path.dirname(inputdir) + "_filtered_wtime"

@@ -106,16 +106,15 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
                 except ValueError:
                     continue
                 if len(data) != 0:
-
-                    # we may need to fallback to the first column if the hrf_col doesnt contain numbers
+                    module_logger.info("filtering file: %s" % input_file)
                     try:
                         float(data[hrf_col])
                     except IndexError:
-                        module_logger.warning("Index out of range. Falling back to column 1")  # module_logger.warning
+                        module_logger.warning("Index out of range. Falling back to column 1")
                         hrf_col = 1
                         continue
                     except ValueError:
-                        module_logger.warning("Value Error. Falling back to column 1")  # module_logger.warning
+                        module_logger.warning("Value Error. Falling back to column 1")
                         hrf_col = 1
                         continue
                     hrf = float(data[hrf_col])
@@ -133,7 +132,7 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
                             time = data[0]
                             fdout.write("%s " % time)
                         fdout.write(floating_point_param % hrf)
-    module_logger.info("Storing files into: %s" % os.path.abspath(dest_file))
+    module_logger.info("Storing file in: %s" % os.path.abspath(dest_file))
 
 
 # AUXILIARY FUNCTIONS
