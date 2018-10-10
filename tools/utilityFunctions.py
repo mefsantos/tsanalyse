@@ -36,6 +36,7 @@ ENTRY POINT: NONE
 import os
 import numpy as np
 import pandas as pd
+import logging as log
 import itertools as it
 import scipy.stats as st
 
@@ -47,9 +48,14 @@ BLOCK_ANALYSIS_OUTPUT_PATH = os.path.join(TSA_HOME, "block_analysis")
 FILE_BLOCKS_STORAGE_PATH = os.path.join(TSA_HOME, "file_blocks")
 STV_ANALYSIS_STORAGE_PATH = os.path.join(TSA_HOME, "stv_analysis")
 
+#
+DEFAULT_LOG_LEVEL = "INFO"
 
 if not os.path.exists(RUN_ISOLATED_FILES_PATH):
     os.mkdir(RUN_ISOLATED_FILES_PATH)
+
+
+module_logger = log.getLogger("tsanalyse.util")
 
 
 # Setup the environment with the compressors' path we need
@@ -63,6 +69,25 @@ def setup_environment():
     if os.path.exists(ppmd_bin_path) and ppmd_bin_path not in os.environ["PATH"]:
         os.environ["PATH"] += ":"+ppmd_bin_path
     return
+
+
+def initialize_logger(logger_name='tsanalyse', log_file=None, log_level=DEFAULT_LOG_LEVEL, with_first_entry="TSA"):
+
+    logger = log.getLogger(logger_name)
+    logger.setLevel(getattr(log, log_level))
+
+    log_output = log.StreamHandler() if log_file is None else log.FileHandler(log_file)
+    log_output.setLevel(getattr(log, log_level))
+    # formatter = log.Formatter('%(name)s - %(levelname)s - %(message)s')
+    formatter = log.Formatter(fmt='[%(asctime)s | %(levelname)-8s] %(name)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    log_output.setFormatter(formatter)
+    logger.addHandler(log_output)
+    from datetime import datetime as dt
+    logger_timestamp = dt.now().strftime("%A, %d. %B %Y %I:%M%p")
+    logger.info(with_first_entry)
+    if log_file is not None:
+        print("Full logs will be available in the file '%s'\n" % os.path.abspath(log_file))
+    return logger
 
 
 # List utility functions
@@ -308,7 +333,6 @@ def get_file_extension(file_name):
 
 
 def remove_slash_from_path(path):
-    # type: (object) -> object
     """
     remove the tailing '/' from the path argument
     :param path: path to be processed
@@ -342,7 +366,7 @@ def replace_char_in_filename_by(path_to_eval=".", char_to_remove=" ", char_to_pl
     Replace char_to_remove in file names for char_to_replace in a given directory
     :param path_to_eval: path to evaluate
     :param char_to_remove: character to be replaced
-    :param char_to_replace: character to be placed instead of space
+    :param char_to_place: character to be placed instead of space
     """
     dir_path = os.path.expanduser(remove_slash_from_path(path_to_eval))
     if os.path.exists(dir_path):
@@ -352,7 +376,7 @@ def replace_char_in_filename_by(path_to_eval=".", char_to_remove=" ", char_to_pl
                 name_2_write = os.path.join(dir_path, filename.replace(" ", char_to_place))
                 if new_name != filename:
                     os.rename(os.path.join(dir_path, filename), name_2_write)
-                    print("Renaming %s into %s" % (filename, new_name))
+                    module_logger.debug("Renaming %s into %s" % (filename, new_name))
     else:
         raise IOError("Path does not exist.")
 
@@ -477,8 +501,6 @@ def conf_interval(data_frame, conf_percent=0.95, string_4_header=None, round_dig
         df_ci_min.append(ci_min)
         df_ci_max.append(ci_max)
 
-        # print("df_mean: %s\n df_stdev: %s, ")
-
     res_list.append(df_mean)
     res_list.append(df_std)
     res_list.append(df_ci_min)
@@ -508,20 +530,19 @@ def multiscale_least_squares(df_name, data_frame, round_digits=None):
         start, end, step = parse_ms_params(df_name)
         data_frame_slopes = list()  # store the slope array of each row
         all_x_values = range(start, end+1, step)
+        slopes_df_header = list()
         for df_line in data_frame.iterrows():
             slopes_per_row = list()  # store the slopes for one row
             slopes_df_header = list()  # header of the data frame to concatenate with the original
             row_values = np.array(df_line[1].ix[1:])  # all the values of each row
-            if DEBUG:
-                print("Header, Slope, x[i], y[i]")
+            module_logger.debug("Header, Slope, x[i], y[i]")
             for i in range(2, len(all_x_values)+1):  # iterate over the number os slopes to compute
                 y_array = list(row_values[0:i])
                 x_array = all_x_values[0:i]
                 iter_to_header = "Slope_%d:%d" % (start, all_x_values[i-1])
                 slope = compute_least_squares(x_array=x_array, y_array=y_array, round_digits=round_digits)
                 slopes_per_row.append(slope)
-                if DEBUG:
-                    print("%s, %.4f, %s, %s" % (iter_to_header, slope, x_array, y_array))
+                module_logger.debug("%s, %.4f, %s, %s" % (iter_to_header, slope, x_array, y_array))
                 slopes_df_header.append(iter_to_header)
             # gather every slopes_per_row in a nested list (of lists)
             data_frame_slopes.append(slopes_per_row)
@@ -548,7 +569,6 @@ def compute_least_squares(x_array, y_array, round_digits=None):
     return round(slope, round_digits)
 
 
-# TODO: use existing debug-level to activate debug mode and debug directory
 # STDIN parser
 # Common parser options when dealing with csv files
 def add_csv_parser_options(parser):
@@ -565,21 +585,21 @@ def add_csv_parser_options(parser):
                         help="Specifies the path to save the resulting data set containing the metrics "
                              "to isolate from the input data sets; [default:%(default)s]")
 
-    parser.add_argument("-insep",
+    parser.add_argument("-rsep",
                         "--read-separator",
                         dest="read_separator",
                         action="store",
                         default=";",
                         help="Specifies the csv separator character to use in the given input; [default:'%(default)s']")
 
-    parser.add_argument("-outsep",
+    parser.add_argument("-wsep",
                         "--write-separator",
                         dest="write_separator",
                         action="store",
                         default=";",
                         help="Specifies the csv separator character to use in the output files; [default:'%(default)s']")
 
-    parser.add_argument("-lineterm",
+    parser.add_argument("-lterm",
                         "--line-terminator",
                         dest="line_terminator",
                         action="store",
@@ -603,7 +623,7 @@ def add_numbers_parser_options(parser):
 
 
 def add_logger_parser_options(parser):
-    parser.add_argument("--log", action="store", metavar="LOGFILE", default=None, dest="log_file",
+    parser.add_argument("-lf", "--logfile", action="store", metavar="LOGFILE", default=None, dest="log_file",
                         help="Use LOGFILE to save logs.")
-    parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
-                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default="WARNING")
+    parser.add_argument("-ll", "--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
+                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default=DEFAULT_LOG_LEVEL)

@@ -139,6 +139,7 @@ def multiscale_compression(input_name, scales_dir, start, stop, step, compressor
 
     compression_table = {}
     if os.path.isdir(input_name):
+        module_logger.info("Computing multiscale compression for directory %s" % input_name)
         filelist = util.listdir_no_hidden(input_name)
         for filename in filelist:
             compression_table[filename] = []
@@ -156,6 +157,7 @@ def multiscale_compression(input_name, scales_dir, start, stop, step, compressor
                     compression_table[filename].append(compression_results[filename].time)
 
     else:
+        module_logger.info("Computing multiscale compression for file %s" % input_name)
         filename = os.path.basename(input_name)
         compression_table[filename] = []
         for scale in range(start, stop, step):
@@ -172,7 +174,8 @@ def multiscale_compression(input_name, scales_dir, start, stop, step, compressor
 
             if decompress:
                 compression_table[filename].append(compression_results[filename].time)
-
+    module_logger.debug("Compression Table: %s" % compression_table)
+    module_logger.info("Finished computing multiscale compression")
     return compression_table
 
 
@@ -201,6 +204,7 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
 
     entropy_table = {}
     if os.path.isdir(input_name):
+        module_logger.info("Computing multiscale entropy for directory %s" % input_name)
         filelist = util.listdir_no_hidden(input_name)
         files_stds = calculate_std(os.path.join("%s_Scales" % input_name, "Scale %d" % start))
         tolerances = dict((filename, files_stds[filename] * tolerance) for filename in files_stds)
@@ -214,6 +218,7 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
 
                 entropy_table[filename].append(entropy_results[filename].entropy)
     else:
+        module_logger.info("Computing multiscale entropy for file %s" % input_name)
         filename = os.path.basename(input_name)
         file_for_std = os.path.join(scales_dir, "Scale %d" % start, filename)
         file_std = calculate_std(file_for_std)
@@ -226,6 +231,8 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
             entropy_results = entropy(file_in_scale, entropy_function, dimension, tolerances, round_digits)
 
             entropy_table[filename].append(entropy_results[filename].entropy)
+    module_logger.debug("Entropy Table: %s" % entropy_table)
+    module_logger.info("Finished computing multiscale entropy")
     return entropy_table
 
 
@@ -266,8 +273,7 @@ def create_scale(inputfile, output_dir, scale, mul_order, round_to_int):
             else:
                 fdout.write('%.3f\n' % scaled_hrf)
             line_index += scale
-    fdin.close()
-    fdout.close()
+    return
 
 
 # AUXILIARY FUNCTIONS

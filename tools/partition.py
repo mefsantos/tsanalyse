@@ -121,7 +121,7 @@ def partition_by_lines(input_name, dest_dir, starting_point, section, gap, start
         k = 1
         file_block_dir = os.path.join(dest_dir, "%s_blocks" % filename)
         if not os.path.isdir(file_block_dir):
-            module_logger.info("Creating %s!" % file_block_dir)
+            module_logger.info("Creating %s..." % file_block_dir)
             os.makedirs(file_block_dir)
         while p_end < len(lines):
             partname = "%s_%d" % (filename, k)
@@ -215,7 +215,7 @@ def partition_by_time(input_name, dest_dir, starting_point, section, gap, start_
         k = 1
         file_block_dir = os.path.join(dest_dir, "%s_blocks" % filename)
         if not os.path.isdir(file_block_dir):
-            module_logger.info("Creating %s!" % file_block_dir)
+            module_logger.info("Creating %s..." % file_block_dir)
             os.makedirs(file_block_dir)
         while p_end < len(lines):
             partname = "%s_%d" % (filename, k)

@@ -169,19 +169,9 @@ if __name__ == "__main__":
     options = vars(args)
     # parser definition ends
 
-    # later convert this code into a method to initialize the logger
-    logger = logging.getLogger('tsanalyse')
-    logger.setLevel(getattr(logging, options['log_level']))
+    util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
+                           log_level=options["log_level"], with_first_entry="TSAnalyseDirect")
 
-    if options['log_file'] is None:
-        log_output = logging.StreamHandler()
-    else:
-        log_output = logging.FileHandler(options['log_file'])
-
-    log_output.setLevel(getattr(logging, options['log_level']))
-    formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-    log_output.setFormatter(formatter)
-    logger.addHandler(log_output)
     # ############################################################
 
     # TODO: later we might remove this when every command accepts these flags or use global variables in Utils' file

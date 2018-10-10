@@ -180,18 +180,8 @@ if __name__ == "__main__":
 
     options["decompress"] = None  # decompress is disabled. This os the shortest mod without deleting code
 
-    logger = logging.getLogger('tsanalyse')
-    logger.setLevel(getattr(logging, options['log_level']))
-
-    if options['log_file'] is None:
-        log_output = logging.StreamHandler()
-    else:
-        log_output = logging.FileHandler(options['log_file'])
-
-    log_output.setLevel(getattr(logging, options['log_level']))
-    formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-    log_output.setFormatter(formatter)
-    logger.addHandler(log_output)
+    logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
+                                    log_level=options["log_level"], with_first_entry="TSAnalyseMultiScale")
 
     input_dir = options['inputdir'].strip()
     input_dir = util.remove_slash_from_path(input_dir)  # if slash exists
@@ -209,19 +199,19 @@ if __name__ == "__main__":
         if options['mul_order'] != -1:
             scales_dir += '_%d' % (options['mul_order'])
 
-        logger.info("Creating Scales Directory")
+        logger.info("Creating Scales directory")
 
         tools.multiscale.create_scales(input_dir, scales_dir, options["scale_start"], options["scale_stop"] + 1,
                                        options["scale_step"], options['mul_order'], options['round'])
         logger.info("Scales Directory created")
 
         if not os.path.isdir(input_dir):
+            logger.info("Running isolated test.")
+
             output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH,
                                        os.path.basename(util.remove_file_extension(input_dir)))
         else:
             output_name = input_dir
-
-        # TODO : CONTINUAR A DEFINIR OUTPUT_NAME COMO NOME DO FICHEIRO A GRAVAR - solved?
 
         if options["command"] == "compress":
             options["level"] = tools.compress.set_level(options)
@@ -286,7 +276,7 @@ if __name__ == "__main__":
                 writer.writerow([filename] + compression_table[filename])
 
             output_file.close()
-            print("Storing into: %s" % os.path.abspath(outfile))
+            logger.info("Storing into: %s" % os.path.abspath(outfile))
 
         elif options["command"] == "entropy":
             algorithm = options['algorithm']
@@ -317,7 +307,7 @@ if __name__ == "__main__":
                     writer.writerow([filename] + entropy_table[filename])
 
                 output_file.close()
-                print("Storing into: %s" % os.path.abspath(outfile))
+                logger.info("Storing into: %s" % os.path.abspath(outfile))
                 # logger.info("Storing into: %s" % os.path.abspath(outfile))
 
             else:

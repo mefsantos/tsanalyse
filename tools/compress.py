@@ -435,22 +435,14 @@ def test_compressors():
     if len(exec_path) == 1:
         exec_path = exec_path[0].split(':')
     for compressor in compressor_list.keys():
-        # first check in the sys.path (python environment) - we cant - cus we use system call. we need it in $PATH
-        # compressors_in_syspath = [os.path.join(path, compressor)
-        #         for path in sys.path if os.path.isfile(os.path.join(path, compressor))]
-        # if len(compressors_in_syspath) > 0:
-        #     print("1 Compressor %s exists in %s" % (compressor, compressors_in_syspath))
-        #     available[compressor] = compressor_list[compressor]
-        # else: # otherwise try in the system environment
         os_paths = [os.path.join(dirpath, compressor)
                     for dirpath in exec_path if os.path.isfile(os.path.join(dirpath, compressor))]
+        module_logger.debug("resulting paths: %s" % os_paths)
         os_paths_execs = [os.path.join(dirpath, compressor+".exe")
                           for dirpath in exec_path if os.path.isfile(os.path.join(dirpath, compressor+".exe"))]
+        module_logger.debug("resulting paths for executables: %s" % os_paths_execs)
         if len(os_paths) > 0 or len(os_paths_execs) > 0:
             available[compressor] = compressor_list[compressor]
-            # print("2 Compressor %s exists in %s" % (compressor, os_paths))
-            # print("22 Compressor %s exists in %s" % (compressor, os_paths_execs))
-
             # old code
             # for dir_in_path in exec_path:
             #     print os.path.join(dir_in_path, compressor)
@@ -463,7 +455,7 @@ def test_compressors():
 
 # A constant variable with the list of available compressors in the path
 AVAILABLE_COMPRESSORS = test_compressors()
-# print AVAILABLE_COMPRESSORS
+module_logger.debug(AVAILABLE_COMPRESSORS)
 
 
 def add_parser_options(parser):

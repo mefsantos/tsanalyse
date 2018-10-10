@@ -61,7 +61,7 @@ EntropyData = namedtuple('EntropyData', 'points entropy')
 
 
 # ENTRY POINT FUNCTION
-def entropy(input_name, type, dimension, tolerances, round_digits=None):
+def entropy(input_name, entropy_type, dimension, tolerances, round_digits=None):
     """
     (str, str, int, float) -> EntropyData
     
@@ -73,7 +73,7 @@ def entropy(input_name, type, dimension, tolerances, round_digits=None):
     and tolerance parameters.
     """
 
-    method_to_call = getattr(sys.modules[__name__], type)
+    method_to_call = getattr(sys.modules[__name__], entropy_type)
     entropy_dict = {}
 
     if os.path.isdir(input_name):
@@ -139,7 +139,6 @@ def sampen(filename, dimension, tolerance, round_digits=None):
     if round_digits:
         samp_ent = round(samp_ent, round_digits)
 
-    file_d.close()
     return EntropyData(len(file_data), samp_ent)
 
 
@@ -161,7 +160,6 @@ def apen(filename, dimension, tolerance, round_digits=None):
     if round_digits:
         ap_ent = round(ap_ent, round_digits)
 
-    file_d.close()
     return EntropyData(len(file_data), ap_ent)
 
 
@@ -271,7 +269,6 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
     if round_digits:
         ap_en = round(ap_en, round_digits)
 
-    file_d.close()
     return EntropyData(len(file_data), ap_en)
 
 

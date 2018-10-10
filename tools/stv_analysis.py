@@ -88,12 +88,11 @@ def list_preparation_to_extract_ti(time_series_to_eval, duration_of_subset_in_se
 
     # Preparation
     list_of_lists = util.list_of_lists_with_size(time_series_to_eval, int(samples_per_subset))
-    # print("\n list of lists:\n %s" % list_of_lists)
 
     # only consider the lists with 'samples_per_subset' elements
     list_of_subsets = filter((lambda lst: len(lst) == samples_per_subset), list_of_lists)
     interbeat_intervals_of_subsets = map(interbeat_interval_from_list, list_of_subsets)
-    # print("\n interbeat interval of lists:\n%s" % interbeat_intervals_of_subsets)
+    module_logger.debug("Interbeat interval of lists: %s" % interbeat_intervals_of_subsets)
 
     return interbeat_intervals_of_subsets
 
@@ -326,8 +325,10 @@ def compute_stv_metric_of_directory(input_path, algorithm_name, sampling_frequen
 
     if output_path is None:
         output_path = util.STV_ANALYSIS_STORAGE_PATH
+        module_logger.debug("Output path was not defined. Using default: %s" % output_path)
 
     if not os.path.exists(output_path):
+        module_logger.debug("Creating %s..." % output_path)
         os.mkdir(output_path)
 
     if algorithm_name.lower() == "all":
@@ -335,6 +336,7 @@ def compute_stv_metric_of_directory(input_path, algorithm_name, sampling_frequen
                                                          round_digits, consider_nans), AVAILABLE_ALGORITHMS)
     else:
         if algorithm_name in AVAILABLE_ALGORITHMS:
+            module_logger.debug("Running algorithm %s" % algorithm_name)
             files_list = map(os.path.abspath, glob.glob("%s%s*" % (util.remove_slash_from_path(input_path), os.sep)))
             result_list = map(lambda filename: compute_stv_metric_of_file(filename, algorithm_name, sampling_frequency,
                                                                           round_digits, consider_nans),
@@ -351,25 +353,27 @@ def compute_stv_metric_of_directory(input_path, algorithm_name, sampling_frequen
 
             final_path = os.path.join(output_path, ("stv_analysis_using_%s.csv" % algorithm_name))
             res_dataframe.to_csv(final_path, sep=";", index=False)
-            print("Storing file into: " + os.path.abspath(final_path))
+            module_logger.info("Storing file into: " + os.path.abspath(final_path))
         else:
-            raise IOError("Algorithm chosen is not available. Make sure you typed correctly using one of the "
-                          "following options: all, " + ", " .join(AVAILABLE_ALGORITHMS))
+            error_message = "Algorithm chosen is not available. Make sure you typed correctly using one of the " \
+                            "following options: all, " + ", " .join(AVAILABLE_ALGORITHMS)
+            module_logger.error(error_message)
+            raise IOError(error_message)
 
 
 # need extra code to finish - decide how to output these small analysis
 # for now it will be the entry point only to validate the input
 # ENTRY POINT
 def compute_stv_metrics(input_path, options):
-    output_path = options["output_path"]
 
     global CONSIDER_NANS  # this is required so we can set the global variable instead of a local one w'the same name
     CONSIDER_NANS = options["use_nan"]
 
     if os.path.isfile(input_path):
-        print("This module only accepts directories as input. "
-              "Consider changing you INPUT_PATH\n\tfrom: %s\n\tto:%s" % (os.path.abspath(input_path),
-                                                                         os.path.dirname(os.path.abspath(input_path))))
+        message = "This module only accepts directories as input. " \
+                  "Consider changing you INPUT_PATH\n\tfrom: %s\n\tto:%s" % (os.path.abspath(input_path),
+                                                                         os.path.dirname(os.path.abspath(input_path)))
+        module_logger.warning(message)
         # file_name = os.path.basename(input_path)
         # output_dir_path = util.RUN_ISOLATED_FILES_PATH
         # result_ds = compute_stv_metric_of_file(input_path, options['algorithm'], options['sampling_frequency'])

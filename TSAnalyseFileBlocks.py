@@ -165,26 +165,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     options = vars(args)
 
-    logger = logging.getLogger('tsanalyse')
-    logger.setLevel(getattr(logging, options['log_level']))
+    logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
+                                    log_level=options["log_level"], with_first_entry="TSAnalyseFileBLocks")
 
     # THESE OPTIONS ARE DISABLED FOR NOW
     options['start_at_end'] = False
     options['decompress'] = None
-
-    # round_digits = options['round_digits'] if hasattr(args, "round_digits") else None
-    # round_digits = int(round_digits) if round_digits is not None else None
-    #
-    # print(type(options["round_digits"]))
-
-    if options['log_file'] is None:
-        log_output = logging.StreamHandler()
-    else:
-        log_output = logging.FileHandler(options['log_file'])
-    log_output.setLevel(getattr(logging, options['log_level']))
-    formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-    log_output.setFormatter(formatter)
-    logger.addHandler(log_output)
 
     inputdir = options['inputfile'].strip()
     inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
@@ -194,7 +180,7 @@ if __name__ == "__main__":
         os.mkdir(util.BLOCK_ANALYSIS_OUTPUT_PATH)
 
     if not os.path.exists(util.FILE_BLOCKS_STORAGE_PATH):
-        logger.info("Creating %s..." % util.BLOCK_ANALYSIS_OUTPUT_PATH)
+        logger.info("Creating %s..." % util.FILE_BLOCKS_STORAGE_PATH)
         os.mkdir(util.FILE_BLOCKS_STORAGE_PATH)
 
     file_blocks_suffix = "sec_%d_gap_%d" % (options['section'], options['gap'])
@@ -273,8 +259,8 @@ if __name__ == "__main__":
                     row_data.append(block_results.time)
                 writer.writerow(row_data)
 
-            print("Storing into: %s" % os.path.abspath(fboutname))
             file_to_write.close()
+            logger.info("Storing into: %s" % os.path.abspath(fboutname))
 
     elif options['command'] == 'entropy':
         algorithm = options['algorithm']
@@ -305,5 +291,5 @@ if __name__ == "__main__":
                 row_data = [blocknum, block_results.entropy]
                 writer.writerow(row_data)
 
-            print("Storing into: %s" % os.path.abspath(fboutname))
             file_to_write.close()
+            logger.info("Storing into: %s" % os.path.abspath(fboutname))

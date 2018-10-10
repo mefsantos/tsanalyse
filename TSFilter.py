@@ -64,7 +64,7 @@ import tools.utilityFunctions as util
 
 
 def clean_procedures(inputdir, options):
-    logger.info("Starting filter procedures")
+    logger.info("Starting filter procedures on '%s'" % inputdir)
     if options['keep_time']:
         if not os.path.isdir(inputdir):
             outputdir_path = os.path.dirname(inputdir) + "_filtered_wtime"
@@ -91,12 +91,6 @@ def clean_procedures(inputdir, options):
 
 if __name__ == "__main__":
 
-    from sys import path
-    for entry in path:
-        print(entry)
-    # from sys import path
-    # path.append(os.path.join(util.TSA_HOME, "algo/ppmd_src"))
-
     # lets evaluate the directory for individual runs here
     if not os.path.exists(util.RUN_ISOLATED_FILES_PATH):
         os.mkdir(util.RUN_ISOLATED_FILES_PATH)
@@ -115,21 +109,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     options = vars(args)
 
-    # Change this to a function and send it to tools to call in every file like:
-    # init_logging(logger_name, logger_options)
-    logger = logging.getLogger('tsanalyse')
-    logger.setLevel(getattr(logging, options['log_level']))
-
-    if options['log_file'] is None:
-        log_output = logging.StreamHandler()
-    else:
-        log_output = logging.FileHandler(options['log_file'])
-
-    log_output.setLevel(getattr(logging, options['log_level']))
-    formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-    log_output.setFormatter(formatter)
-    logger.addHandler(log_output)
-    # end of init_logger code -----------------------------------------------------
+    logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
+                                    log_level=options["log_level"], with_first_entry="TSFilter")
 
     inputdir = options['inputdir'].strip()
     inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
@@ -140,3 +121,5 @@ if __name__ == "__main__":
         output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH, os.path.basename(util.remove_file_extension(inputdir)))
     else:
         output_name = inputdir
+
+    logger.info("Done.\n")

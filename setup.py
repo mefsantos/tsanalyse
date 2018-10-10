@@ -78,6 +78,5 @@ setup(name='TSAnalyse',
       python_requires='>=2.7.0',
       install_requires=requirements,
       cmdclass={
-        'install': CustomInstallCommand,
-      }
-      )
+          'install': CustomInstallCommand,
+      })

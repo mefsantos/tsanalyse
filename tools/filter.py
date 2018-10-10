@@ -45,8 +45,8 @@ import utilityFunctions as util
 module_logger = logging.getLogger('tsanalyse.filter')
 
 
+# TODO: change printouts to logger
 # ENTRY POINT FUNCTIONS
-
 def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_to_int=False, hrf_col=1):
     """
     (str,str,bool,bool,bool) -> Nonetype
@@ -111,11 +111,11 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
                     try:
                         float(data[hrf_col])
                     except IndexError:
-                        print("Index out of range. Falling back to column 1")
+                        module_logger.warning("Index out of range. Falling back to column 1")  # module_logger.warning
                         hrf_col = 1
                         continue
                     except ValueError:
-                        print("Value Error. Falling back to column 1")
+                        module_logger.warning("Value Error. Falling back to column 1")  # module_logger.warning
                         hrf_col = 1
                         continue
                     hrf = float(data[hrf_col])
@@ -133,9 +133,7 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
                             time = data[0]
                             fdout.write("%s " % time)
                         fdout.write(floating_point_param % hrf)
-    fdin.close()
-    fdout.close()
-    print("Storing files into: %s" % os.path.abspath(dest_file))
+    module_logger.info("Storing files into: %s" % os.path.abspath(dest_file))
 
 
 # AUXILIARY FUNCTIONS
