@@ -34,20 +34,25 @@ TSFilter is a command line interface that allows you to apply filter
 
       COMMAND_OPTIONS for this command are:
 
-       -lim, --apply-limits When filtering apply limit cutoffs (50<=hrf<=250)
+       -lim, --apply-limits     When filtering apply limit cutoffs (50<=hrf<=250)
 
-       -kt, --keep-time     When cleaning keep both the hrf and the timestamp
+       -kt, --keep-time         When cleaning keep both the hrf and the timestamp
 
        -rint, --round-to-int    Round the hrf values to int
 
+       -col HRF-COLUMN, --hrf-column HRF-COLUMN
+                                Column in the dataset to extract hrf from; [default:1]
 
-Examples :
+Examples:
 
      Retrieve the hrf within the limits [50, 250]:
      ./TSAnalyseDirect.py unittest_dataset filter -lim
 
       Retrieve the timestamps and hrf
      ./TSAnalyseDirect.py unittest_dataset filter -kt
+
+       Retrieve the hrf from the second column of the input file
+     ./TSAnalyseDirect.py unittest_dataset filter -col 2
 
 
 """
@@ -64,30 +69,29 @@ import tools.utilityFunctions as util
 
 
 def clean_procedures(inputdir, options):
-    round_to_int = options["round_to_int"]
     logger.info("Starting filter procedures")
     if options['keep_time']:
         if not os.path.isdir(inputdir):
-            outputdir = os.path.dirname(inputdir) + "_filtered_wtime"
+            outputdir_path = os.path.dirname(inputdir) + "_filtered_wtime"
         else:
-            outputdir = inputdir + "_filtered"
-        if not os.path.isdir(outputdir):
-            logger.info("Creating directory %s" % outputdir)
-            os.makedirs(outputdir)
-        tools.filter.ds_filter(inputdir, outputdir, keep_time=True, apply_limits=options['apply_limits'],
-                               round_to_int=round_to_int, hrf_col=options["hrf-col"])
+            outputdir_path = inputdir + "_filtered_wtime"
+        if not os.path.isdir(outputdir_path):
+            logger.info("Creating directory %s" % outputdir_path)
+            os.makedirs(outputdir_path)
+        tools.filter.ds_filter(inputdir, outputdir_path, keep_time=True, apply_limits=options['apply_limits'],
+                               round_to_int=options["round_to_int"], hrf_col=options["hrf-col"])
     else:
         if not os.path.isdir(inputdir):
-            outputdir = os.path.dirname(inputdir) + "_filtered"
+            outputdir_path = os.path.dirname(inputdir) + "_filtered"
         else:
-            outputdir = inputdir + "_filtered"
-        if not os.path.isdir(outputdir):
-            logger.info("Creating filter directory %s" % outputdir)
-            os.makedirs(outputdir)
-        tools.filter.ds_filter(inputdir, outputdir, apply_limits=options['apply_limits'],
-                               round_to_int=round_to_int, hrf_col=options["hrf-col"])
+            outputdir_path = inputdir + "_filtered"
+        if not os.path.isdir(outputdir_path):
+            logger.info("Creating filter directory %s" % outputdir_path)
+            os.makedirs(outputdir_path)
+        tools.filter.ds_filter(inputdir, outputdir_path, apply_limits=options['apply_limits'],
+                               round_to_int=options["round_to_int"], hrf_col=options["hrf-col"])
     logger.info("Finished filter procedures")
-    return outputdir
+    return outputdir_path
 
 
 if __name__ == "__main__":
@@ -100,31 +104,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Filter all the files in the given directory")
     parser.add_argument("inputdir", metavar="INPUT PATH", help="Path for a file or directory containing the datasets "
                                                                "to be used as input", action="store")
-    parser.add_argument("--log", action="store", metavar="LOGFILE", default=None, dest="log_file",
-                        help="Use LOGFILE to save logs.")
-    parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
-                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default="WARNING")
-
+    tools.utilityFunctions.add_logger_parser_options(parser)
     tools.filter.add_parser_options(parser)
     tools.utilityFunctions.add_csv_parser_options(parser)
     args = parser.parse_args()
     options = vars(args)
 
-    # Change this to a function and send it to tools to call in every file like:
-    # init_logging(logger_name, logger_options)
-    logger = logging.getLogger('tsanalyse')
-    logger.setLevel(getattr(logging, options['log_level']))
-
-    if options['log_file'] is None:
-        log_output = logging.StreamHandler()
-    else:
-        log_output = logging.FileHandler(options['log_file'])
-
-    log_output.setLevel(getattr(logging, options['log_level']))
-    formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-    log_output.setFormatter(formatter)
-    logger.addHandler(log_output)
-    # end of init_logger code -----------------------------------------------------
+    logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
+                                    log_level=options["log_level"], with_first_entry="TSFilter")
 
     inputdir = options['inputdir'].strip()
     inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
@@ -135,3 +122,5 @@ if __name__ == "__main__":
         output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH, os.path.basename(util.remove_file_extension(inputdir)))
     else:
         output_name = inputdir
+
+    logger.info("Done.\n")

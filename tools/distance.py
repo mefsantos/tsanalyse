@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Copyright (C) 2012 Mara Matias
+Edited by Marcelo Santos - 2018
 
 This file is part of TSAnalyse.
 
@@ -38,9 +39,12 @@ ENTRY POINT: distance(filename1, filename2, distance_definition, compressor, lev
 
 import os
 import sys
+import logging
 import compress
 import tempfile
 
+
+module_logger = logging.getLogger('tsanalyse.distance')
 
 # ENTRY POINT FUNCTION
 def distance(filename1, filename2, distance_definition, compressor, level, decompress):

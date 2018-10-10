@@ -142,53 +142,36 @@ import tools.utilityFunctions as util
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Analysis of the file's blocks")
-    parser.add_argument("inputfile", metavar="INPUT FILE", help="File to be analysed")
-    parser.add_argument("--log", action="store", metavar="LOGFILE", default=None, dest="log_file",
-                        help="Use LOGFILE to save logs.")
-    parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
-                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default="WARNING")
+    # parser.add_argument("inputfile", metavar="INPUT FILE", help="File to be analysed")
+    parser.add_argument("input_path", metavar="INPUT PATH", action="store",
+                        help="Path for a file or directory containing the datasets to be used as input")
 
+    tools.utilityFunctions.add_logger_parser_options(parser)
     tools.partition.add_parser_options(parser, full_file_option=False, file_blocks_usage=True)
+    #    tools.separate_blocks.add_parser_options(parser)
+    tools.utilityFunctions.add_csv_parser_options(parser)
 
     subparsers = parser.add_subparsers(help='Different commands to be run on directory', dest="command")
 
     compress = subparsers.add_parser('compress', help='compress all the files in the given directory')
     tools.compress.add_parser_options(compress)
-    tools.utilityFunctions.add_csv_parser_options(compress)
     tools.utilityFunctions.add_numbers_parser_options(compress)
 
     entropy = subparsers.add_parser('entropy', help='calculate entropy for all the files in the given directory')
     tools.entropy.add_parser_options(entropy)
-    #    tools.separate_blocks.add_parser_options(parser)
+    tools.utilityFunctions.add_numbers_parser_options(entropy)
 
     args = parser.parse_args()
     options = vars(args)
 
-    logger = logging.getLogger('tsanalyse')
-    logger.setLevel(getattr(logging, options['log_level']))
+    logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
+                                    log_level=options["log_level"], with_first_entry="TSAnalyseFileBLocks")
 
     # THESE OPTIONS ARE DISABLED FOR NOW
     options['start_at_end'] = False
     options['decompress'] = None
 
-    # TODO: later we might remove this when every command accepts these flags
-    read_sep = options['read_separator'] if hasattr(args, "read_separator") else ";"
-    write_sep = options['write_separator'] if hasattr(args, "write_separator") else ";"
-    line_term = options['line_terminator'] if hasattr(args, "line_terminator") else "\n"
-
-    round_digits = options['round_digits'] if hasattr(args, "round_digits") else None
-    round_digits = int(round_digits) if round_digits is not None else None
-
-    if options['log_file'] is None:
-        log_output = logging.StreamHandler()
-    else:
-        log_output = logging.FileHandler(options['log_file'])
-    log_output.setLevel(getattr(logging, options['log_level']))
-    formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-    log_output.setFormatter(formatter)
-    logger.addHandler(log_output)
-
-    inputdir = options['inputfile'].strip()
+    inputdir = options['input_path'].strip()
     inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
 
     if not os.path.exists(util.BLOCK_ANALYSIS_OUTPUT_PATH):
@@ -196,7 +179,7 @@ if __name__ == "__main__":
         os.mkdir(util.BLOCK_ANALYSIS_OUTPUT_PATH)
 
     if not os.path.exists(util.FILE_BLOCKS_STORAGE_PATH):
-        logger.info("Creating %s..." % util.BLOCK_ANALYSIS_OUTPUT_PATH)
+        logger.info("Creating %s..." % util.FILE_BLOCKS_STORAGE_PATH)
         os.mkdir(util.FILE_BLOCKS_STORAGE_PATH)
 
     file_blocks_suffix = "sec_%d_gap_%d" % (options['section'], options['gap'])
@@ -235,7 +218,8 @@ if __name__ == "__main__":
             # changes the filename
             compressed[bfile] = tools.compress.compress(os.path.join(dest_dir, "%s_blocks" % bfile),
                                                         options['compressor'], options['level'],
-                                                        options['decompress'], options['comp_ratio'], round_digits)
+                                                        options['decompress'], options['comp_ratio'],
+                                                        options["round_digits"])
             logger.info("Compression complete")
 
         for filename in compressed:
@@ -256,7 +240,8 @@ if __name__ == "__main__":
             fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
 
             file_to_write = open(fboutname, "w")
-            writer = csv.writer(file_to_write, delimiter=";")
+            writer = csv.writer(file_to_write, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
+
             header = ["Block", "Original Size", "Compressed Size"]
             if options['comp_ratio']:
                 header.append("CRx100")
@@ -273,29 +258,31 @@ if __name__ == "__main__":
                     row_data.append(block_results.time)
                 writer.writerow(row_data)
 
-            print("Storing into: %s" % os.path.abspath(fboutname))
             file_to_write.close()
+            logger.info("Storing into: %s" % os.path.abspath(fboutname))
 
     elif options['command'] == 'entropy':
+        algorithm = options['algorithm']
         entropy = {}
         for filename in block_minutes:
             bfile = os.path.splitext(filename)[0]
             logger.info("Entropy calculations started for %s" % os.path.join(dest_dir, "%s_blocks" % bfile))
             files_stds = tools.entropy.calculate_std(os.path.join(dest_dir, "%s_blocks" % bfile))
             tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
-            entropy[bfile] = tools.entropy.entropy(os.path.join(dest_dir, "%s_blocks" % bfile), options['entropy'],
-                                                   options['dimension'], tolerances, round_digits)
+            entropy[bfile] = tools.entropy.entropy(os.path.join(dest_dir, "%s_blocks" % bfile), algorithm,
+                                                   options['dimension'], tolerances, options["round_digits"])
             logger.info("Entropy calculations complete")
 
         for filename in entropy:
             fboutsuffix = "%s_%s_%s_dim_%d_tol_%.2f.csv" % (os.path.basename(filename), file_blocks_suffix,
-                                                            options['entropy'], options['dimension'],
+                                                            algorithm, options['dimension'],
                                                             options['tolerance'])
 
             fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
 
             file_to_write = open(fboutname, "w")
-            writer = csv.writer(file_to_write, delimiter=";")
+            writer = csv.writer(file_to_write, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
+
             header = ["Block", "Entropy"]
             writer.writerow(header)
             for blocknum in range(1, len(entropy[filename]) + 1):
@@ -303,5 +290,5 @@ if __name__ == "__main__":
                 row_data = [blocknum, block_results.entropy]
                 writer.writerow(row_data)
 
-            print("Storing into: %s" % os.path.abspath(fboutname))
             file_to_write.close()
+            logger.info("Storing into: %s" % os.path.abspath(fboutname))

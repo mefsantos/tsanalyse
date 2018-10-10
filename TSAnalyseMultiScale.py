@@ -35,7 +35,8 @@ OPTIONS to apply when creating the scales:
                         Stop scales with this amount of points. Default:[20]
   -step STEP, --scale-step STEP
                         Step between every two scales.Default:[1]
-  --multiply MUL ORDER  before calculating the resulting scale, multiply every
+  -mult MUL ORDER, --multiply-by-order MUL ORDER
+                        Before calculating the resulting scale, multiply every
                         number in the series by MUL ORDER, -1 disables this
                         option; Default:[-1]
   -rint, --round-to-int    Round the hrf values to int
@@ -66,7 +67,7 @@ compress: This command allows you to compress all the files in the
      --level LEVEL      compression level to be used, this variable is
                         compressor dependent; default:[The maximum of whatever
                         compressor was chosen]
-     --decompression    Use this option if you also wish to calculate how long it
+     # disabled --decompression    Use this option if you also wish to calculate how long it
                         takes to decompress the file once it's compressed
      -cr, --with-compression-ratio      Add an additional column with the compression ratio
 
@@ -95,22 +96,22 @@ entropy: This command allows you to calculate the entropy for all
    All functions take arguments as inner options, to look at a
    particular entropy's options type:
 
-   ./TSAnalyseMultiScale.py INPUT_DIRECTORY entropy ENTROPY -h
+   ./TSAnalyseMultiScale.py INPUT_DIRECTORY entropy ALGORITHM -h
 
 Examples:
 
 Multiscale entropy for all the files starting at scale 1(original files)
  and ending in scale 20
-./TSAnalyseMultiScale.py unittest_dataset entropy sampen
+    ./TSAnalyseMultiScale.py unittest_dataset_filtered entropy sampen
 
 Multiscale compression with rounded results for scale, since the scales are constructed
 by averaging a given number of point we are bound to have floats, this options
 rounds those numbers to an integer.
-./TSAnalyseMultiScale.py unittest_dataset --round-to-int compress
+    ./TSAnalyseMultiScale.py unittest_dataset_filtered --round-to-int compress
 
 Multiscale compression with rounded results for scale, multiplied by 10, the scale
 point is multiplied by 10 and rounded. The final dataset also contains the compression ratio
-./TSAnalyseMultiScale.py unittest_dataset --round-to-int --multiply 10 compress -c paq8l -cr
+    ./TSAnalyseMultiScale.py unittest_dataset_filtered --round-to-int --mult 10 compress -c paq8l -cr
 """
 
 import os
@@ -125,77 +126,27 @@ import tools.multiscale
 import tools.utilityFunctions as util
 
 
-# Flag to control argparser based on the imports
-import_logger = logging.getLogger('tsanalyse')
-import_logger.info(" ###### Imports: ###### ")
-
-cr_exists = False
-cisa_exists = False
-
-try:
-    import tools.compressionRatio as compratio
-    cr_exists = True
-except ImportError:
-    import_logger.info("Missing module: compressionRatio. Ignoring...")
-
-try:
-    import tools.confidenceIntervalWithSlopeAnalysis as cisa
-    cisa_exists = True
-except ImportError:
-    import_logger.info("Missing module: confidenceIntervalWithSlopeAnalysis. Ignoring...")
-
-import_logger.info(" ###################### ")
-
-
 if __name__ == "__main__":
 
     if not os.path.exists(util.RUN_ISOLATED_FILES_PATH):
         os.mkdir(util.RUN_ISOLATED_FILES_PATH)
 
     parser = argparse.ArgumentParser(description="Generates a tables of file multiscaled compression/entropy")
-    parser.add_argument("inputdir", metavar="INPUT DIRECTORY", help="Directory to be used as input")
-    parser.add_argument("--log", action="store", metavar="LOGFILE", default=None, dest="log_file",
-                        help="Use LOGFILE to save logs.")
-    parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
-                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default="WARNING")
-
+    parser.add_argument("input_path", metavar="INPUT PATH", action="store",
+                        help="Path for a file or directory containing the datasets to be used as input")
     tools.multiscale.add_parser_options(parser)
+    tools.utilityFunctions.add_csv_parser_options(parser)
+    tools.utilityFunctions.add_logger_parser_options(parser)
 
     subparsers = parser.add_subparsers(help='Different commands/operations to execute on the data sets', dest="command")
 
     compress = subparsers.add_parser("compress", help="use compression on multiscale")
     tools.compress.add_parser_options(compress)
-    tools.utilityFunctions.add_csv_parser_options(compress)
     tools.utilityFunctions.add_numbers_parser_options(compress)
 
-    entropy = subparsers.add_parser("entropy", help="use entropy on multiscale")
-
+    entropy = subparsers.add_parser('entropy', help='Calculate multiscale entropy')
     tools.entropy.add_parser_options(entropy)
-
-    # 28/02/18 - removed flags to avoid excessive unexplained functionalities (paper review)
-    # if cr_exists:
-    #     comp_ratio = subparsers.add_parser('comp_ratio',
-    #                                        help='Compute the compression Rate and Confidence Interval of the a given '
-    #                                             'dataset. Receives a dataset (file or folder) with the compression '
-    #                                             'result and calculate both the compression ratio and the confidence '
-    #                                             'interval, generating new datasets with the computed metrics appended.')
-    #     tools.utilityFunctions.add_csv_parser_options(comp_ratio)
-    #     cr = subparsers.add_parser('cr', help='Execute comp_ratio command')
-    #     tools.utilityFunctions.add_csv_parser_options(cr)
-
-    # import try/catch not working properly - commented to disable these commands to be displayed
-    # if cisa_exists:
-    #     confidence_interval = subparsers.add_parser('confidence_interval_slope_analysis',
-    #                                                 help='Compute the Confidence Interval for each scale (uniscale or '
-    #                                                      'multiscale). Receives a dataset (ex: entropy results), '
-    #                                                      'calculate the confidence interval and generates a new '
-    #                                                      'dataset with the metrics appended.')
-    #     cisa.add_parser_options(confidence_interval)
-    #     tools.utilityFunctions.add_csv_parser_options(confidence_interval)
-    #
-    #     conf_int = subparsers.add_parser('cisa', help='Execute confidence_interval_slope_analysis command')
-    #     cisa.add_parser_options(conf_int)
-    #     tools.utilityFunctions.add_csv_parser_options(conf_int)
+    tools.utilityFunctions.add_numbers_parser_options(entropy)
 
     args = parser.parse_args()
     options = vars(args)
@@ -204,27 +155,10 @@ if __name__ == "__main__":
 
     options["decompress"] = None  # decompress is disabled. This os the shortest mod without deleting code
 
-    # TODO: later we might remove this when every command accepts these flags
-    read_sep = options['read_separator'] if hasattr(args, "read_separator") else ";"
-    write_sep = options['write_separator'] if hasattr(args, "write_separator") else ";"
-    line_term = options['line_terminator'] if hasattr(args, "line_terminator") else "\n"
+    logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
+                                    log_level=options["log_level"], with_first_entry="TSAnalyseMultiScale")
 
-    round_digits = options['round_digits'] if hasattr(args, "round_digits") else None
-    round_digits = int(round_digits) if round_digits is not None else None
-
-    logger = logging.getLogger('tsanalyse')
-    logger.setLevel(getattr(logging, options['log_level']))
-
-    if options['log_file'] is None:
-        log_output = logging.StreamHandler()
-    else:
-        log_output = logging.FileHandler(options['log_file'])
-    log_output.setLevel(getattr(logging, options['log_level']))
-    formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-    log_output.setFormatter(formatter)
-    logger.addHandler(log_output)
-
-    input_dir = options['inputdir'].strip()
+    input_dir = options['input_path'].strip()
     input_dir = util.remove_slash_from_path(input_dir)  # if slash exists
 
     # commands that need to compute multiscales
@@ -240,19 +174,19 @@ if __name__ == "__main__":
         if options['mul_order'] != -1:
             scales_dir += '_%d' % (options['mul_order'])
 
-        logger.info("Creating Scales Directory")
+        logger.info("Creating Scales directory")
 
         tools.multiscale.create_scales(input_dir, scales_dir, options["scale_start"], options["scale_stop"] + 1,
                                        options["scale_step"], options['mul_order'], options['round'])
         logger.info("Scales Directory created")
 
         if not os.path.isdir(input_dir):
+            logger.info("Running isolated test.")
+
             output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH,
                                        os.path.basename(util.remove_file_extension(input_dir)))
         else:
             output_name = input_dir
-
-        # TODO : CONTINUAR A DEFINIR OUTPUT_NAME COMO NOME DO FICHEIRO A GRAVAR - solved?
 
         if options["command"] == "compress":
             options["level"] = tools.compress.set_level(options)
@@ -317,15 +251,16 @@ if __name__ == "__main__":
                 writer.writerow([filename] + compression_table[filename])
 
             output_file.close()
-            print("Storing into: %s" % os.path.abspath(outfile))
+            logger.info("Storing in: %s" % os.path.abspath(outfile))
 
         elif options["command"] == "entropy":
-            if options['entropy'] == 'apen' or options['entropy'] == 'apenv2' or options['entropy'] == "sampen":
+            algorithm = options['algorithm']
+            if algorithm == 'apen' or algorithm == 'apenv2' or algorithm == "sampen":
                 outfile = "%s_multiscale_start_%d_end_%d_step_%d_%s_dim_%d_tol_%.2f.csv" % (output_name,
                                                                                             options["scale_start"],
                                                                                             options["scale_stop"],
                                                                                             options["scale_step"],
-                                                                                            options["entropy"],
+                                                                                            algorithm,
                                                                                             options["dimension"],
                                                                                             options["tolerance"])
 
@@ -333,12 +268,12 @@ if __name__ == "__main__":
 
                 entropy_table = tools.multiscale.multiscale_entropy(input_dir, scales_dir,
                                                                     options["scale_start"], options["scale_stop"] + 1,
-                                                                    options["scale_step"], options["entropy"],
+                                                                    options["scale_step"], algorithm,
                                                                     options["dimension"], options["tolerance"],
-                                                                    round_digits)
+                                                                    options["round_digits"])
 
                 output_file = open(outfile, "w")
-                writer = csv.writer(output_file, delimiter=";")
+                writer = csv.writer(output_file, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
 
                 header = ["Filename"] + ["Scale_%d_Entropy" % s for s in
                                          range(options["scale_start"], options["scale_stop"] + 1, options["scale_step"])]
@@ -347,43 +282,7 @@ if __name__ == "__main__":
                     writer.writerow([filename] + entropy_table[filename])
 
                 output_file.close()
-                print("Storing into: %s" % os.path.abspath(outfile))
-                # logger.info("Storing into: %s" % os.path.abspath(outfile))
+                logger.info("Storing in: %s" % os.path.abspath(outfile))
 
             else:
-                logger.error("Multiscale not implemented for %s" % options["entropy"])
-
-    # the following commands are disabled
-    # else:   # command doesn't need to compute multiscale
-    #     read_sep, write_sep, line_term = options['read_separator'], options['write_separator'], options['line_terminator']
-    #
-    #     if options['round_digits'] is not None:
-    #         round_digits = int(options['round_digits'])
-    #     else:
-    #         round_digits = None
-    #
-    #     inputdir = input_dir
-    #     if options['command'] == 'comp_ratio' or options['command'] == 'cr':
-    #         if os.path.isfile(inputdir):
-    #             compratio.compression_ratio_from_file(inputdir, round_digits=round_digits, sep2read=read_sep,
-    #                                            sep2write=write_sep, line_term=line_term)
-    #         else:
-    #             compratio.compression_ratio_from_dir(inputdir, round_digits=round_digits, sep2read=read_sep,
-    #                                           sep2write=write_sep, line_term=line_term)
-    #
-    #     elif options['command'] == 'confidence_interval_slope_analysis' or options['command'] == 'cisa':
-    #         util.DEBUG = options['debug_mode']
-    #         if os.path.isfile(inputdir):
-    #                 cisa.confidence_intervals_with_slope_analysis_from_file(inputdir, round_digits=round_digits,
-    #                                                                         sep2read=read_sep, sep2write=write_sep,
-    #                                                                         line_term=line_term,
-    #                                                                         no_slope_analysis_flag=options['no_slope_analysis'])
-    #         else:
-    #             metrics_output_path = util.remove_slash_from_path(options['output_path'])
-    #             cisa.confidence_intervals_with_slope_analysis_from_dir(inputdir,
-    #                                                                    single_dataset_flag=options['single_dataset'],
-    #                                                                    metrics_output_path= metrics_output_path,
-    #                                                                    round_digits=options['round_digits'],
-    #                                                                    sep2read=read_sep, sep2write=write_sep,
-    #                                                                    line_term=line_term,
-    #                                                                    no_slope_analysis_flag=options['no_slope_analysis'])
+                logger.error("Multiscale not implemented for %s" % algorithm)
