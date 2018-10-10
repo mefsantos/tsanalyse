@@ -22,11 +22,12 @@ _______________________________________________________________________________
 ...
 
 MODULE EXTERNAL DEPENDENCIES:
-pandas(http://pandas.pydata.org/)
+pandas(http://pandas.pydata.org/),
+numpy(http://numpy.scipy.org/)
+
 
 ENTRY POINT:
-
-    ...
+    compute_stv_metrics(input_path, options)
 
 
 - first we need to compute the T(i), aka interbeat interval, from the F(i), aka HRF, for the algorithms,

@@ -34,20 +34,25 @@ TSFilter is a command line interface that allows you to apply filter
 
       COMMAND_OPTIONS for this command are:
 
-       -lim, --apply-limits When filtering apply limit cutoffs (50<=hrf<=250)
+       -lim, --apply-limits     When filtering apply limit cutoffs (50<=hrf<=250)
 
-       -kt, --keep-time     When cleaning keep both the hrf and the timestamp
+       -kt, --keep-time         When cleaning keep both the hrf and the timestamp
 
        -rint, --round-to-int    Round the hrf values to int
 
+       -col HRF-COLUMN, --hrf-column HRF-COLUMN
+                                Column in the dataset to extract hrf from; [default:1]
 
-Examples :
+Examples:
 
      Retrieve the hrf within the limits [50, 250]:
      ./TSAnalyseDirect.py unittest_dataset filter -lim
 
       Retrieve the timestamps and hrf
      ./TSAnalyseDirect.py unittest_dataset filter -kt
+
+       Retrieve the hrf from the second column of the input file
+     ./TSAnalyseDirect.py unittest_dataset filter -col 2
 
 
 """

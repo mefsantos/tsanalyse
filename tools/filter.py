@@ -154,21 +154,19 @@ def add_parser_options(parser):
                         action="store",
                         default=1,
                         type=int,
-                        help="column in the dataset to extract hrf from; [default: %(default)s]")
+                        help="Column in the dataset to extract hrf from; [default: %(default)s]")
     parser.add_argument("-kt",
                         "--keep-time",
                         dest="keep_time",
                         action="store_true",
                         default=False,
                         help="When filtering keep both the hrf and time stamp")
-
     parser.add_argument("-lim",
                         "--apply-limits",
                         dest="apply_limits",
                         action="store_true",
                         default=False,
                         help="When filtering apply limit cutoffs, i.e., 50 <= hrf <= 250")
-
     parser.add_argument("-rint",
                         "--round-to-int",
                         dest="round_to_int",

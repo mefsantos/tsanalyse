@@ -35,7 +35,8 @@ OPTIONS to apply when creating the scales:
                         Stop scales with this amount of points. Default:[20]
   -step STEP, --scale-step STEP
                         Step between every two scales.Default:[1]
-  --multiply MUL ORDER  before calculating the resulting scale, multiply every
+  -mult MUL ORDER, --multiply-by-order MUL ORDER
+                        Before calculating the resulting scale, multiply every
                         number in the series by MUL ORDER, -1 disables this
                         option; Default:[-1]
   -rint, --round-to-int    Round the hrf values to int
@@ -66,7 +67,7 @@ compress: This command allows you to compress all the files in the
      --level LEVEL      compression level to be used, this variable is
                         compressor dependent; default:[The maximum of whatever
                         compressor was chosen]
-     --decompression    Use this option if you also wish to calculate how long it
+     # disabled --decompression    Use this option if you also wish to calculate how long it
                         takes to decompress the file once it's compressed
      -cr, --with-compression-ratio      Add an additional column with the compression ratio
 
@@ -95,22 +96,22 @@ entropy: This command allows you to calculate the entropy for all
    All functions take arguments as inner options, to look at a
    particular entropy's options type:
 
-   ./TSAnalyseMultiScale.py INPUT_DIRECTORY entropy ENTROPY -h
+   ./TSAnalyseMultiScale.py INPUT_DIRECTORY entropy ALGORITHM -h
 
 Examples:
 
 Multiscale entropy for all the files starting at scale 1(original files)
  and ending in scale 20
-./TSAnalyseMultiScale.py unittest_dataset entropy sampen
+    ./TSAnalyseMultiScale.py unittest_dataset_filtered entropy sampen
 
 Multiscale compression with rounded results for scale, since the scales are constructed
 by averaging a given number of point we are bound to have floats, this options
 rounds those numbers to an integer.
-./TSAnalyseMultiScale.py unittest_dataset --round-to-int compress
+    ./TSAnalyseMultiScale.py unittest_dataset_filtered --round-to-int compress
 
 Multiscale compression with rounded results for scale, multiplied by 10, the scale
 point is multiplied by 10 and rounded. The final dataset also contains the compression ratio
-./TSAnalyseMultiScale.py unittest_dataset --round-to-int --multiply 10 compress -c paq8l -cr
+    ./TSAnalyseMultiScale.py unittest_dataset_filtered --round-to-int --mult 10 compress -c paq8l -cr
 """
 
 import os
