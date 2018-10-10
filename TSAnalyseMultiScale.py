@@ -125,28 +125,6 @@ import tools.multiscale
 import tools.utilityFunctions as util
 
 
-# Flag to control argparser based on the imports
-import_logger = logging.getLogger('tsanalyse')
-import_logger.info(" ###### Imports: ###### ")
-
-cr_exists = False
-cisa_exists = False
-
-try:
-    import tools.compressionRatio as compratio
-    cr_exists = True
-except ImportError:
-    import_logger.info("Missing module: compressionRatio. Ignoring...")
-
-try:
-    import tools.confidenceIntervalWithSlopeAnalysis as cisa
-    cisa_exists = True
-except ImportError:
-    import_logger.info("Missing module: confidenceIntervalWithSlopeAnalysis. Ignoring...")
-
-import_logger.info(" ###################### ")
-
-
 if __name__ == "__main__":
 
     if not os.path.exists(util.RUN_ISOLATED_FILES_PATH):
@@ -154,14 +132,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Generates a tables of file multiscaled compression/entropy")
     parser.add_argument("inputdir", metavar="INPUT DIRECTORY", help="Directory to be used as input")
-    parser.add_argument("--log", action="store", metavar="LOGFILE", default=None, dest="log_file",
-                        help="Use LOGFILE to save logs.")
-    parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
-                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default="WARNING")
 
     tools.multiscale.add_parser_options(parser)
-
     tools.utilityFunctions.add_csv_parser_options(parser)
+    tools.utilityFunctions.add_logger_parser_options(parser)
 
     subparsers = parser.add_subparsers(help='Different commands/operations to execute on the data sets', dest="command")
 
@@ -276,7 +250,7 @@ if __name__ == "__main__":
                 writer.writerow([filename] + compression_table[filename])
 
             output_file.close()
-            logger.info("Storing into: %s" % os.path.abspath(outfile))
+            logger.info("Storing in: %s" % os.path.abspath(outfile))
 
         elif options["command"] == "entropy":
             algorithm = options['algorithm']
@@ -307,8 +281,7 @@ if __name__ == "__main__":
                     writer.writerow([filename] + entropy_table[filename])
 
                 output_file.close()
-                logger.info("Storing into: %s" % os.path.abspath(outfile))
-                # logger.info("Storing into: %s" % os.path.abspath(outfile))
+                logger.info("Storing in: %s" % os.path.abspath(outfile))
 
             else:
                 logger.error("Multiscale not implemented for %s" % algorithm)
