@@ -99,11 +99,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Filter all the files in the given directory")
     parser.add_argument("inputdir", metavar="INPUT PATH", help="Path for a file or directory containing the datasets "
                                                                "to be used as input", action="store")
-    parser.add_argument("--log", action="store", metavar="LOGFILE", default=None, dest="log_file",
-                        help="Use LOGFILE to save logs.")
-    parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
-                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default="WARNING")
-
+    tools.utilityFunctions.add_logger_parser_options(parser)
     tools.filter.add_parser_options(parser)
     tools.utilityFunctions.add_csv_parser_options(parser)
     args = parser.parse_args()
