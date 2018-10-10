@@ -169,8 +169,8 @@ if __name__ == "__main__":
     options = vars(args)
     # parser definition ends
 
-    util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
-                           log_level=options["log_level"], with_first_entry="TSAnalyseDirect")
+    logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
+                                    log_level=options["log_level"], with_first_entry="TSAnalyseDirect")
 
     # ############################################################
 
@@ -212,7 +212,7 @@ if __name__ == "__main__":
 
             writer.writerow(data_row)
         output_file.close()
-        print("Storing into: %s" % os.path.abspath(outfile))
+        logger.info("Storing in: %s" % os.path.abspath(outfile))
 
     elif options['command'] == 'entropy':
         algorithm = options["algorithm"]
@@ -225,13 +225,14 @@ if __name__ == "__main__":
         outfile = "%s_%s_dim_%d_tol_%.2f.csv" % (
             output_name, algorithm, options['dimension'], options['tolerance'])
         output_file = open(outfile, "w")
-        writer = csv.writer(output_file, delimiter=";")
+        writer = csv.writer(output_file, delimiter=options["write_separator"],
+                            lineterminator=options["line_terminator"])
         writer.writerow(["Filename", "Entropy"])
         for filename in sorted(resulting_dict.keys()):
             entropyData = resulting_dict[filename]
             writer.writerow([filename, entropyData.entropy])
         output_file.close()
-        print("Storing into: %s" % os.path.abspath(outfile))
+        logger.info("Storing in: %s" % os.path.abspath(outfile))
 
     elif options['command'] == 'stv':
         tools.stv_analysis.compute_stv_metrics(inputdir, options)

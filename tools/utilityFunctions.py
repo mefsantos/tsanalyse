@@ -79,7 +79,7 @@ def initialize_logger(logger_name='tsanalyse', log_file=None, log_level=DEFAULT_
     log_output = log.StreamHandler() if log_file is None else log.FileHandler(log_file)
     log_output.setLevel(getattr(log, log_level))
     # formatter = log.Formatter('%(name)s - %(levelname)s - %(message)s')
-    formatter = log.Formatter(fmt='[%(asctime)s | %(levelname)-8s] %(name)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    formatter = log.Formatter(fmt='[%(asctime)s | %(levelname)-9s] %(name)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     log_output.setFormatter(formatter)
     logger.addHandler(log_output)
     from datetime import datetime as dt

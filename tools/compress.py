@@ -134,6 +134,7 @@ def compress(input_name, compression_algorithm, level, decompress=False,
         level = AVAILABLE_COMPRESSORS[compression_algorithm][0]
 
     if os.path.isdir(input_name):
+        module_logger.info("Using %s to compress files in directory '%s'" % (compression_algorithm, input_name))
         filelist = util.listdir_no_hidden(input_name)
         for filename in filelist:
             filename = filename.strip()  # removes the trailing \n
@@ -141,10 +142,11 @@ def compress(input_name, compression_algorithm, level, decompress=False,
                                               decompress, with_compression_rate, digits_to_round)
             compressed[filename] = compression_data
     else:
+        module_logger.info("Using %s compress file '%s'" % (compression_algorithm, input_name))
         entry_name = os.path.basename(input_name.strip())
         compression_data = method_to_call(input_name.strip(), level, decompress, with_compression_rate, digits_to_round)
-
         compressed[entry_name] = compression_data
+        module_logger.debug("Compression data: %s" % compressed)
     return compressed
 
 
@@ -185,7 +187,6 @@ def gzip_compress(inputfile, level, decompress, compute_compression_rate=None, d
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-    fdorig.close()
     return cd
 
 
@@ -225,7 +226,6 @@ def paq8l_compress(input_file, level, decompress, compute_compression_rate=None,
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-
     return cd
 
 
@@ -264,7 +264,6 @@ def lzma_compress(input_file, level, decompress, compute_compression_rate=None, 
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-    fdorig.close()
     return cd
 
 
@@ -300,7 +299,6 @@ def bzip2_compress(input_file, level, decompress, compute_compression_rate=None,
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-    fdorig.close()
     return cd
 
 
@@ -345,7 +343,6 @@ def ppmd_compress(input_file, level, decompress, compute_compression_rate=None, 
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-
     return cd
 
 
@@ -406,7 +403,6 @@ def brotli_compress(input_file, level, decompress, compute_compression_rate=None
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
-    fdorig.close()
     return cd
 
 
@@ -423,6 +419,7 @@ def test_compressors():
     if there are no levels implemented both minimum and maximum are
     -1.
     """
+    module_logger.info("Checking for available compressors")
     compressor_list = {"paq8l": (1, 8), "ppmd": (2, 16), "spbio": (-1, -1)}
     available = dict()
     available["gzip"] = (1, 9)
@@ -450,6 +447,7 @@ def test_compressors():
             #             os.path.join(dir_in_path, compressor + '.exe')):
             #         available[compressor] = compressor_list[compressor]
             #         print "PATH %s EXIST!!!" % os.path.join(dir_in_path, compressor)
+    module_logger.info("Available compressors: %s" % available)
     return available
 
 
@@ -513,13 +511,12 @@ def set_level(options):
     """
     if ((not options['level']) or
             (options['level'] > AVAILABLE_COMPRESSORS[options['compressor']][1])):
-        module_logger.info(
-            "Your chosen level was above the maximum, setting level to maximum: {0}".format(options['level']))
+        module_logger.warning("Compressor level above maximum. Setting level to maximum: {0}".format(options['level']))
         level = AVAILABLE_COMPRESSORS[options['compressor']][1]
     elif options['level'] < AVAILABLE_COMPRESSORS[options['compressor']][0]:
-        module_logger.info(
-            "Your chosen level was below minimum, setting level to minimum: {0}".format(options['level']))
+        module_logger.warning("Compressor level below minimum, setting level to minimum: {0}".format(options['level']))
         level = AVAILABLE_COMPRESSORS[options['compressor']][0]
     else:
         level = options['level']
+    module_logger.info("Setting compression level of '%s' to '%s'" % (options["compressor"], options["level"]))
     return level

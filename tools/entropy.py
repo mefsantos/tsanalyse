@@ -87,6 +87,7 @@ def entropy(input_name, entropy_type, dimension, tolerances, round_digits=None):
         tolerances = tolerances[list(tolerances.keys())[0]]
         entropy_data = method_to_call(input_name.strip(), dimension, tolerances, round_digits)
         entropy_dict[filename] = entropy_data
+        module_logger.debug("Entropy dictionary: %s" % entropy_dict)
     return entropy_dict
 
 
@@ -104,7 +105,6 @@ def calculate_std(input_name):
         for filename in filelist:
             # debug
             # print("calculate_file_st input: %s" % os.path.join(input_name, filename))
-
             files_std[filename] = calculate_file_std(os.path.join(input_name, filename))
     else:
         files_std[input_name] = calculate_file_std(input_name)
@@ -121,6 +121,7 @@ def calculate_file_std(filename):
     with open(filename, "rU") as fdin:
         file_data = fdin.readlines()
     file_data = list(map(float, file_data))
+    module_logger.info("Computing std for file '%s'" % filename)
     return numpy.std(file_data)
 
 
@@ -135,7 +136,16 @@ def sampen(filename, dimension, tolerance, round_digits=None):
     with open(filename, 'r') as file_d:
         file_data = file_d.readlines()
     file_data = numpy.array(map(float, file_data))  # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
-    samp_ent = samp_entropy(file_data, dimension, tolerance)
+    module_logger.info("Computing sample entropy for file '%s'" % filename)
+
+    try:
+        samp_ent = samp_entropy(file_data, dimension, tolerance)
+    except MemoryError:
+        module_logger.critical("Memory Error while computing sample entropy. Ignoring file...")
+        samp_ent = numpy.nan
+        # raise MemoryError
+    module_logger.debug("entropy: %s" % samp_ent)
+
     if round_digits:
         samp_ent = round(samp_ent, round_digits)
 
@@ -154,9 +164,15 @@ def apen(filename, dimension, tolerance, round_digits=None):
     with open(filename, "r") as file_d:
         file_data = file_d.readlines()
     # file_data = list(map(float, file_data))
-    file_data = numpy.array(map(float, file_data)) # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
+    file_data = numpy.array(map(float, file_data))  # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
+    module_logger.info("Computing approximate entropy for file '%s'" % filename)
+    try:
+        ap_ent = ap_entropy(file_data, dimension, tolerance)
+    except MemoryError:
+        module_logger.critical("Memory Error while computing approximate entropy. Ignoring file...")
+        ap_ent = numpy.nan
+    module_logger.debug("entropy: %s" % ap_ent)
 
-    ap_ent = ap_entropy(file_data, dimension, tolerance)
     if round_digits:
         ap_ent = round(ap_ent, round_digits)
 
@@ -225,47 +241,55 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
     with open(filename, "r") as file_d:
         file_data = file_d.readlines()
     file_data = list(map(float, file_data))
+    module_logger.info("Computing approximate entropy (V2) for file '%s'" % filename)
 
     data_len = len(file_data)
 
-    n_m = [data_len - dimension + 1] * (data_len - dimension + 1)
-    n_mp = [data_len - dimension] * (data_len - dimension)
-    burned_indexes = [{} for i in range(data_len - dimension + 1)]
 
-    for i in range(0, data_len - (dimension - 1)):
-        if i > 0:
-            burned_indexes[i - 1] = None
-        for j in range(i + 1, data_len - (dimension - 1)):
-            if j in burned_indexes[i]:
-                continue
-            m = dimension - 1
-            while m >= 0:
-                if abs(file_data[i + m] - file_data[j + m]) > tolerance:
-                    mabove = m
-                    while mabove >= 0:
-                        if i + mabove < data_len - (dimension - 1) and j + mabove < data_len - (dimension - 1):
-                            n_m[i + mabove] -= 1
-                            n_m[j + mabove] -= 1
-                        if i + mabove < data_len - dimension and j + mabove < data_len - dimension:
-                            n_mp[i + mabove] -= 1
-                            n_mp[j + mabove] -= 1
-                        if i + mabove < data_len - dimension + 1 and j + mabove < data_len - dimension + 1:
-                            burned_indexes[i + mabove][j + mabove] = None
-                        mabove -= 1
-                    break
-                m -= 1
-            if m < 0 and i < data_len - dimension and j < data_len - dimension and abs(
-                            file_data[i + dimension] - file_data[j + dimension]) > tolerance:
-                n_mp[i] -= 1
-                n_mp[j] -= 1
+    try:
+        n_m = [data_len - dimension + 1] * (data_len - dimension + 1)
+        n_mp = [data_len - dimension] * (data_len - dimension)
+        burned_indexes = [{} for i in range(data_len - dimension + 1)]
 
-    c_m = [line / float(data_len - dimension + 1) for line in n_m]
-    c_mp = [line / float(data_len - dimension) for line in n_mp]
+        for i in range(0, data_len - (dimension - 1)):
+            if i > 0:
+                burned_indexes[i - 1] = None
+            for j in range(i + 1, data_len - (dimension - 1)):
+                if j in burned_indexes[i]:
+                    continue
+                m = dimension - 1
+                while m >= 0:
+                    if abs(file_data[i + m] - file_data[j + m]) > tolerance:
+                        mabove = m
+                        while mabove >= 0:
+                            if i + mabove < data_len - (dimension - 1) and j + mabove < data_len - (dimension - 1):
+                                n_m[i + mabove] -= 1
+                                n_m[j + mabove] -= 1
+                            if i + mabove < data_len - dimension and j + mabove < data_len - dimension:
+                                n_mp[i + mabove] -= 1
+                                n_mp[j + mabove] -= 1
+                            if i + mabove < data_len - dimension + 1 and j + mabove < data_len - dimension + 1:
+                                burned_indexes[i + mabove][j + mabove] = None
+                            mabove -= 1
+                        break
+                    m -= 1
+                if m < 0 and i < data_len - dimension and j < data_len - dimension and abs(
+                                file_data[i + dimension] - file_data[j + dimension]) > tolerance:
+                    n_mp[i] -= 1
+                    n_mp[j] -= 1
 
-    phi_m = numpy.mean([numpy.log(pos) for pos in c_m])
-    phi_mp = numpy.mean([numpy.log(pos) for pos in c_mp])
+        c_m = [line / float(data_len - dimension + 1) for line in n_m]
+        c_mp = [line / float(data_len - dimension) for line in n_mp]
 
-    ap_en = phi_m - phi_mp
+        phi_m = numpy.mean([numpy.log(pos) for pos in c_m])
+        phi_mp = numpy.mean([numpy.log(pos) for pos in c_mp])
+
+        ap_en = phi_m - phi_mp
+    except MemoryError:
+        module_logger.critical("Memory Error while computing approximate entropy. Ignoring file...")
+        ap_en = numpy.nan
+
+    module_logger.debug("entropy: %s" % ap_en)
     if round_digits:
         ap_en = round(ap_en, round_digits)
 
@@ -302,12 +326,11 @@ def add_parser_options(parser):
     parser.add_argument(dest="algorithm", action="store", metavar="ALGORITHM",
                         help="Specifies the entropy algorithm to use. "
                              "Available algorithms: " + ", " .join(AVAILABLE_ALGORITHMS))
-
     parser.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
                         help="Tolerance level to be used when calculating sample entropy. [default:%(default)s]",
                         default=0.1)
     parser.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
-                         help="Matrix Dimension. [default:%(default)s]", default=2)
+                        help="Matrix Dimension. [default:%(default)s]", default=2)
 
     # util.add_numbers_parser_options(parser)
 
