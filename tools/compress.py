@@ -85,16 +85,19 @@ This is a data type defined to be used as a return for compression it has three 
 CompressionData = namedtuple('CompressionData', 'original compressed compression_rate time')
 
 
-# lets start by adding the path for the compressor binaries we need HERE
+# # lets start by adding the path for the compressor binaries we need HERE
+#
+# paq8l_bin_path = os.path.join(util.TSA_HOME, "algo", "paq8l_src")
+# ppmd_bin_path = os.path.join(util.TSA_HOME, "algo", "ppmd_src")
+#
+# if os.path.exists(paq8l_bin_path) and paq8l_bin_path not in os.environ["PATH"]:
+#     os.environ["PATH"] += ":"+paq8l_bin_path
+#
+# if os.path.exists(ppmd_bin_path) and ppmd_bin_path not in os.environ["PATH"]:
+#     os.environ["PATH"] += ":"+ppmd_bin_path
 
-paq8l_bin_path = os.path.join(util.TSA_HOME, "algo", "ppmd_src")
-ppmd_bin_path = os.path.join(util.TSA_HOME, "algo", "ppmd_src")
-
-if os.path.exists(paq8l_bin_path) and paq8l_bin_path not in os.environ["PATH"]:
-    os.environ["PATH"] += ":"+paq8l_bin_path
-
-if os.path.exists(ppmd_bin_path) and ppmd_bin_path not in os.environ["PATH"]:
-    os.environ["PATH"] += ":"+ppmd_bin_path
+# Setup the environment with paths for the third-party compressors
+util.setup_environment()
 
 
 # ENTRY POINT FUNCTION
@@ -480,7 +483,7 @@ def add_parser_options(parser):
                         choices=AVAILABLE_COMPRESSORS,
                         default=list(AVAILABLE_COMPRESSORS.keys())[0],
                         help="compressor to be used. Available compressors:" + ', '.join(
-                            AVAILABLE_COMPRESSORS) + ";default:[%(default)s]")
+                            AVAILABLE_COMPRESSORS) + "; default:[%(default)s]")
     parser.add_argument("-l",
                         "--level",
                         dest="level",
