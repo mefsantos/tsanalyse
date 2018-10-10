@@ -142,12 +142,11 @@ import tools.utilityFunctions as util
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Analysis of the file's blocks")
-    parser.add_argument("inputfile", metavar="INPUT FILE", help="File to be analysed")
-    parser.add_argument("--log", action="store", metavar="LOGFILE", default=None, dest="log_file",
-                        help="Use LOGFILE to save logs.")
-    parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
-                        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default="WARNING")
+    # parser.add_argument("inputfile", metavar="INPUT FILE", help="File to be analysed")
+    parser.add_argument("input_path", metavar="INPUT PATH", action="store",
+                        help="Path for a file or directory containing the datasets to be used as input")
 
+    tools.utilityFunctions.add_logger_parser_options(parser)
     tools.partition.add_parser_options(parser, full_file_option=False, file_blocks_usage=True)
     #    tools.separate_blocks.add_parser_options(parser)
     tools.utilityFunctions.add_csv_parser_options(parser)
@@ -172,7 +171,7 @@ if __name__ == "__main__":
     options['start_at_end'] = False
     options['decompress'] = None
 
-    inputdir = options['inputfile'].strip()
+    inputdir = options['input_path'].strip()
     inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
 
     if not os.path.exists(util.BLOCK_ANALYSIS_OUTPUT_PATH):

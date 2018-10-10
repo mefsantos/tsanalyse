@@ -142,7 +142,7 @@ def compress(input_name, compression_algorithm, level, decompress=False,
                                               decompress, with_compression_rate, digits_to_round)
             compressed[filename] = compression_data
     else:
-        module_logger.info("Using %s compress file '%s'" % (compression_algorithm, input_name))
+        module_logger.info("Using %s to compress file '%s'" % (compression_algorithm, input_name))
         entry_name = os.path.basename(input_name.strip())
         compression_data = method_to_call(input_name.strip(), level, decompress, with_compression_rate, digits_to_round)
         compressed[entry_name] = compression_data
@@ -509,14 +509,22 @@ def set_level(options):
     :param options: a dictionary containing all the parser options
     :return the correct level to be used by the compressor
     """
-    if ((not options['level']) or
-            (options['level'] > AVAILABLE_COMPRESSORS[options['compressor']][1])):
-        module_logger.warning("Compressor level above maximum. Setting level to maximum: {0}".format(options['level']))
-        level = AVAILABLE_COMPRESSORS[options['compressor']][1]
-    elif options['level'] < AVAILABLE_COMPRESSORS[options['compressor']][0]:
-        module_logger.warning("Compressor level below minimum, setting level to minimum: {0}".format(options['level']))
-        level = AVAILABLE_COMPRESSORS[options['compressor']][0]
+    max_level = AVAILABLE_COMPRESSORS[options['compressor']][1]
+    min_level = AVAILABLE_COMPRESSORS[options['compressor']][0]
+
+    module_logger.debug("Input level: %s. Available levels: %s" %
+                        (options["level"], AVAILABLE_COMPRESSORS[options['compressor']]))
+    if not options["level"]:
+        module_logger.warning("Compression level not set. Setting level to maximum: %s " % max_level)
+        level = max_level
     else:
-        level = options['level']
-    module_logger.info("Setting compression level of '%s' to '%s'" % (options["compressor"], options["level"]))
+        if options['level'] > AVAILABLE_COMPRESSORS[options['compressor']][1]:
+            module_logger.warning("Compressor level above maximum. Setting level to maximum: %s" % max_level)
+            level = max_level
+        elif options['level'] < AVAILABLE_COMPRESSORS[options['compressor']][0]:
+            module_logger.warning("Compressor level below minimum, setting level to minimum: %s" % min_level)
+            level = min_level
+        else:
+            level = options['level']
+            module_logger.info("Setting compression level of '%s' to '%s'" % (options["compressor"], options["level"]))
     return level

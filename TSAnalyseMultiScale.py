@@ -132,8 +132,8 @@ if __name__ == "__main__":
         os.mkdir(util.RUN_ISOLATED_FILES_PATH)
 
     parser = argparse.ArgumentParser(description="Generates a tables of file multiscaled compression/entropy")
-    parser.add_argument("inputdir", metavar="INPUT DIRECTORY", help="Directory to be used as input")
-
+    parser.add_argument("input_path", metavar="INPUT PATH", action="store",
+                        help="Path for a file or directory containing the datasets to be used as input")
     tools.multiscale.add_parser_options(parser)
     tools.utilityFunctions.add_csv_parser_options(parser)
     tools.utilityFunctions.add_logger_parser_options(parser)
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
                                     log_level=options["log_level"], with_first_entry="TSAnalyseMultiScale")
 
-    input_dir = options['inputdir'].strip()
+    input_dir = options['input_path'].strip()
     input_dir = util.remove_slash_from_path(input_dir)  # if slash exists
 
     # commands that need to compute multiscales

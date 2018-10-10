@@ -623,7 +623,7 @@ def add_numbers_parser_options(parser):
 
 
 def add_logger_parser_options(parser):
-    parser.add_argument("-lf", "--logfile", action="store", metavar="LOGFILE", default=None, dest="log_file",
+    parser.add_argument("--logfile", action="store", metavar="LOGFILE", default=None, dest="log_file",
                         help="Use LOGFILE to save logs.")
-    parser.add_argument("-ll", "--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
+    parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
                         choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default=DEFAULT_LOG_LEVEL)

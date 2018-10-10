@@ -139,16 +139,12 @@ if __name__ == "__main__":
     # TODO: (update) we can validate while parsing the arguments!
     parser = argparse.ArgumentParser(description="Generates a table of file compression/entropy and new datasets "
                                                  "(when needed) for a given file or directory")
-    parser.add_argument("inputdir", metavar="INPUT PATH", action="store",
+    parser.add_argument("input_path", metavar="INPUT PATH", action="store",
                         help="Path for a file or directory containing the datasets to be used as input")
 
-    # parser.add_argument("--log", action="store", metavar="LOGFILE", default=None, dest="log_file",
-    #                     help="Use LOGFILE to save logs.")
-    # parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
-    #                     choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default="WARNING")
     tools.utilityFunctions.add_logger_parser_options(parser)
-
     tools.utilityFunctions.add_csv_parser_options(parser)
+
     subparsers = parser.add_subparsers(help='Different commands/operations to execute on the data sets', dest="command")
 
     compress = subparsers.add_parser('compress', help='Compress all the files in the given directory')
@@ -176,7 +172,7 @@ if __name__ == "__main__":
 
     # TODO: later we might remove this when every command accepts these flags or use global variables in Utils' file
 
-    inputdir = options['inputdir'].strip()
+    inputdir = options['input_path'].strip()
     inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
 
     if not os.path.isdir(inputdir):
