@@ -29,10 +29,12 @@ numpy(http://numpy.scipy.org/)
 ENTRY POINT:
     compute_stv_metrics(input_path, options)
 
+_______________________________________________________________________________
 
-- first we need to compute the T(i), aka interbeat interval, from the F(i), aka HRF, for the algorithms,
+IMPLEMENTATION NOTES:
+- first we compute the T(i), aka interbeat interval, from the F(i), aka HRF, for the algorithms,
  using the formula:
- T(i) = 60000 / F(i)
+    T(i) = 60000 / F(i)
 
 - Then we parametrize the formula used on several algorithms given as:
 

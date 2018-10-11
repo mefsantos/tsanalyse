@@ -26,23 +26,17 @@ This tool may also require some external libraries in order to work on 64-bit pr
 * lib32stdc++6
 
 
-To install the requirements and link the compilers to the environment run the following command:
+To install the package run the following command:
 
-        source install_package.sh
+        python setup.py install
 
-This script will run **python setup.py install --user** and add the path for the compilers' source code to the your environment, aka, '$PATH'
-
-Alternatively you can run the script as root adding su, sudo or root:
-
-        source install_package.sh sudo
-
-This script will then run **sudo python setup.py install** instead. It will still add the source paths to the environment.
+This setup will install the package and build the external compressors located under *algo/* according to your OS.
 
 ### External Compressors
 
 This tool was implemented to support additional compressors, namely paq8l and ppmd. *algo/* contains the paq8l sources and ppmd binaries. If the code/binaries no longer work on your system try using your archive manager to install them. 
 
-#### Linux
+#### Linux (Debian)
 (see https://debian.pkgs.org/7/debian-main-amd64/ppmd_10.1-5_amd64.deb.html)
 
 TL;DR:
@@ -54,7 +48,9 @@ TL;DR:
 (see https://guide.macports.org/chunked/using.html#using.port.selfupdate
 also https://github.com/macports/macports-ports/blob/master/archivers/ppmd/Portfile)
 
-TL;DR:
+(ppmd is only available on mac-ports)
+
+## Mac-ports:
 
         sudo port selfupdate
         sudo port install ppmd
@@ -68,28 +64,31 @@ The tool set is extensively documented using pydoc. To launch the graphical inte
 
 in the command line.
 
-## TSAnalyseDirect
+## TSFilter
 
-The main interface TSAnalyseDirect allows for operations to be applied to files or directories (no subdirectories):
-
+This interface should be used before any other as it filters the input data and enables to obtain the dataset in the correct format.
 
 ### Examples :
 
+    Retrieve the hrf within the limits [50, 250]:
 
-* Filter
-     
-    Retrieve the hrf:
-        
-        ./TSAnalyseDirect.py unittest_dataset filter
-    
+        ./TSFilter.py unittest_dataset filter -lim
+
     Retrieve the timestamps and hrf:
-        
-        ./TSAnalyseDirect.py unittest_dataset filter -kt
-    
-    Retrieve the hrf of the file discarding the first 60 seconds
-        
-        ./TSAnalyseDirect.py unittest_dataset filter -ds 60
 
+        ./TSFilter.py unittest_dataset filter -kt
+
+    Retrieve the hrf from the second column of the input file
+
+        ./TSFilter.py unittest_dataset filter -col 2
+
+
+## TSAnalyseDirect
+
+TSAnalyseDirect allows for operations to be applied to files or directories (no subdirectories).
+
+
+### Examples :
 
 * Compress
      
@@ -121,8 +120,7 @@ The main interface TSAnalyseDirect allows for operations to be applied to files 
 
 ## TSAnalyseFileBlocks
 
-The auxiliary interface TSAnalyseFileBlocks does the partition and compression of the file blocks
-automatically.
+TSAnalyseFileBlocks partitions the input files and computes the entropy and compression.
 
 ### Examples:
 
@@ -131,12 +129,12 @@ automatically.
 
        Cut files into 5min blocks with no overlap and compress each one with the default compressor
         
-        ./TSAnalyseFileBlocks.py unittest_dataset/ -s 300 compress
+        ./TSAnalyseFileBlocks.py unittest_dataset_filtered/ -s 300 compress
         
         
        Cut files into blocks with 300 lines with no overlap and compress each one with the default compressor
         
-        ./TSAnalyseFileBlocks.py unittest_dataset/ -s 300 --use-lines compress
+        ./TSAnalyseFileBlocks.py unittest_dataset_filtered/ -s 300 --use-lines compress
 
 
 * Entropy
@@ -163,7 +161,7 @@ rounds those numbers to an integer.
 
         ./TSAnalyseMultiscale unittest_dataset --round-to-int compression
 
-* Multiscale compression with rounded results for scale, multiplyed by 10, the scale
+* Multiscale compression with rounded results for scale, multiplied by 10, the scale
 point is multiplied by 10 and rounded.
     
         ./TSAnalyseMultiscale unittest_dataset --round-to-int --multiply 10 compression -c paq8l

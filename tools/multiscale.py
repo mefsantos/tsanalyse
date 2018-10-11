@@ -35,7 +35,7 @@ numpy(http://numpy.scipy.org/)
 
 ENTRY POINT: create_scales(input_name,dest_dir,start,stop,step,mul_order,round_to_int)
              multiscale_compression(input_name,start,stop,step,compressor,level,decompress, with_compression_rate)
-             multiscale_entropy(input_name,start,stop,step,entropy_function,*args)
+             multiscale_entropy(input_name,start,stop,step,entropy_function,*args,round_digits)
 """
 
 import os

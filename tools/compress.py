@@ -35,11 +35,10 @@ the temporary file before the other was finished using it!!!
 MODULE EXTERNAL DEPENDENCIES: 
                      lzma module for python.
                      ppmd and paq8l - sources included in the package, and spbio(Windows only) have to be installed in
-                      the system path if you would like to use them.
+                      the system path if you would like to use them. - performed automatically in Linux
 
 
-ENTRY POINT: compress(input_name, compression_algorithm, level, decompress=False, with_compression_rate=False,
-                        digits_to_round=None)
+ENTRY POINT: compress(input_name, compression_algorithm, level, decompress, with_compression_rate, digits_to_round)
 
 """
 
