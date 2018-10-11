@@ -46,13 +46,13 @@ TSFilter is a command line interface that allows you to apply filter
 Examples:
 
      Retrieve the hrf within the limits [50, 250]:
-     ./TSAnalyseDirect.py unittest_dataset filter -lim
+     ./TSFilter.py unittest_dataset filter -lim
 
       Retrieve the timestamps and hrf
-     ./TSAnalyseDirect.py unittest_dataset filter -kt
+     ./TSFilter.py unittest_dataset filter -kt
 
        Retrieve the hrf from the second column of the input file
-     ./TSAnalyseDirect.py unittest_dataset filter -col 2
+     ./TSFilter.py unittest_dataset filter -col 2
 
 
 """
