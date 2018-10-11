@@ -94,16 +94,16 @@ TSAnalyseDirect allows for operations to be applied to files or directories (no 
      
     Compress using the gzip algorithm (maximum compression level will be used)
         
-        ./TSAnalyseDirect.py unittest_dataset compress -c gzip
+        ./TSAnalyseDirect.py unittest_dataset_filtered compress -c gzip
 
     Compress using the brotli algorithm (maximum compression level will be used) and return an additional column with
     the compression ratio
 
-        ./TSAnalyseDirect.py unittest_dataset compress -c brotli -cr
+        ./TSAnalyseDirect.py unittest_dataset_filtered compress -c brotli -cr
 
     Compress using the bzip2 algorithm with minimum compression(1 in this case):
         
-        ./TSAnalyseDirect.py unittest_dataset compress -c bzip2 --level 1
+        ./TSAnalyseDirect.py unittest_dataset_filtered compress -c bzip2 --level 1
 
 
 * Entropy
@@ -111,12 +111,12 @@ TSAnalyseDirect allows for operations to be applied to files or directories (no 
     Calculate the entropy using Approximate entropy with tolerance 0.2 and matrix
     dimension 2 (reference values for the analysis of biological data)
      
-        ./TSAnalyseDirect.py unittest_dataset entropy apen -t 0.2
+        ./TSAnalyseDirect.py unittest_dataset_filtered entropy apen -t 0.2
 
 * Stv
 	Compute short-term variability using the Arduini algorithm
 
-		./TSAnalyse.py unittest_dataset_filtered stv -algo arduini
+		./TSAnalyseDirect.py unittest_dataset_filtered stv -algo arduini
 
 ## TSAnalyseFileBlocks
 
@@ -142,7 +142,7 @@ TSAnalyseFileBlocks partitions the input files and computes the entropy and comp
        Cut files into blocks with 5 min where one block starts 1 min later then the previous one did.
        Calculate each files entropy using the Sample entropy.
         
-        ./TSAnalyseFileBlocks.py unittest_dataset/ -s 300 -g 60 entropy sampen
+        ./TSAnalyseFileBlocks.py unittest_dataset_filtered/ -s 300 -g 60 entropy sampen
 
 
 ## TSAnalyseMultiScale
@@ -153,18 +153,18 @@ The last interface TSAnalyseMultiScale is specific to calculate MultiScale entro
 
 * Multiscale entropy for all the files starting at scale 1(original files) and ending in scale 20
 
-        ./TSAnalyseMultiscale unittest_dataset entropy sampen
+        ./TSAnalyseMultiscale unittest_dataset_filtered entropy sampen
 
 * Multiscale compression with rounded results for scale, since the scales are constructed
 by averaging a given number of point we are bound to have floats, this options
 rounds those numbers to an integer.
 
-        ./TSAnalyseMultiscale unittest_dataset --round-to-int compression
+        ./TSAnalyseMultiscale unittest_dataset_filtered --round-to-int compression
 
 * Multiscale compression with rounded results for scale, multiplied by 10, the scale
 point is multiplied by 10 and rounded.
     
-        ./TSAnalyseMultiscale unittest_dataset --round-to-int --multiply 10 compression -c paq8l
+        ./TSAnalyseMultiscale unittest_dataset_filtered --round-to-int --multiply 10 compression -c paq8l
 
 _______________________________________________________________________________
 
