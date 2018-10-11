@@ -423,13 +423,10 @@ unittest_dataset_filtered/
 unittest_dataset_filtered*/
 *_Scales/
 *_parts_*/
-debug_runs/
 file_blocks/
 stv_analysis/
-sisporto_txsp3/
 block_analysis/
 individual_runs/
-clampage_state_analysis/
 
 *.csv
 *.ppmd
@@ -441,8 +438,8 @@ algo/paq8l_src/paq8l # this will be obtained depending on the operating system
 algo/ppmd_src/ppmd  # this will be obtained depending on the operating system
 
 *.SIM
+.idea
+*.log
 
-
-\.idea/
-
-mylog\.txt
+# Remove possible vagrant machines
+.vagrant

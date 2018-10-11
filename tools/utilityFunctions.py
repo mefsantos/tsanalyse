@@ -71,12 +71,22 @@ def setup_environment():
     return
 
 
+def change_file_terminator_with_full_path(file_path, file_terminator=".txt"):
+    if file_path is None:
+        return None
+    terminator = file_terminator.split(".")[-1]  # guarantee don't have dots in the terminator
+    file_basename = os.path.basename(file_path)
+    file_dirname = os.path.dirname(file_path)
+    return os.path.join(file_dirname, "%s.%s" % (file_basename.replace(".", "_"), terminator))
+
+
 def initialize_logger(logger_name='tsanalyse', log_file=None, log_level=DEFAULT_LOG_LEVEL, with_first_entry="TSA"):
 
+    log_file_name = change_file_terminator_with_full_path(log_file, ".log")
     logger = log.getLogger(logger_name)
     logger.setLevel(getattr(log, log_level))
 
-    log_output = log.StreamHandler() if log_file is None else log.FileHandler(log_file)
+    log_output = log.StreamHandler() if log_file_name is None else log.FileHandler(log_file_name)
     log_output.setLevel(getattr(log, log_level))
     # formatter = log.Formatter('%(name)s - %(levelname)s - %(message)s')
     formatter = log.Formatter(fmt='[%(asctime)s | %(levelname)-9s] %(name)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
