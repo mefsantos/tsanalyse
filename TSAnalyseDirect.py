@@ -137,15 +137,15 @@ if __name__ == "__main__":
 
     # TODO: validate the input inside each module (to avoid unnecessary computation terminating in errors)
     # TODO: (update) we can validate while parsing the arguments!
-    parser = argparse.ArgumentParser(description="Generates a table of file compression/entropy and new datasets "
-                                                 "(when needed) for a given file or directory")
-    parser.add_argument("input_path", metavar="INPUT PATH", action="store",
-                        help="Path for a file or directory containing the datasets to be used as input")
+    parser = argparse.ArgumentParser(description="Computes compression/entropy/short-term variability "
+                                                 "of a file(s) or dataset(s)")
+    parser.add_argument("input_path", metavar="INPUT PATH", action="store", nargs="+",
+                        help="Path for a file(s) or directory containing the datasets to be used as input")
 
     tools.utilityFunctions.add_logger_parser_options(parser)
     tools.utilityFunctions.add_csv_parser_options(parser)
 
-    subparsers = parser.add_subparsers(help='Different commands/operations to execute on the data sets', dest="command")
+    subparsers = parser.add_subparsers(help='Different commands/operations to execute on the datasets', dest="command")
 
     compress = subparsers.add_parser('compress', help='Compress all the files in the given directory')
     tools.compress.add_parser_options(compress)
@@ -170,69 +170,71 @@ if __name__ == "__main__":
 
     # ############################################################
 
-    # TODO: later we might remove this when every command accepts these flags or use global variables in Utils' file
+    # here we protect the execution in for the case of sending multiple files as a string - requires by other interfaces
+    iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options['input_path']
 
-    inputdir = options['input_path'].strip()
-    inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
+    for inputs in iterable_input_path:
+        inputdir = inputs.strip()
+        inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
 
-    if not os.path.isdir(inputdir):
-        output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH, os.path.basename(util.remove_file_extension(inputdir)))
-    else:
-        output_name = inputdir
+        if not os.path.isdir(inputdir):
+            output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH, os.path.basename(util.remove_file_extension(inputdir)))
+        else:
+            output_name = inputdir
 
-    if options['command'] == 'compress':
-        compressor = options['compressor']
-        level = tools.compress.set_level(options)
-        resulting_dict = tools.compress.compress(inputdir, compressor, level, False, options['comp_ratio'],
-                                                 options['round_digits'])
+        if options['command'] == 'compress':
+            compressor = options['compressor']
+            level = tools.compress.set_level(options)
+            resulting_dict = tools.compress.compress(inputdir, compressor, level, False, options['comp_ratio'],
+                                                     options['round_digits'])
 
-        outfile = "%s_%s_lvl_%d" % (output_name, compressor, level)
-        if options['comp_ratio']:
-            outfile += "_wCR"
-        outfile += ".csv"
-
-        output_file = open(outfile, "w")
-        writer = csv.writer(output_file, delimiter=options["write_separator"],
-                            lineterminator=options["line_terminator"])
-        header = ["Filename", "Original_Size", "Compressed_Size"]
-        if options['comp_ratio']:
-            header.append("CRx100")
-
-        writer.writerow(header)
-
-        for filename in sorted(resulting_dict.keys()):
-            cd = resulting_dict[filename]
-            data_row = [filename, cd.original, cd.compressed]
+            outfile = "%s_%s_lvl_%d" % (output_name, compressor, level)
             if options['comp_ratio']:
-                data_row.append(cd.compression_rate)
+                outfile += "_wCR"
+            outfile += ".csv"
 
-            writer.writerow(data_row)
-        output_file.close()
-        logger.info("Storing in: %s" % os.path.abspath(outfile))
+            output_file = open(outfile, "w")
+            writer = csv.writer(output_file, delimiter=options["write_separator"],
+                                lineterminator=options["line_terminator"])
+            header = ["Filename", "Original_Size", "Compressed_Size"]
+            if options['comp_ratio']:
+                header.append("CRx100")
 
-    elif options['command'] == 'entropy':
-        algorithm = options["algorithm"]
-        files_stds = tools.entropy.calculate_std(inputdir)
-        tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
+            writer.writerow(header)
 
-        resulting_dict = tools.entropy.entropy(inputdir, algorithm, options['dimension'], tolerances,
-                                               options['round_digits'])
+            for filename in sorted(resulting_dict.keys()):
+                cd = resulting_dict[filename]
+                data_row = [filename, cd.original, cd.compressed]
+                if options['comp_ratio']:
+                    data_row.append(cd.compression_rate)
 
-        outfile = "%s_%s_dim_%d_tol_%.2f.csv" % (
-            output_name, algorithm, options['dimension'], options['tolerance'])
-        output_file = open(outfile, "w")
-        writer = csv.writer(output_file, delimiter=options["write_separator"],
-                            lineterminator=options["line_terminator"])
-        writer.writerow(["Filename", "Entropy"])
-        for filename in sorted(resulting_dict.keys()):
-            entropyData = resulting_dict[filename]
-            writer.writerow([filename, entropyData.entropy])
-        output_file.close()
-        logger.info("Storing in: %s" % os.path.abspath(outfile))
+                writer.writerow(data_row)
+            output_file.close()
+            logger.info("Storing in: %s" % os.path.abspath(outfile))
 
-    elif options['command'] == 'stv':
-        tools.stv_analysis.compute_stv_metrics(inputdir, options)
+        elif options['command'] == 'entropy':
+            algorithm = options["algorithm"]
+            files_stds = tools.entropy.calculate_std(inputdir)
+            tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
 
-        # tools.stv_analysis.compute_stv_metric_of_directory(inputdir, options['algorithm'],
-        #                                                    options['sampling_frequency'], options['round_digits'],
-        #                                                    output_path=options["output_path"])
+            resulting_dict = tools.entropy.entropy(inputdir, algorithm, options['dimension'], tolerances,
+                                                   options['round_digits'])
+
+            outfile = "%s_%s_dim_%d_tol_%.2f.csv" % (
+                output_name, algorithm, options['dimension'], options['tolerance'])
+            output_file = open(outfile, "w")
+            writer = csv.writer(output_file, delimiter=options["write_separator"],
+                                lineterminator=options["line_terminator"])
+            writer.writerow(["Filename", "Entropy"])
+            for filename in sorted(resulting_dict.keys()):
+                entropyData = resulting_dict[filename]
+                writer.writerow([filename, entropyData.entropy])
+            output_file.close()
+            logger.info("Storing in: %s" % os.path.abspath(outfile))
+
+        elif options['command'] == 'stv':
+            tools.stv_analysis.compute_stv_metrics(inputdir, options)
+
+            # tools.stv_analysis.compute_stv_metric_of_directory(inputdir, options['algorithm'],
+            #                                                    options['sampling_frequency'], options['round_digits'],
+            #                                                    output_path=options["output_path"])

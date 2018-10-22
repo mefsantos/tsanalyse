@@ -270,12 +270,14 @@ def initial_indexes_time(lines, starting_point, section, start_at_end, cumulativ
     Return the initial and final indexes for the first partition.
 
     """
+    p_init, p_end = 0, 0
     if start_at_end:
         aux_index = -1
     else:
         aux_index = 0
 
     time_elapsed = 0
+
     time, hrf = lines[aux_index].split()
 
     while test_time_limit(cumulative, float(time), time_stamp, time_elapsed, starting_point) and abs(aux_index) < len(
@@ -305,10 +307,10 @@ def initial_indexes_time(lines, starting_point, section, start_at_end, cumulativ
         if not cumulative:
             time_elapsed += time_stamp
 
-    if start_at_end:
-        p_init = aux_index
-    else:
-        p_end = aux_index
+        if start_at_end:
+            p_init = aux_index
+        else:
+            p_end = aux_index
 
     return p_init, p_end
 
