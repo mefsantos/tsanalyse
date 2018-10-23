@@ -408,9 +408,9 @@ def add_parser_options(parser):
                         default="all",
                         help="Specifies the algorithm to use for the analysis. "
                              "Available algorithms: " + ", " .join(AVAILABLE_ALGORITHMS) +
-                             ". If option is 'all' Every algorithm will be used; [default:%(default)s]. "
-                             "\nNOTE: Van Geijn algorithm only works for signals with heart rate frequency lower"
-                             " than 192 bpm, otherwise the IQR cannot be computed due to formula's specifications.")
+                             ". If option is 'all' Every algorithm will be used; [default:%(default)s].")
+                             # "\nNOTE: Van Geijn algorithm only works for signals with heart rate frequency lower"
+                             # " than 192 bpm, otherwise the IQR cannot be computed due to formula's specifications.")
 
     parser.add_argument("-sf",
                         "--sampling-frequency",
