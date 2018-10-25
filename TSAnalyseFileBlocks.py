@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Analysis of the file's blocks")
     # parser.add_argument("inputfile", metavar="INPUT FILE", help="File to be analysed")
-    parser.add_argument("input_path", metavar="INPUT PATH", action="store",
+    parser.add_argument("input_path", metavar="INPUT PATH", action="store", nargs="+",
                         help="Path for a file or directory containing the datasets to be used as input")
 
     tools.utilityFunctions.add_logger_parser_options(parser)
@@ -165,130 +165,149 @@ if __name__ == "__main__":
     options = vars(args)
 
     logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
-                                    log_level=options["log_level"], with_first_entry="TSAnalyseFileBLocks")
+                                    log_level=options["log_level"], with_first_entry="TSAnalyseFileBlocks")
 
     # THESE OPTIONS ARE DISABLED FOR NOW
     options['start_at_end'] = False
     options['decompress'] = None
 
-    inputdir = options['input_path'].strip()
-    inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
+    iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options['input_path']
 
-    if not os.path.exists(util.BLOCK_ANALYSIS_OUTPUT_PATH):
-        logger.info("Creating %s..." % util.BLOCK_ANALYSIS_OUTPUT_PATH)
-        os.mkdir(util.BLOCK_ANALYSIS_OUTPUT_PATH)
+    for inputs in iterable_input_path:
+        inputdir = inputs.strip()
+        inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
 
-    if not os.path.exists(util.FILE_BLOCKS_STORAGE_PATH):
-        logger.info("Creating %s..." % util.FILE_BLOCKS_STORAGE_PATH)
-        os.mkdir(util.FILE_BLOCKS_STORAGE_PATH)
+        if not os.path.exists(util.BLOCK_ANALYSIS_OUTPUT_PATH):
+            logger.info("Creating %s..." % util.BLOCK_ANALYSIS_OUTPUT_PATH)
+            os.mkdir(util.BLOCK_ANALYSIS_OUTPUT_PATH)
 
-    file_blocks_suffix = "sec_%d_gap_%d" % (options['section'], options['gap'])
-    dataset_suffix_name = "%s_parts_%s" % (util.get_dataset_name_from_path(inputdir), file_blocks_suffix)
+        if not os.path.exists(util.FILE_BLOCKS_STORAGE_PATH):
+            logger.info("Creating %s..." % util.FILE_BLOCKS_STORAGE_PATH)
+            os.mkdir(util.FILE_BLOCKS_STORAGE_PATH)
 
-    dest_dir = os.path.join(util.FILE_BLOCKS_STORAGE_PATH, dataset_suffix_name)
+        file_blocks_suffix = "sec_%d_gap_%d" % (options['section'], options['gap'])
+        dataset_suffix_name = "%s_parts_%s" % (util.get_dataset_name_from_path(inputdir), file_blocks_suffix)
 
-    if not os.path.exists(dest_dir):
-        logger.info("Creating %s..." % dest_dir)
-        os.mkdir(dest_dir)
+        dest_dir = os.path.join(util.FILE_BLOCKS_STORAGE_PATH, dataset_suffix_name)
 
-    logger.info("%s will be used to store file partitions" % dest_dir)
+        if not os.path.exists(dest_dir):
+            logger.info("Creating %s..." % dest_dir)
+            os.mkdir(dest_dir)
 
-    block_minutes = {}
-    logger.info("Partitioning file in %d minutes intervals with %d gaps " % (options['section'], options['gap']))
-    if options['gap'] == 0:
-        options['gap'] = options['section']
-    block_minutes = tools.partition.partition(inputdir,
-                                              dest_dir,
-                                              options['partition_start'],
-                                              options['section'],
-                                              options['gap'],
-                                              options['start_at_end'],
-                                              True,
-                                              options['using_lines'])
-    logger.info("Partitioning complete")
+        logger.info("%s will be used to store file partitions" % dest_dir)
 
-    if options['command'] == 'compress':
-        compressed = {}
-        options['level'] = tools.compress.set_level(options)
-        for filename in block_minutes:
-            bfile = os.path.splitext(filename)[0]
-            logger.info("Compression started for %s" % os.path.join(dest_dir, "%s_blocks" % filename))
-            # The extensions had to be removed from the original name when
-            # creating the block for compatibility with windows, so this line
-            # changes the filename
-            compressed[bfile] = tools.compress.compress(os.path.join(dest_dir, "%s_blocks" % bfile),
-                                                        options['compressor'], options['level'],
-                                                        options['decompress'], options['comp_ratio'],
-                                                        options["round_digits"])
-            logger.info("Compression complete")
+        block_minutes = {}
+        logger.info("Partitioning file in %d minutes intervals with %d gaps " % (options['section'], options['gap']))
+        if options['gap'] == 0:
+            options['gap'] = options['section']
+        try:
+            block_minutes = tools.partition.partition(inputdir,
+                                                      dest_dir,
+                                                      options['partition_start'],
+                                                      options['section'],
+                                                      options['gap'],
+                                                      options['start_at_end'],
+                                                      True,
+                                                      options['using_lines'])
+        except ValueError:
+            logger.critical("The file '%s' does not contain the necessary columns for the evaluation. "
+                            "Please make sure the file has two columns: "
+                            "the first with the timestamps and the second with the hrf values." % inputdir)
+            logger.info("Skipping ...")
+            logger.info("Removing destination directories")
+            try:
+                os.removedirs(dest_dir)
+            except OSError as err:
+                logger.warning("OS error: {0}".format(err))
+                logger.warning("skipping directory removal...")
+                pass
+        else:
+            logger.info("Partitioning complete")
 
-        for filename in compressed:
-            if options['decompress']:
-                fboutsuffix = "%s_%s_decompress_%s" % (os.path.basename(filename),
-                                                       file_blocks_suffix,
-                                                       options['compressor'])
-            else:
-                fboutsuffix = "%s_%s_%s_lvl_%s" % (os.path.basename(filename),
-                                                   file_blocks_suffix,
-                                                   options['compressor'],
-                                                   options['level'])
-            if options['comp_ratio']:
-                fboutsuffix += "_wCR"
+            if options['command'] == 'compress':
+                compressed = {}
+                options['level'] = tools.compress.set_level(options)
+                for filename in block_minutes:
+                    bfile = os.path.splitext(filename)[0]
+                    logger.info("Compression started for %s" % os.path.join(dest_dir, "%s_blocks" % filename))
+                    # The extensions had to be removed from the original name when
+                    # creating the block for compatibility with windows, so this line
+                    # changes the filename
+                    compressed[bfile] = tools.compress.compress(os.path.join(dest_dir, "%s_blocks" % bfile),
+                                                                options['compressor'], options['level'],
+                                                                options['decompress'], options['comp_ratio'],
+                                                                options["round_digits"])
 
-            fboutsuffix += ".csv"
+                    logger.info("Partitioning complete")
+                    logger.info("Compression complete")
 
-            fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
+                for filename in compressed:
+                    if options['decompress']:
+                        fboutsuffix = "%s_%s_decompress_%s" % (os.path.basename(filename),
+                                                               file_blocks_suffix,
+                                                               options['compressor'])
+                    else:
+                        fboutsuffix = "%s_%s_%s_lvl_%s" % (os.path.basename(filename),
+                                                           file_blocks_suffix,
+                                                           options['compressor'],
+                                                           options['level'])
+                    if options['comp_ratio']:
+                        fboutsuffix += "_wCR"
 
-            file_to_write = open(fboutname, "w")
-            writer = csv.writer(file_to_write, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
+                    fboutsuffix += ".csv"
 
-            header = ["Block", "Original Size", "Compressed Size"]
-            if options['comp_ratio']:
-                header.append("CRx100")
-            if options['decompress']:
-                header.append("Decompression Time")
-            writer.writerow(header)
+                    fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
 
-            for blocknum in range(1, len(compressed[filename]) + 1):
-                block_results = compressed[filename]['%s_%d' % (filename, blocknum)]
-                row_data = [blocknum, block_results.original, block_results.compressed]
-                if options['comp_ratio']:
-                    row_data.append(block_results.compression_rate)
-                if options['decompress']:
-                    row_data.append(block_results.time)
-                writer.writerow(row_data)
+                    file_to_write = open(fboutname, "w")
+                    writer = csv.writer(file_to_write, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
 
-            file_to_write.close()
-            logger.info("Storing into: %s" % os.path.abspath(fboutname))
+                    header = ["Block", "Original Size", "Compressed Size"]
+                    if options['comp_ratio']:
+                        header.append("CRx100")
+                    if options['decompress']:
+                        header.append("Decompression Time")
+                    writer.writerow(header)
 
-    elif options['command'] == 'entropy':
-        algorithm = options['algorithm']
-        entropy = {}
-        for filename in block_minutes:
-            bfile = os.path.splitext(filename)[0]
-            logger.info("Entropy calculations started for %s" % os.path.join(dest_dir, "%s_blocks" % bfile))
-            files_stds = tools.entropy.calculate_std(os.path.join(dest_dir, "%s_blocks" % bfile))
-            tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
-            entropy[bfile] = tools.entropy.entropy(os.path.join(dest_dir, "%s_blocks" % bfile), algorithm,
-                                                   options['dimension'], tolerances, options["round_digits"])
-            logger.info("Entropy calculations complete")
+                    for blocknum in range(1, len(compressed[filename]) + 1):
+                        block_results = compressed[filename]['%s_%d' % (filename, blocknum)]
+                        row_data = [blocknum, block_results.original, block_results.compressed]
+                        if options['comp_ratio']:
+                            row_data.append(block_results.compression_rate)
+                        if options['decompress']:
+                            row_data.append(block_results.time)
+                        writer.writerow(row_data)
 
-        for filename in entropy:
-            fboutsuffix = "%s_%s_%s_dim_%d_tol_%.2f.csv" % (os.path.basename(filename), file_blocks_suffix,
-                                                            algorithm, options['dimension'],
-                                                            options['tolerance'])
+                    file_to_write.close()
+                    logger.info("Storing into: %s" % os.path.abspath(fboutname))
 
-            fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
+            elif options['command'] == 'entropy':
+                algorithm = options['algorithm']
+                entropy = {}
+                for filename in block_minutes:
+                    bfile = os.path.splitext(filename)[0]
+                    logger.info("Entropy calculations started for %s" % os.path.join(dest_dir, "%s_blocks" % bfile))
+                    files_stds = tools.entropy.calculate_std(os.path.join(dest_dir, "%s_blocks" % bfile))
+                    tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
+                    entropy[bfile] = tools.entropy.entropy(os.path.join(dest_dir, "%s_blocks" % bfile), algorithm,
+                                                           options['dimension'], tolerances, options["round_digits"])
+                    logger.info("Entropy calculations complete")
 
-            file_to_write = open(fboutname, "w")
-            writer = csv.writer(file_to_write, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
+                for filename in entropy:
+                    fboutsuffix = "%s_%s_%s_dim_%d_tol_%.2f.csv" % (os.path.basename(filename), file_blocks_suffix,
+                                                                    algorithm, options['dimension'],
+                                                                    options['tolerance'])
 
-            header = ["Block", "Entropy"]
-            writer.writerow(header)
-            for blocknum in range(1, len(entropy[filename]) + 1):
-                block_results = entropy[filename]['%s_%d' % (filename, blocknum)]
-                row_data = [blocknum, block_results.entropy]
-                writer.writerow(row_data)
+                    fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
 
-            file_to_write.close()
-            logger.info("Storing into: %s" % os.path.abspath(fboutname))
+                    file_to_write = open(fboutname, "w")
+                    writer = csv.writer(file_to_write, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
+
+                    header = ["Block", "Entropy"]
+                    writer.writerow(header)
+                    for blocknum in range(1, len(entropy[filename]) + 1):
+                        block_results = entropy[filename]['%s_%d' % (filename, blocknum)]
+                        row_data = [blocknum, block_results.entropy]
+                        writer.writerow(row_data)
+
+                    file_to_write.close()
+                    logger.info("Storing into: %s" % os.path.abspath(fboutname))

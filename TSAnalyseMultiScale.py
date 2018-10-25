@@ -131,9 +131,9 @@ if __name__ == "__main__":
     if not os.path.exists(util.RUN_ISOLATED_FILES_PATH):
         os.mkdir(util.RUN_ISOLATED_FILES_PATH)
 
-    parser = argparse.ArgumentParser(description="Generates a tables of file multiscaled compression/entropy")
-    parser.add_argument("input_path", metavar="INPUT PATH", action="store",
-                        help="Path for a file or directory containing the datasets to be used as input")
+    parser = argparse.ArgumentParser(description="Computes multiscale compression/entropy of a dataset")
+    parser.add_argument("input_path", metavar="INPUT PATH", action="store", nargs="+",
+                        help="Path for a file(s) or directory containing the dataset(s) to be used as input")
     tools.multiscale.add_parser_options(parser)
     tools.utilityFunctions.add_csv_parser_options(parser)
     tools.utilityFunctions.add_logger_parser_options(parser)
@@ -158,11 +158,15 @@ if __name__ == "__main__":
     logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
                                     log_level=options["log_level"], with_first_entry="TSAnalyseMultiScale")
 
-    input_dir = options['input_path'].strip()
-    input_dir = util.remove_slash_from_path(input_dir)  # if slash exists
+    # here we protect the execution in for the case of sending multiple files as a string - requires by other interfaces
+    iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options['input_path']
 
-    # commands that need to compute multiscales
-    if options['command'] not in ["comp_ratio", "cr", "confidence_interval_slope_analysis", "cisa"]:
+    for inputs in iterable_input_path:
+
+        input_dir = inputs.strip()
+        input_dir = util.remove_slash_from_path(input_dir)  # if slash exists
+
+        # commands that need to compute multiscales
         scales_dir = '%s_Scales' % (input_dir if os.path.isdir(input_dir)
                                     else os.path.join(util.RUN_ISOLATED_FILES_PATH,
                                                       os.path.basename(util.remove_file_extension(input_dir))))
@@ -173,6 +177,13 @@ if __name__ == "__main__":
             scales_dir += "_int"
         if options['mul_order'] != -1:
             scales_dir += '_%d' % (options['mul_order'])
+
+        # here protect the execution for step == 0
+        if options["scale_step"] == 0:
+            print(options["scale_step"])
+            logger.warning("Step value cannot be 0 (current: %s). Falling back to the minimum acceptable (1)."
+                           % options["scale_step"])
+            options["scale_step"] = 1
 
         logger.info("Creating Scales directory")
 

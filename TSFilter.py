@@ -102,8 +102,8 @@ if __name__ == "__main__":
 
     # TODO: validate the input inside each module (to avoid unnecessary computation terminating in errors)
     parser = argparse.ArgumentParser(description="Filter all the files in the given directory")
-    parser.add_argument("inputdir", metavar="INPUT PATH", help="Path for a file or directory containing the datasets "
-                                                               "to be used as input", action="store")
+    parser.add_argument("input_path", metavar="INPUT_PATH", nargs="+",
+                        help="Path for a file(s) or directory containing the datasets to be used as input", action="store")
     tools.utilityFunctions.add_logger_parser_options(parser)
     tools.filter.add_parser_options(parser)
     tools.utilityFunctions.add_csv_parser_options(parser)
@@ -113,14 +113,18 @@ if __name__ == "__main__":
     logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
                                     log_level=options["log_level"], with_first_entry="TSFilter")
 
-    inputdir = options['inputdir'].strip()
-    inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
+    # here we protect the execution in for the case of sending multiple files as a string - requires by other interfaces
+    iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options['input_path']
 
-    outputdir = clean_procedures(inputdir, options)
+    for inputs in iterable_input_path:
+        inputdir = inputs.strip()
+        inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
 
-    if not os.path.isdir(inputdir):
-        output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH, os.path.basename(util.remove_file_extension(inputdir)))
-    else:
-        output_name = inputdir
+        outputdir = clean_procedures(inputdir, options)
 
-    logger.info("Done.\n")
+        if not os.path.isdir(inputdir):
+            output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH, os.path.basename(util.remove_file_extension(inputdir)))
+        else:
+            output_name = inputdir
+
+        logger.info("Done.\n")
