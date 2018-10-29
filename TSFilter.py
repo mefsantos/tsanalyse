@@ -113,7 +113,7 @@ if __name__ == "__main__":
     logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
                                     log_level=options["log_level"], with_first_entry="TSFilter")
 
-    # here we protect the execution in for the case of sending multiple files as a string - requires by other interfaces
+    # here we protect the execution for the case of sending multiple files as a string - required by other interfaces
     iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options['input_path']
 
     for inputs in iterable_input_path:
