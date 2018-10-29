@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
     # ############################################################
 
-    # here we protect the execution in for the case of sending multiple files as a string - requires by other interfaces
+    # here we protect the execution for the case of sending multiple files as a string - required by other interfaces
     iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options['input_path']
 
     for inputs in iterable_input_path:
@@ -234,7 +234,3 @@ if __name__ == "__main__":
 
         elif options['command'] == 'stv':
             tools.stv_analysis.compute_stv_metrics(inputdir, options)
-
-            # tools.stv_analysis.compute_stv_metric_of_directory(inputdir, options['algorithm'],
-            #                                                    options['sampling_frequency'], options['round_digits'],
-            #                                                    output_path=options["output_path"])
