@@ -174,7 +174,7 @@ if __name__ == "__main__":
     iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options['input_path']
 
     change_output_location = False
-    specified_output = os.path.expanduser(options["output_path"])
+    specified_output = os.path.expanduser(options["output_path"]) if options["output_path"] is not None else None
     specified_output = util.remove_slash_from_path(specified_output)  # if slash exists
 
     if specified_output is not None:
