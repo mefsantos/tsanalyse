@@ -116,6 +116,7 @@ point is multiplied by 10 and rounded. The final dataset also contains the compr
 
 import os
 import csv
+import shutil
 import logging
 import argparse
 import operator
@@ -326,3 +327,9 @@ if __name__ == "__main__":
 
             else:
                 logger.error("Multiscale not implemented for %s" % algorithm)
+
+        if not options["keep_scales"]:
+            logger.info("Deleting scales directory: %s" % scales_dir)
+            shutil.rmtree(scales_dir, ignore_errors=True)
+
+        logger.info("Done")

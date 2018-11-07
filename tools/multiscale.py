@@ -327,3 +327,9 @@ def add_parser_options(parser):
                         action="store_true",
                         help="Round the scales values to int.",
                         default=False)
+    parser.add_argument("-ks",
+                        "--keep-scales",
+                        dest="keep_scales",
+                        action="store_true",
+                        help="After multiscale processing maintain the generated scales",
+                        default=False)
