@@ -181,7 +181,8 @@ if __name__ == "__main__":
             logger.warning("Specified folder '%s' does not exist. Ignoring..." % os.path.abspath(specified_output))
 
     # here we protect the execution for the case of sending multiple files as a string - required by other interfaces
-    iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options['input_path']
+    iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options[
+        'input_path']
 
     for inputs in iterable_input_path:
         inputdir = inputs.strip()
@@ -257,3 +258,5 @@ if __name__ == "__main__":
 
         elif options['command'] == 'stv':
             tools.stv_analysis.compute_stv_metrics(inputdir, options)
+
+    logger.info("Done")

@@ -39,7 +39,9 @@ OPTIONS to apply when creating the scales:
                         Before calculating the resulting scale, multiply every
                         number in the series by MUL ORDER, -1 disables this
                         option; Default:[-1]
-  -rint, --round-to-int    Round the hrf values to int
+  -rint, --round-to-int Round the scales values to int.
+  -ks, --keep-scales    After multiscale processing maintain the generated
+                        scales
 
 The two available commands are compress and entropy.
 
@@ -87,7 +89,7 @@ entropy: This command allows you to calculate the entropy for all
 
      sampen              Sample Entropy
      apen                Approximate Entropy
-     apenv2              A slightly different implementation of Aproximate Entropy
+     apenv2              A slightly different implementation of Approximate Entropy
 
 
     For a sampen and apen documentation please look at:
@@ -332,4 +334,4 @@ if __name__ == "__main__":
             logger.info("Deleting scales directory: %s" % scales_dir)
             shutil.rmtree(scales_dir, ignore_errors=True)
 
-        logger.info("Done")
+    logger.info("Done")

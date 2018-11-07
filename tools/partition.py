@@ -442,6 +442,12 @@ def add_parser_options(parser, full_file_option=True, file_blocks_usage=False):
                             type=float,
                             default=0,
                             help="gap between sections. default:[%(default)s]")
+        parser.add_argument("-kb",
+                            "--keep-blocks",
+                            dest="keep_blocks",
+                            action="store_true",
+                            help="After processing file blocks maintain the partitions generated",
+                            default=False)
         if full_file_option:
             parser.add_argument("-ff", "--full-file", dest="full_file",
                                 action="store_true",

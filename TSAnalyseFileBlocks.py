@@ -41,7 +41,9 @@ To define how to create the blocks you can change BLOCK OPTIONS:
                         Amount of time in seconds to be captured
   -g SECONDS, --gap SECONDS
                         gap between sections (if using --full-file option)
-  --use-lines           Partition using line count instead of time
+  -ul, --use-lines      Partition using line count instead of time
+  -kb, --keep-blocks    After processing file blocks maintain the partitions
+                        generated
 
 There are two command available compress and entropy.
 
@@ -71,7 +73,7 @@ compress: This command allows you to compress all the files in the
      --level LEVEL      compression level to be used, this variable is
                         compressor dependent; default:[The maximum of whatever
                         compressor was chosen]
-     --decompression    Use this option if you also wish to calculate how long it takes to
+     # disabled --decompression    Use this option if you also wish to calculate how long it takes to
                         decompress the file once it's compressed
      -cr, --with-compression-ratio      Add an additional column with the compression ratio
 
@@ -129,6 +131,7 @@ Calculate each files entropy using the Sample entropy.
 
 import os
 import csv
+import shutil
 import logging
 import argparse
 import tools.entropy
@@ -222,7 +225,8 @@ if __name__ == "__main__":
             logger.info("Creating %s..." % blocks_dir)
             os.mkdir(blocks_dir)
 
-        logger.info("%s will be used to store file partitions" % blocks_dir)
+        logger.info("Starting partition procedures")
+        logger.info("File partitions will be stored in '%s'" % blocks_dir)
 
         block_minutes = {}
         logger.info("Partitioning file in %d minutes intervals with %d gaps " % (options['section'], options['gap']))
@@ -266,7 +270,6 @@ if __name__ == "__main__":
                                                                 options['decompress'], options['comp_ratio'],
                                                                 options["round_digits"])
 
-                    logger.info("Partitioning complete")
                     logger.info("Compression complete")
 
                 for filename in compressed:
@@ -340,3 +343,9 @@ if __name__ == "__main__":
 
                     file_to_write.close()
                     logger.info("Storing into: %s" % os.path.abspath(fboutname))
+
+        if not options["keep_blocks"]:
+            logger.info("Deleting scales directory: %s" % blocks_dir)
+            shutil.rmtree(blocks_dir, ignore_errors=True)
+
+    logger.info("Done")
