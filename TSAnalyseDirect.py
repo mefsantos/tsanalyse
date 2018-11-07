@@ -173,14 +173,38 @@ if __name__ == "__main__":
     # here we protect the execution for the case of sending multiple files as a string - required by other interfaces
     iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options['input_path']
 
+    change_output_location = False
+    specified_output = os.path.expanduser(options["output_path"])
+    specified_output = util.remove_slash_from_path(specified_output)  # if slash exists
+
+    if specified_output is not None:
+        if os.path.exists(specified_output):
+            logger.info("Using specified output destination.")
+            specified_output = os.path.abspath(specified_output)
+            change_output_location = True
+        else:
+            logger.warning("Specified folder '%s' does not exist. Ignoring..." % os.path.abspath(specified_output))
+
     for inputs in iterable_input_path:
         inputdir = inputs.strip()
         inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
+        inputdir = os.path.expanduser(inputdir)  # to handle the case of paths as a string
 
         if not os.path.isdir(inputdir):
-            output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH, os.path.basename(util.remove_file_extension(inputdir)))
+            if change_output_location:
+                single_run_on_specified_location = os.path.join(os.path.abspath(specified_output), "individual_runs")
+                if not os.path.exists(single_run_on_specified_location):
+                    os.makedirs(single_run_on_specified_location)
+                output_name = os.path.join(single_run_on_specified_location,
+                                           os.path.basename(util.remove_file_extension(inputdir)))
+            else:
+                output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH,
+                                           os.path.basename(util.remove_file_extension(inputdir)))
         else:
-            output_name = inputdir
+            if change_output_location:
+                output_name = os.path.join(os.path.abspath(specified_output), os.path.basename(inputdir))
+            else:
+                output_name = inputdir
 
         if options['command'] == 'compress':
             compressor = options['compressor']

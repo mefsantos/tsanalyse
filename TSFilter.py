@@ -72,13 +72,16 @@ def clean_procedures(inputdir, options):
     logger.info("Starting filter procedures")
 
     change_output_location = False
-    specified_output = options["output_path"]
-    if os.path.exists(specified_output):
-        logger.info("Using specified output destination.")
-        specified_output = os.path.abspath(specified_output)
-        change_output_location = True
-    else:
-        logger.warning("Specified folder '%s' does not exist. Ignoring..." % os.path.abspath(specified_output))
+    specified_output = os.path.expanduser(options["output_path"])
+    specified_output = util.remove_slash_from_path(specified_output)  # if slash exists
+
+    if specified_output is not None:
+        if os.path.exists(specified_output):
+            logger.info("Using specified output destination.")
+            specified_output = os.path.abspath(specified_output)
+            change_output_location = True
+        else:
+            logger.warning("Specified folder '%s' does not exist. Ignoring..." % os.path.abspath(specified_output))
 
     if options['keep_time']:
         if not os.path.isdir(inputdir):
@@ -141,12 +144,7 @@ if __name__ == "__main__":
     for inputs in iterable_input_path:
         inputdir = inputs.strip()
         inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
+        inputdir = os.path.expanduser(inputdir)  # to handle the case of paths as a string
 
-        outputdir = clean_procedures(inputdir, options)
-
-        if not os.path.isdir(inputdir):
-            output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH, os.path.basename(util.remove_file_extension(inputdir)))
-        else:
-            output_name = inputdir
-
+        outputdir = clean_procedures(inputdir, options)  # i dont think i need the output dir from clean_procedures
         logger.info("Done.\n")
