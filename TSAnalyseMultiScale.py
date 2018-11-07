@@ -207,6 +207,7 @@ if __name__ == "__main__":
             if change_output_location:
                 single_run_on_specified_location = os.path.join(os.path.abspath(specified_output), "individual_runs")
                 if not os.path.exists(single_run_on_specified_location):
+                    logger.info("Creating directory '%s' for individual runs" % single_run_on_specified_location)
                     os.makedirs(single_run_on_specified_location)
                 output_name = os.path.join(single_run_on_specified_location,
                                            os.path.basename(util.remove_file_extension(input_dir)))

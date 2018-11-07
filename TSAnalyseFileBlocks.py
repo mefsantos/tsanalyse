@@ -171,30 +171,58 @@ if __name__ == "__main__":
     options['start_at_end'] = False
     options['decompress'] = None
 
+    change_output_location = False
+    specified_output = os.path.expanduser(options["output_path"]) if options["output_path"] is not None else None
+    specified_output = util.remove_slash_from_path(specified_output)  # if slash exists
+
+    block_analysis_storage = util.BLOCK_ANALYSIS_OUTPUT_PATH
+
+    if specified_output is not None:
+        if os.path.exists(specified_output):
+            logger.info("Using specified output destination.")
+            specified_output = os.path.abspath(specified_output)
+            block_analysis_storage = os.path.join(specified_output, "block_analysis")
+            change_output_location = True
+        else:
+            logger.warning("Specified folder '%s' does not exist. Ignoring..." % specified_output)
+
+    if not os.path.exists(util.FILE_BLOCKS_STORAGE_PATH):
+        logger.warning("Output directory for file blocks does not exist.")
+        logger.info("Creating '%s'..." % util.FILE_BLOCKS_STORAGE_PATH)
+        os.mkdir(util.FILE_BLOCKS_STORAGE_PATH)
+
+    # if not os.path.exists(block_analysis_storage):
+    #     logger.info("Creating %s..." % block_analysis_storage)
+    #     os.mkdir(block_analysis_storage)
+
     iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options['input_path']
 
     for inputs in iterable_input_path:
         inputdir = inputs.strip()
         inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
+        inputdir = os.path.expanduser(inputdir)  # to handle the case of paths as a string
 
-        if not os.path.exists(util.BLOCK_ANALYSIS_OUTPUT_PATH):
-            logger.info("Creating %s..." % util.BLOCK_ANALYSIS_OUTPUT_PATH)
-            os.mkdir(util.BLOCK_ANALYSIS_OUTPUT_PATH)
+        if not os.path.isdir(inputdir):
+            output_location = os.path.join(block_analysis_storage, "individual_runs")
+        else:
+            output_location = os.path.join(block_analysis_storage, os.path.basename(inputdir))
 
-        if not os.path.exists(util.FILE_BLOCKS_STORAGE_PATH):
-            logger.info("Creating %s..." % util.FILE_BLOCKS_STORAGE_PATH)
-            os.mkdir(util.FILE_BLOCKS_STORAGE_PATH)
+        if not os.path.exists(output_location):
+            if not change_output_location:  # we just want to display this message if we use the default path
+                logger.warning("Output directory for block analysis does not exist.")
+            logger.info("Creating '%s'..." % output_location)
+            os.makedirs(output_location)
 
         file_blocks_suffix = "sec_%d_gap_%d" % (options['section'], options['gap'])
         dataset_suffix_name = "%s_parts_%s" % (util.get_dataset_name_from_path(inputdir), file_blocks_suffix)
 
-        dest_dir = os.path.join(util.FILE_BLOCKS_STORAGE_PATH, dataset_suffix_name)
+        blocks_dir = os.path.join(util.FILE_BLOCKS_STORAGE_PATH, dataset_suffix_name)
 
-        if not os.path.exists(dest_dir):
-            logger.info("Creating %s..." % dest_dir)
-            os.mkdir(dest_dir)
+        if not os.path.exists(blocks_dir):
+            logger.info("Creating %s..." % blocks_dir)
+            os.mkdir(blocks_dir)
 
-        logger.info("%s will be used to store file partitions" % dest_dir)
+        logger.info("%s will be used to store file partitions" % blocks_dir)
 
         block_minutes = {}
         logger.info("Partitioning file in %d minutes intervals with %d gaps " % (options['section'], options['gap']))
@@ -202,7 +230,7 @@ if __name__ == "__main__":
             options['gap'] = options['section']
         try:
             block_minutes = tools.partition.partition(inputdir,
-                                                      dest_dir,
+                                                      blocks_dir,
                                                       options['partition_start'],
                                                       options['section'],
                                                       options['gap'],
@@ -216,7 +244,7 @@ if __name__ == "__main__":
             logger.info("Skipping ...")
             logger.info("Removing destination directories")
             try:
-                os.removedirs(dest_dir)
+                os.removedirs(blocks_dir)
             except OSError as err:
                 logger.warning("OS error: {0}".format(err))
                 logger.warning("skipping directory removal...")
@@ -229,11 +257,11 @@ if __name__ == "__main__":
                 options['level'] = tools.compress.set_level(options)
                 for filename in block_minutes:
                     bfile = os.path.splitext(filename)[0]
-                    logger.info("Compression started for %s" % os.path.join(dest_dir, "%s_blocks" % filename))
+                    logger.info("Compression started for %s" % os.path.join(blocks_dir, "%s_blocks" % filename))
                     # The extensions had to be removed from the original name when
                     # creating the block for compatibility with windows, so this line
                     # changes the filename
-                    compressed[bfile] = tools.compress.compress(os.path.join(dest_dir, "%s_blocks" % bfile),
+                    compressed[bfile] = tools.compress.compress(os.path.join(blocks_dir, "%s_blocks" % bfile),
                                                                 options['compressor'], options['level'],
                                                                 options['decompress'], options['comp_ratio'],
                                                                 options["round_digits"])
@@ -242,6 +270,7 @@ if __name__ == "__main__":
                     logger.info("Compression complete")
 
                 for filename in compressed:
+
                     if options['decompress']:
                         fboutsuffix = "%s_%s_decompress_%s" % (os.path.basename(filename),
                                                                file_blocks_suffix,
@@ -256,7 +285,7 @@ if __name__ == "__main__":
 
                     fboutsuffix += ".csv"
 
-                    fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
+                    fboutname = os.path.join(output_location, fboutsuffix)
 
                     file_to_write = open(fboutname, "w")
                     writer = csv.writer(file_to_write, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
@@ -285,10 +314,10 @@ if __name__ == "__main__":
                 entropy = {}
                 for filename in block_minutes:
                     bfile = os.path.splitext(filename)[0]
-                    logger.info("Entropy calculations started for %s" % os.path.join(dest_dir, "%s_blocks" % bfile))
-                    files_stds = tools.entropy.calculate_std(os.path.join(dest_dir, "%s_blocks" % bfile))
+                    logger.info("Entropy calculations started for %s" % os.path.join(blocks_dir, "%s_blocks" % bfile))
+                    files_stds = tools.entropy.calculate_std(os.path.join(blocks_dir, "%s_blocks" % bfile))
                     tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
-                    entropy[bfile] = tools.entropy.entropy(os.path.join(dest_dir, "%s_blocks" % bfile), algorithm,
+                    entropy[bfile] = tools.entropy.entropy(os.path.join(blocks_dir, "%s_blocks" % bfile), algorithm,
                                                            options['dimension'], tolerances, options["round_digits"])
                     logger.info("Entropy calculations complete")
 
@@ -297,7 +326,7 @@ if __name__ == "__main__":
                                                                     algorithm, options['dimension'],
                                                                     options['tolerance'])
 
-                    fboutname = os.path.join(util.BLOCK_ANALYSIS_OUTPUT_PATH, fboutsuffix)
+                    fboutname = os.path.join(output_location, fboutsuffix)
 
                     file_to_write = open(fboutname, "w")
                     writer = csv.writer(file_to_write, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
