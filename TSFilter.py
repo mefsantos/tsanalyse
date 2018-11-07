@@ -57,7 +57,7 @@ Examples:
 
 """
 
-# TODO: start using the output path given with the flag -o PATH. Also consider the remaining CSV optional arguments
+# TODO: add a parser flag "force-output" that will create the output directory if it doesn't exist
 
 import os
 import logging
@@ -70,11 +70,27 @@ import tools.utilityFunctions as util
 
 def clean_procedures(inputdir, options):
     logger.info("Starting filter procedures")
+
+    change_output_location = False
+    specified_output = options["output_path"]
+    if os.path.exists(specified_output):
+        logger.info("Using specified output destination.")
+        specified_output = os.path.abspath(specified_output)
+        change_output_location = True
+    else:
+        logger.warning("Specified folder '%s' does not exist. Ignoring..." % os.path.abspath(specified_output))
+
     if options['keep_time']:
         if not os.path.isdir(inputdir):
             outputdir_path = os.path.dirname(inputdir) + "_filtered_wtime"
+            if change_output_location:
+                outputdir_path = os.path.join(os.path.abspath(specified_output),
+                                              os.path.basename(os.path.dirname(inputdir)) + "_filtered_wtime")
         else:
             outputdir_path = inputdir + "_filtered_wtime"
+            if change_output_location:
+                outputdir_path = os.path.join(os.path.abspath(specified_output),
+                                              os.path.basename(inputdir) + "_filtered_wtime")
         if not os.path.isdir(outputdir_path):
             logger.info("Creating directory %s" % outputdir_path)
             os.makedirs(outputdir_path)
@@ -83,8 +99,14 @@ def clean_procedures(inputdir, options):
     else:
         if not os.path.isdir(inputdir):
             outputdir_path = os.path.dirname(inputdir) + "_filtered"
+            if change_output_location:
+                outputdir_path = os.path.join(os.path.abspath(specified_output),
+                                              os.path.basename(os.path.dirname(inputdir)) + "_filtered")
         else:
             outputdir_path = inputdir + "_filtered"
+            if change_output_location:
+                outputdir_path = os.path.join(os.path.abspath(specified_output),
+                                              os.path.basename(inputdir) + "_filtered")
         if not os.path.isdir(outputdir_path):
             logger.info("Creating filter directory %s" % outputdir_path)
             os.makedirs(outputdir_path)
