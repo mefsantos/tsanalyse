@@ -202,136 +202,142 @@ if __name__ == "__main__":
 
         logger.info("Creating Scales directory")
 
-        tools.multiscale.create_scales(input_dir, scales_dir, options["scale_start"], options["scale_stop"] + 1,
-                                       options["scale_step"], options['mul_order'], options['round'])
-        logger.info("Scales Directory created")
-
-        if not os.path.isdir(input_dir):
-            if change_output_location:
-                single_run_on_specified_location = os.path.join(os.path.abspath(specified_output), "individual_runs")
-                if not os.path.exists(single_run_on_specified_location):
-                    logger.info("Creating directory '%s' for individual runs" % single_run_on_specified_location)
-                    os.makedirs(single_run_on_specified_location)
-                output_name = os.path.join(single_run_on_specified_location,
-                                           os.path.basename(util.remove_file_extension(input_dir)))
-            else:
-                output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH,
-                                           os.path.basename(util.remove_file_extension(input_dir)))
+        try:
+            tools.multiscale.create_scales(input_dir, scales_dir, options["scale_start"], options["scale_stop"] + 1,
+                                           options["scale_step"], options['mul_order'], options['round'])
+        except ValueError as error:
+            logger.critical("%s. Did you forget to filter the file?" % error)
+            logger.info("Cleaning up the corrupted scales directory")
+            shutil.rmtree(scales_dir, ignore_errors=True)
         else:
-            if change_output_location:
-                output_name = os.path.join(os.path.abspath(specified_output), os.path.basename(input_dir))
+            logger.info("Scales Directory created")
+
+            if not os.path.isdir(input_dir):
+                if change_output_location:
+                    single_run_on_specified_location = os.path.join(os.path.abspath(specified_output), "individual_runs")
+                    if not os.path.exists(single_run_on_specified_location):
+                        logger.info("Creating directory '%s' for individual runs" % single_run_on_specified_location)
+                        os.makedirs(single_run_on_specified_location)
+                    output_name = os.path.join(single_run_on_specified_location,
+                                               os.path.basename(util.remove_file_extension(input_dir)))
+                else:
+                    output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH,
+                                               os.path.basename(util.remove_file_extension(input_dir)))
             else:
-                output_name = input_dir
+                if change_output_location:
+                    output_name = os.path.join(os.path.abspath(specified_output), os.path.basename(input_dir))
+                else:
+                    output_name = input_dir
 
-        # if not os.path.isdir(input_dir):
-        #     logger.info("Running isolated test.")
-        #
-        #     output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH,
-        #                                os.path.basename(util.remove_file_extension(input_dir)))
-        # else:
-        #     output_name = input_dir
+            # if not os.path.isdir(input_dir):
+            #     logger.info("Running isolated test.")
+            #
+            #     output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH,
+            #                                os.path.basename(util.remove_file_extension(input_dir)))
+            # else:
+            #     output_name = input_dir
 
-        if options["command"] == "compress":
-            options["level"] = tools.compress.set_level(options)
-            if options['decompress']:
-                outfile = "%s_multiscale_start_%d_end_%d_step_%d_decompress_%s_lvl_%s" % (
-                    output_name, options["scale_start"], options["scale_stop"], options["scale_step"], options["compressor"],
-                    options["level"])
-            else:
-                outfile = "%s_multiscale_start_%d_end_%d_step_%d_%s_lvl_%s" % (
-                    output_name, options["scale_start"], options["scale_stop"], options["scale_step"], options["compressor"],
-                    options["level"])
-            if options['round']:
-                outfile += "_int"
-            if options['mul_order'] != -1:
-                outfile += "_%d" % (options["mul_order"])
-            if options['comp_ratio']:
-                outfile += "_wCR"
-            outfile += ".csv"
+            if options["command"] == "compress":
+                options["level"] = tools.compress.set_level(options)
+                if options['decompress']:
+                    outfile = "%s_multiscale_start_%d_end_%d_step_%d_decompress_%s_lvl_%s" % (
+                        output_name, options["scale_start"], options["scale_stop"], options["scale_step"], options["compressor"],
+                        options["level"])
+                else:
+                    outfile = "%s_multiscale_start_%d_end_%d_step_%d_%s_lvl_%s" % (
+                        output_name, options["scale_start"], options["scale_stop"], options["scale_step"], options["compressor"],
+                        options["level"])
+                if options['round']:
+                    outfile += "_int"
+                if options['mul_order'] != -1:
+                    outfile += "_%d" % (options["mul_order"])
+                if options['comp_ratio']:
+                    outfile += "_wCR"
+                outfile += ".csv"
 
-            compression_table = tools.multiscale.multiscale_compression(input_dir, scales_dir, options["scale_start"],
-                                                                        options["scale_stop"] + 1, options["scale_step"],
-                                                                        options["compressor"], options["level"],
-                                                                        options["decompress"], options["comp_ratio"],
-                                                                        options['round_digits'])
-
-            output_file = open(outfile, "w")
-            writer = csv.writer(output_file, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
-
-            if (not options['decompress']) and (not options['comp_ratio']):
-                header = ["Filename"] + list(functools.reduce(
-                    operator.add, [("Scale_%d_Original" % s, "Scale_%d_Compressed" % s)
-                                   for s in range(options["scale_start"],
-                                                  options["scale_stop"] + 1,
-                                                  options["scale_step"])]))
-            elif options['decompress'] and (not options['comp_ratio']):
-                header = ["Filename"] + list(
-                    functools.reduce(
-                        operator.add, [("Scale_%d_Original" % s, "Scale_%d_Compressed" % s, "Scale_%d_Decompression" % s)
-                                       for s in range(options["scale_start"],
-                                                      options["scale_stop"] + 1,
-                                                      options["scale_step"])]))
-
-            elif (not options['decompress']) and options['comp_ratio']:
-                header = ["Filename"] + list(functools.reduce(
-                    operator.add, [("Scale_%d_Original" % s,"Scale_%d_Compressed" % s, "Scale_%d_CRx100" % s)
-                                   for s in range(options["scale_start"],
-                                                  options["scale_stop"] + 1,
-                                                  options["scale_step"])]))
-            else:
-                header = ["Filename"] + list(
-                    functools.reduce(
-                        operator.add, [("Scale_%d_Original" % s,
-                                        "Scale_%d_Compressed" % s,
-                                        "Scale_%d_CRx100" % s,
-                                        "Scale_%d_Decompression" % s)
-                                       for s in range(options["scale_start"],
-                                                      options["scale_stop"] + 1,
-                                                      options["scale_step"])]))
-
-            writer.writerow(header)
-            for filename in sorted(compression_table.keys()):
-                writer.writerow([filename] + compression_table[filename])
-
-            output_file.close()
-            logger.info("Storing in: %s" % os.path.abspath(outfile))
-
-        elif options["command"] == "entropy":
-            algorithm = options['algorithm']
-            if algorithm == 'apen' or algorithm == 'apenv2' or algorithm == "sampen":
-                outfile = "%s_multiscale_start_%d_end_%d_step_%d_%s_dim_%d_tol_%.2f.csv" % (output_name,
-                                                                                            options["scale_start"],
-                                                                                            options["scale_stop"],
-                                                                                            options["scale_step"],
-                                                                                            algorithm,
-                                                                                            options["dimension"],
-                                                                                            options["tolerance"])
-
-                entropy_table = {}
-
-                entropy_table = tools.multiscale.multiscale_entropy(input_dir, scales_dir,
-                                                                    options["scale_start"], options["scale_stop"] + 1,
-                                                                    options["scale_step"], algorithm,
-                                                                    options["dimension"], options["tolerance"],
-                                                                    options["round_digits"])
+                compression_table = tools.multiscale.multiscale_compression(input_dir, scales_dir, options["scale_start"],
+                                                                            options["scale_stop"] + 1, options["scale_step"],
+                                                                            options["compressor"], options["level"],
+                                                                            options["decompress"], options["comp_ratio"],
+                                                                            options['round_digits'])
 
                 output_file = open(outfile, "w")
                 writer = csv.writer(output_file, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
 
-                header = ["Filename"] + ["Scale_%d_Entropy" % s for s in
-                                         range(options["scale_start"], options["scale_stop"] + 1, options["scale_step"])]
+                if (not options['decompress']) and (not options['comp_ratio']):
+                    header = ["Filename"] + list(functools.reduce(
+                        operator.add, [("Scale_%d_Original" % s, "Scale_%d_Compressed" % s)
+                                       for s in range(options["scale_start"],
+                                                      options["scale_stop"] + 1,
+                                                      options["scale_step"])]))
+                elif options['decompress'] and (not options['comp_ratio']):
+                    header = ["Filename"] + list(
+                        functools.reduce(
+                            operator.add, [("Scale_%d_Original" % s, "Scale_%d_Compressed" % s, "Scale_%d_Decompression" % s)
+                                           for s in range(options["scale_start"],
+                                                          options["scale_stop"] + 1,
+                                                          options["scale_step"])]))
+
+                elif (not options['decompress']) and options['comp_ratio']:
+                    header = ["Filename"] + list(functools.reduce(
+                        operator.add, [("Scale_%d_Original" % s,"Scale_%d_Compressed" % s, "Scale_%d_CRx100" % s)
+                                       for s in range(options["scale_start"],
+                                                      options["scale_stop"] + 1,
+                                                      options["scale_step"])]))
+                else:
+                    header = ["Filename"] + list(
+                        functools.reduce(
+                            operator.add, [("Scale_%d_Original" % s,
+                                            "Scale_%d_Compressed" % s,
+                                            "Scale_%d_CRx100" % s,
+                                            "Scale_%d_Decompression" % s)
+                                           for s in range(options["scale_start"],
+                                                          options["scale_stop"] + 1,
+                                                          options["scale_step"])]))
+
                 writer.writerow(header)
-                for filename in sorted(entropy_table.keys()):
-                    writer.writerow([filename] + entropy_table[filename])
+                for filename in sorted(compression_table.keys()):
+                    writer.writerow([filename] + compression_table[filename])
 
                 output_file.close()
                 logger.info("Storing in: %s" % os.path.abspath(outfile))
 
-            else:
-                logger.error("Multiscale not implemented for %s" % algorithm)
+            elif options["command"] == "entropy":
+                algorithm = options['algorithm']
+                if algorithm == 'apen' or algorithm == 'apenv2' or algorithm == "sampen":
+                    outfile = "%s_multiscale_start_%d_end_%d_step_%d_%s_dim_%d_tol_%.2f.csv" % (output_name,
+                                                                                                options["scale_start"],
+                                                                                                options["scale_stop"],
+                                                                                                options["scale_step"],
+                                                                                                algorithm,
+                                                                                                options["dimension"],
+                                                                                                options["tolerance"])
 
-        if not options["keep_scales"]:
-            logger.info("Deleting scales directory: %s" % scales_dir)
-            shutil.rmtree(scales_dir, ignore_errors=True)
+                    entropy_table = {}
+
+                    entropy_table = tools.multiscale.multiscale_entropy(input_dir, scales_dir,
+                                                                        options["scale_start"], options["scale_stop"] + 1,
+                                                                        options["scale_step"], algorithm,
+                                                                        options["dimension"], options["tolerance"],
+                                                                        options["round_digits"])
+
+                    output_file = open(outfile, "w")
+                    writer = csv.writer(output_file, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
+
+                    header = ["Filename"] + ["Scale_%d_Entropy" % s for s in
+                                             range(options["scale_start"], options["scale_stop"] + 1, options["scale_step"])]
+                    writer.writerow(header)
+                    for filename in sorted(entropy_table.keys()):
+                        writer.writerow([filename] + entropy_table[filename])
+
+                    output_file.close()
+                    logger.info("Storing in: %s" % os.path.abspath(outfile))
+
+                else:
+                    logger.error("Multiscale not implemented for %s" % algorithm)
+
+            if not options["keep_scales"]:
+                logger.info("Deleting scales directory: %s" % scales_dir)
+                shutil.rmtree(scales_dir, ignore_errors=True)
 
     logger.info("Done")

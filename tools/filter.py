@@ -39,6 +39,7 @@ ENTRY POINT: clean(input_name,dest_dir, keep_time=False, apply_limits=False)
 """
 
 import os
+import shutil
 import logging
 import utilityFunctions as util
 
@@ -91,49 +92,88 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
     :param round_to_int: flag to round the time series to integer
 
     """
+    single_column_dataset = False
     floating_point_param = "%.3f\n"
     if round_to_int:
         floating_point_param = "%d\n"
-    with open(input_file, "rU") as fdin:
-        with open(dest_file, "w") as fdout:
-            module_logger.info("processing file: %s" % input_file)
-            for line in fdin:
-                data = line.split()
 
-                # to filter any headers the file might have, this operates under the assumption
-                # that headers never start with a number.
-                try:
-                    float(data[0])
-                except ValueError:
-                    continue
-                if len(data) != 0:
+    # we will only process if the file is not empty
+    try:
+        file_size = os.path.getsize(input_file)
+    except OSError as error:
+        module_logger.critical("Error: %s. Skipping..." % error[1])
+    else:
+        if file_size <= 0:
+            module_logger.warning("File '%s' is empty. Skipping ..." % input_file)
+            return
+        line_number = 0
+        with open(input_file, "rU") as fdin:
+            with open(dest_file, "w") as fdout:
+                module_logger.info("processing file: %s" % input_file)
+                for line in fdin:
+                    data = line.split()
+                    line_number += 1
+
+                    # to filter any headers the file might have, this operates under the assumption
+                    # that headers never start with a number.
+                    # the first time we get a Value Error we ignore the line (assume to be a header)
                     try:
-                        float(data[hrf_col])
-                    except IndexError:
-                        module_logger.warning("Index out of range. Falling back to column 1")
-                        hrf_col = 1
+                        float(data[0])
+                    except ValueError as ve:
+                        # print(ve)
+                        module_logger.warning("String found. Assuming its the header. Skipping line...")
                         continue
-                    except ValueError:
-                        module_logger.warning("Value Error. Falling back to column 1")
-                        hrf_col = 1
-                        continue
-                    hrf = float(data[hrf_col])
-                    if hrf >= 1000:
-                        hrf = round(float(data[hrf_col]) / 1000, 3)
-                    if round_to_int:
-                        hrf = round(hrf)
-                    if not apply_limits:
-                        if keep_time:
-                            time = data[0]
-                            fdout.write("%s " % time)
-                        fdout.write(floating_point_param % hrf)
-                    elif 50 <= hrf <= 250:
-                        if keep_time:
-                            time = data[0]
-                            fdout.write("%s " % time)
-                        fdout.write(floating_point_param % hrf)
-    module_logger.info("Storing file in: %s" % os.path.abspath(dest_file))
 
+                    # lets check if the dataset has at least two columns
+                    try:
+                        float(data[1])
+                    except IndexError:
+                        module_logger.error("Index out of range. The dataset should contain at least two columns. Skipping ...")
+                        single_column_dataset = True
+                        break
+                    except ValueError as ve:
+                        module_logger.error("Value Error (%s. line: %d, column: %d). Corrupted file."
+                                               " Skipping..." % (ve, line_number, 2))
+                        single_column_dataset = True
+                        break
+                    else:
+                        if len(data) != 0:
+                            try:
+                                float(data[hrf_col])
+                            except IndexError:
+                                module_logger.warning("Index out of range. Falling back to column 1")
+                                hrf_col = 1
+                                continue
+                            except ValueError:
+                                module_logger.warning("Value Error. Falling back to column 1")
+                                hrf_col = 1
+                                continue
+
+                            hrf = float(data[hrf_col])
+                            if hrf >= 1000:
+                                hrf = round(float(data[hrf_col]) / 1000, 3)
+                            if round_to_int:
+                                hrf = round(hrf)
+                            if not apply_limits:
+                                if keep_time:
+                                    time = data[0]
+                                    fdout.write("%s " % time)
+                                fdout.write(floating_point_param % hrf)
+                            elif 50 <= hrf <= 250:
+                                if keep_time:
+                                    time = data[0]
+                                    fdout.write("%s " % time)
+                                fdout.write(floating_point_param % hrf)
+
+        if not single_column_dataset:
+            module_logger.info("Storing file in: %s" % os.path.abspath(dest_file))
+        else:
+            # deleting empty file
+            module_logger.info("Deleting corrupted output file...")
+            try:
+                os.remove(dest_file)
+            except OSError as error:
+                module_logger.warning("Error: %s. Skipping..." % error[1])
 
 # AUXILIARY FUNCTIONS
 
