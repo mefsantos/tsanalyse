@@ -156,10 +156,11 @@ if __name__ == "__main__":
     tools.utilityFunctions.add_numbers_parser_options(entropy)
     # TODO: need to add csv parser options to entropy module
 
-    stv = subparsers.add_parser('stv', help='Perform Short-term Variability analysis of the files of a given directory '
-                                            'with the following algorithms: %s' % stv.AVAILABLE_ALGORITHMS)
-    tools.stv_analysis.add_parser_options(stv)
-    tools.utilityFunctions.add_numbers_parser_options(stv)
+    stv_module = subparsers.add_parser('stv', help='Perform Short-term Variability analysis of the files of a given '
+                                                   'directory with the following algorithms: %s'
+                                                   % stv.AVAILABLE_ALGORITHMS)
+    tools.stv_analysis.add_parser_options(stv_module)
+    tools.utilityFunctions.add_numbers_parser_options(stv_module)
 
     args = parser.parse_args()
     options = vars(args)
@@ -257,6 +258,9 @@ if __name__ == "__main__":
             logger.info("Storing in: %s" % os.path.abspath(outfile))
 
         elif options['command'] == 'stv':
-            tools.stv_analysis.compute_stv_metrics(inputdir, options)
+            try:
+                tools.stv_analysis.compute_stv_metrics(inputdir, options)
+            except IOError as ioe:
+                logger.critical(ioe)
 
     logger.info("Done")

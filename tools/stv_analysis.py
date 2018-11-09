@@ -305,21 +305,28 @@ def stv_sd(time_series_to_eval, sampling_frequency=4):
 def compute_stv_metric_of_file(input_file_name, algorithm_name, sampling_frequency=4,
                                round_digits=None, consider_nans=False):
 
-    dataframe = pandas.read_csv(input_file_name)
-    result_entry_with_filename_and_metrics = [os.path.basename(input_file_name)]
+    if os.path.getsize(input_file_name) <= 0:
+        return []
 
-    list_to_eval = list(dataframe.ix[:, 0])
-    method_to_call = globals()["stv_%s" % algorithm_name]
-    result = util.my_round(method_to_call(list_to_eval, sampling_frequency), round_digits)
-    result_entry_with_filename_and_metrics.append(util.my_round(np_mean_to_use(result), round_digits))
-    result_entry_with_filename_and_metrics.append(util.my_round(np_median_to_use(result), round_digits))
-    result_entry_with_filename_and_metrics.append(util.my_round(np_std_to_use(result), round_digits))
-
-    if type(result) == list:
-        result_entry_with_filename_and_metrics.extend(result)
+    try:
+        dataframe = pandas.read_csv(input_file_name)
+    except ValueError as ve:
+        module_logger.critical("%s. File: %s" % (ve, input_file_name))
     else:
-        result_entry_with_filename_and_metrics.append(result)
-    return result_entry_with_filename_and_metrics
+        result_entry_with_filename_and_metrics = [os.path.basename(input_file_name)]
+
+        list_to_eval = list(dataframe.ix[:, 0])
+        method_to_call = globals()["stv_%s" % algorithm_name]
+        result = util.my_round(method_to_call(list_to_eval, sampling_frequency), round_digits)
+        result_entry_with_filename_and_metrics.append(util.my_round(np_mean_to_use(result), round_digits))
+        result_entry_with_filename_and_metrics.append(util.my_round(np_median_to_use(result), round_digits))
+        result_entry_with_filename_and_metrics.append(util.my_round(np_std_to_use(result), round_digits))
+
+        if type(result) == list:
+            result_entry_with_filename_and_metrics.extend(result)
+        else:
+            result_entry_with_filename_and_metrics.append(result)
+        return result_entry_with_filename_and_metrics
 
 
 # TODO: add entry point for a single file and not only a directory - use 'compute_stv_metrics'
@@ -342,21 +349,25 @@ def compute_stv_metric_of_directory(input_path, algorithm_name, sampling_frequen
             module_logger.debug("Running algorithm %s" % algorithm_name)
             files_list = map(os.path.abspath, glob.glob("%s%s*" % (util.remove_slash_from_path(input_path), os.sep)))
             result_list = map(lambda filename: compute_stv_metric_of_file(filename, algorithm_name, sampling_frequency,
-                                                                          round_digits, consider_nans),
-                              files_list)
+                                                                          round_digits, consider_nans), files_list)
             # generate the header based on the longest list
-            header_from_list = util.generate_header_from_list_with_string(max(result_list, key=len), "Subset")
-            # first is for the name
-            metrics_header = ["Filename", "Mean", "Median", "Std_Dev"]
+            try:
+                header_from_list = util.generate_header_from_list_with_string(max(result_list, key=len), "Subset")
+            except TypeError as te:
+                module_logger.error(te)
+                pass
+            else:
+                # first is for the name
+                metrics_header = ["Filename", "Mean", "Median", "Std_Dev"]
 
-            metrics_header.extend(header_from_list[:-3])
-            # last three are mean, median and stdev
+                metrics_header.extend(header_from_list[:-3])
+                # last three are mean, median and stdev
 
-            res_dataframe = pandas.DataFrame(result_list, columns=metrics_header)
+                res_dataframe = pandas.DataFrame(result_list, columns=metrics_header)
 
-            final_path = os.path.join(output_path, ("stv_analysis_using_%s.csv" % algorithm_name))
-            res_dataframe.to_csv(final_path, sep=";", index=False)
-            module_logger.info("Storing file into: " + os.path.abspath(final_path))
+                final_path = os.path.join(output_path, ("stv_analysis_using_%s.csv" % algorithm_name))
+                res_dataframe.to_csv(final_path, sep=";", index=False)
+                module_logger.info("Storing file into: " + os.path.abspath(final_path))
         else:
             error_message = "Algorithm chosen is not available. Make sure you typed correctly using one of the " \
                             "following options: all, " + ", " .join(AVAILABLE_ALGORITHMS)

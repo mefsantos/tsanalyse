@@ -323,7 +323,7 @@ def add_parser_options(parser):
 
     """
 
-    parser.add_argument(dest="algorithm", action="store", metavar="ALGORITHM",
+    parser.add_argument('-a', '--algorithm', dest="algorithm", action="store", metavar="ALGORITHM", required=True,
                         help="Specifies the entropy algorithm to use. "
                              "Available algorithms: " + ", " .join(AVAILABLE_ALGORITHMS))
     parser.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
