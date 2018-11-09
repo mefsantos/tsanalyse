@@ -156,8 +156,9 @@ if __name__ == "__main__":
     tools.utilityFunctions.add_numbers_parser_options(entropy)
     # TODO: need to add csv parser options to entropy module
 
-    stv_module = subparsers.add_parser('stv', help='Perform Short-term Variability analysis of the files of a given directory '
-                                            'with the following algorithms: %s' % stv.AVAILABLE_ALGORITHMS)
+    stv_module = subparsers.add_parser('stv', help='Perform Short-term Variability analysis of the files of a given '
+                                                   'directory with the following algorithms: %s'
+                                                   % stv.AVAILABLE_ALGORITHMS)
     tools.stv_analysis.add_parser_options(stv_module)
     tools.utilityFunctions.add_numbers_parser_options(stv_module)
 
