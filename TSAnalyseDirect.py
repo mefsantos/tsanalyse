@@ -257,6 +257,9 @@ if __name__ == "__main__":
             logger.info("Storing in: %s" % os.path.abspath(outfile))
 
         elif options['command'] == 'stv':
-            tools.stv_analysis.compute_stv_metrics(inputdir, options)
+            try:
+                tools.stv_analysis.compute_stv_metrics(inputdir, options)
+            except IOError as ioe:
+                logger.critical(ioe)
 
     logger.info("Done")
