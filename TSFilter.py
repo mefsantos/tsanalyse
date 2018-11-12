@@ -75,8 +75,6 @@ def clean_procedures(inputdir, options):
     change_output_location = specified_output is not None
 
     logger.debug("change output location: %s; specified output: %s" % (change_output_location, specified_output))
-    # we will always use the suffix variable.
-    # however, if the input is a directory we delete the suffix (see ds_filter docs)
     filtered_suffix = "_filtered"
     if options['keep_time']:
         filtered_suffix += "_wtime"
@@ -126,8 +124,8 @@ if __name__ == "__main__":
 
     for inputs in iterable_input_path:
         inputdir = inputs.strip()
-        inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
+        inputdir = util.remove_slash_from_path(inputdir)
         inputdir = os.path.expanduser(inputdir)  # to handle the case of paths as a string
 
-        clean_procedures(inputdir, options)  # i dont think i need the output dir from clean_procedures
+        clean_procedures(inputdir, options)
         logger.info("Done.\n")

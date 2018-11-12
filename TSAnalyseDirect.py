@@ -131,7 +131,6 @@ import tools.utilityFunctions as util
 
 if __name__ == "__main__":
 
-    # lets evaluate the directory for individual runs here
     if not os.path.exists(util.RUN_ISOLATED_FILES_PATH):
         os.mkdir(util.RUN_ISOLATED_FILES_PATH)
 
@@ -187,7 +186,7 @@ if __name__ == "__main__":
 
     for inputs in iterable_input_path:
         inputdir = inputs.strip()
-        inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
+        inputdir = util.remove_slash_from_path(inputdir)
         inputdir = os.path.expanduser(inputdir)  # to handle the case of paths as a string
 
         if not os.path.isdir(inputdir):

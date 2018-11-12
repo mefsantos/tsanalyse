@@ -184,7 +184,6 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
         if not single_column_dataset:
             module_logger.info("Storing file in: %s" % os.path.abspath(dest_file))
         else:
-            # deleting empty file
             module_logger.info("Deleting corrupted output file...")
             try:
                 os.remove(dest_file)

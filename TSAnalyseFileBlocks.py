@@ -148,7 +148,6 @@ if __name__ == "__main__":
         os.mkdir(util.RUN_ISOLATED_FILES_PATH)
 
     parser = argparse.ArgumentParser(description="Analysis of the file's blocks")
-    # parser.add_argument("inputfile", metavar="INPUT FILE", help="File to be analysed")
     parser.add_argument("input_path", metavar="INPUT PATH", action="store", nargs="+",
                         help="Path for a file or directory containing the datasets to be used as input")
 
@@ -197,15 +196,11 @@ if __name__ == "__main__":
         logger.info("Creating '%s'..." % util.FILE_BLOCKS_STORAGE_PATH)
         os.mkdir(util.FILE_BLOCKS_STORAGE_PATH)
 
-    # if not os.path.exists(block_analysis_storage):
-    #     logger.info("Creating %s..." % block_analysis_storage)
-    #     os.mkdir(block_analysis_storage)
-
     iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options['input_path']
 
     for inputs in iterable_input_path:
         inputdir = inputs.strip()
-        inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
+        inputdir = util.remove_slash_from_path(inputdir)
         inputdir = os.path.expanduser(inputdir)  # to handle the case of paths as a string
 
         if not os.path.isdir(inputdir):
@@ -265,14 +260,12 @@ if __name__ == "__main__":
                 for filename in block_minutes:
                     bfile = os.path.splitext(filename)[0]
                     logger.info("Compression started for %s" % os.path.join(blocks_dir, "%s_blocks" % filename))
-                    # The extensions had to be removed from the original name when
-                    # creating the block for compatibility with windows, so this line
-                    # changes the filename
+                    # The extensions had to be removed from the original name when the block for compatibility
+                    # with windows, so this line changes the filename
                     compressed[bfile] = tools.compress.compress(os.path.join(blocks_dir, "%s_blocks" % bfile),
                                                                 options['compressor'], options['level'],
                                                                 options['decompress'], options['comp_ratio'],
                                                                 options["round_digits"])
-
                     logger.info("Compression complete")
 
                 for filename in compressed:
@@ -294,8 +287,8 @@ if __name__ == "__main__":
                     fboutname = os.path.join(output_location, fboutsuffix)
 
                     file_to_write = open(fboutname, "w")
-                    writer = csv.writer(file_to_write, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
-
+                    writer = csv.writer(file_to_write, delimiter=options["write_separator"],
+                                        lineterminator=options["line_terminator"])
                     header = ["Block", "Original Size", "Compressed Size"]
                     if options['comp_ratio']:
                         header.append("CRx100")
@@ -331,7 +324,6 @@ if __name__ == "__main__":
                     fboutsuffix = "%s_%s_%s_dim_%d_tol_%.2f.csv" % (os.path.basename(filename), file_blocks_suffix,
                                                                     algorithm, options['dimension'],
                                                                     options['tolerance'])
-
                     fboutname = os.path.join(output_location, fboutsuffix)
 
                     file_to_write = open(fboutname, "w")

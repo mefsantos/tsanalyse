@@ -154,8 +154,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     options = vars(args)
 
-    # parser definition ends
-
     options["decompress"] = None  # decompress is disabled. This os the shortest mod without deleting code
 
     logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
@@ -181,7 +179,6 @@ if __name__ == "__main__":
         input_dir = util.remove_slash_from_path(input_dir)  # if slash exists
         input_dir = os.path.expanduser(input_dir)  # to handle the case of paths as a string
 
-        # commands that need to compute multiscales
         scales_dir = '%s_Scales' % (input_dir if os.path.isdir(input_dir)
                                     else os.path.join(util.RUN_ISOLATED_FILES_PATH,
                                                       os.path.basename(util.remove_file_extension(input_dir))))
@@ -193,9 +190,7 @@ if __name__ == "__main__":
         if options['mul_order'] != -1:
             scales_dir += '_%d' % (options['mul_order'])
 
-        # here protect the execution for step == 0
         if options["scale_step"] == 0:
-            print(options["scale_step"])
             logger.warning("Step value cannot be 0 (current: %s). Falling back to the minimum acceptable (1)."
                            % options["scale_step"])
             options["scale_step"] = 1
@@ -228,14 +223,6 @@ if __name__ == "__main__":
                     output_name = os.path.join(os.path.abspath(specified_output), os.path.basename(input_dir))
                 else:
                     output_name = input_dir
-
-            # if not os.path.isdir(input_dir):
-            #     logger.info("Running isolated test.")
-            #
-            #     output_name = os.path.join(util.RUN_ISOLATED_FILES_PATH,
-            #                                os.path.basename(util.remove_file_extension(input_dir)))
-            # else:
-            #     output_name = input_dir
 
             if options["command"] == "compress":
                 options["level"] = tools.compress.set_level(options)
@@ -312,9 +299,7 @@ if __name__ == "__main__":
                                                                                                 algorithm,
                                                                                                 options["dimension"],
                                                                                                 options["tolerance"])
-
                     entropy_table = {}
-
                     entropy_table = tools.multiscale.multiscale_entropy(input_dir, scales_dir,
                                                                         options["scale_start"], options["scale_stop"] + 1,
                                                                         options["scale_step"], algorithm,
