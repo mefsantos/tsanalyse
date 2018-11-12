@@ -444,3 +444,5 @@ algo/ppmd_src/ppmd  # this will be obtained depending on the operating system
 
 # Remove possible vagrant machines
 .vagrant
+
+algo/ppmd_src/ppmd
