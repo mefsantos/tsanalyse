@@ -246,7 +246,7 @@ if __name__ == "__main__":
                             "Please make sure the file has two columns: "
                             "the first with the timestamps and the second with the hrf values." % inputdir)
             logger.info("Skipping ...")
-            logger.info("Removing destination directories")
+            logger.info("Removing corrupted destination directory")
             try:
                 os.removedirs(blocks_dir)
             except OSError as err:
@@ -345,7 +345,7 @@ if __name__ == "__main__":
                     logger.info("Storing into: %s" % os.path.abspath(fboutname))
 
         if not options["keep_blocks"]:
-            logger.info("Deleting scales directory: %s" % blocks_dir)
+            logger.info("Deleting blocks directory: %s" % blocks_dir)
             shutil.rmtree(blocks_dir, ignore_errors=True)
 
     logger.info("Done")
