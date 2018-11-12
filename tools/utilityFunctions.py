@@ -42,18 +42,14 @@ import scipy.stats as st
 
 # HRF package home location - when called by package main scripts, i.e.: TSAnalyse[Direct,MultiScale,...]
 TSA_HOME = os.path.abspath(".")
-DEBUG_PATH = os.path.join(TSA_HOME, "debug_runs")
+TMP_DIR = os.path.join(TSA_HOME, "tmp")
 RUN_ISOLATED_FILES_PATH = os.path.join(TSA_HOME, "individual_runs")
 BLOCK_ANALYSIS_OUTPUT_PATH = os.path.join(TSA_HOME, "block_analysis")
 FILE_BLOCKS_STORAGE_PATH = os.path.join(TSA_HOME, "file_blocks")
 STV_ANALYSIS_STORAGE_PATH = os.path.join(TSA_HOME, "stv_analysis")
 
-#
+
 DEFAULT_LOG_LEVEL = "INFO"
-
-if not os.path.exists(RUN_ISOLATED_FILES_PATH):
-    os.mkdir(RUN_ISOLATED_FILES_PATH)
-
 
 module_logger = log.getLogger("tsanalyse.util")
 
@@ -70,6 +66,39 @@ def setup_environment():
         os.environ["PATH"] += ":"+ppmd_bin_path
     return
 
+
+# setup temp directory with respective files. It will also return the path for the temporary location created
+def setup_tmp_location(list_of_files, dataset_name):
+    tmp_dir = os.path.join(TMP_DIR, dataset_name)
+    dir_has_no_file = True
+    if not os.path.exists(tmp_dir):
+        os.makedirs(tmp_dir)
+    from shutil import copyfile
+    for tsa_file in list_of_files:
+        tmp_file_path = os.path.join(tmp_dir, os.path.basename(tsa_file))
+        try:
+            copyfile(os.path.abspath(tsa_file), os.path.abspath(tmp_file_path))
+        except OSError as ose:
+            module_logger.error(ose)
+            pass
+        except IOError as ioe:
+            print(ioe)
+            module_logger.error(ioe)
+        else:
+            module_logger.debug("Copying '%s' to new temporary location '%s'" % (os.path.basename(tsa_file), tmp_dir))
+            dir_has_no_file = False
+    if dir_has_no_file:
+        module_logger.warning("The temporary directory '%s' is empty. Make sure the files you selected exist")
+    return tmp_dir
+
+
+def cleanup_tmp_location():
+    from shutil import rmtree
+    try:
+        rmtree(TMP_DIR)
+    except OSError as ose:
+        module_logger.warning("%s. Skipping..." % ose)
+        pass
 
 def change_file_terminator_with_full_path(file_path, file_terminator=".txt"):
     if file_path is None:

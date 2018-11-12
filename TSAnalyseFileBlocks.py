@@ -144,6 +144,9 @@ import tools.utilityFunctions as util
 
 if __name__ == "__main__":
 
+    if not os.path.exists(util.RUN_ISOLATED_FILES_PATH):
+        os.mkdir(util.RUN_ISOLATED_FILES_PATH)
+
     parser = argparse.ArgumentParser(description="Analysis of the file's blocks")
     # parser.add_argument("inputfile", metavar="INPUT FILE", help="File to be analysed")
     parser.add_argument("input_path", metavar="INPUT PATH", action="store", nargs="+",

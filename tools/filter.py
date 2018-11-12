@@ -48,7 +48,7 @@ module_logger = logging.getLogger('tsanalyse.filter')
 
 # TODO: change printouts to logger
 # ENTRY POINT FUNCTIONS
-def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_to_int=False, hrf_col=1):
+def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_to_int=False, hrf_col=1, suffix=None):
     """
     (str,str,bool,bool,bool) -> Nonetype
 
@@ -61,9 +61,13 @@ def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_t
     :param keep_time: flag to keep the time column of the original dataset
     :param apply_limits: flag to apply limits between sections
     :param round_to_int: flag to round the time series to integer
+    :param hrf_col: column to parse the hrf values
+    :param suffix: suffix to add to the destination file name. Used when user specifies the output location but
+                    runs individual files.
 
     """
     module_logger.debug("The input name received: %s" % input_name)
+    module_logger.debug("Suffix: %s" % suffix)
     if os.path.isdir(input_name):
         filelist = util.listdir_no_hidden(input_name)
         for filename in filelist:
@@ -72,8 +76,18 @@ def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_t
                        keep_time, apply_limits, round_to_int=round_to_int, hrf_col=hrf_col)
     else:
         filename = os.path.basename(input_name)
-        clean_file(input_name,
-                   os.path.join(dest_dir, filename.strip()),
+        dest_file = filename
+        module_logger.debug("dest filename: %s" % dest_file)
+        if suffix:
+            # we de-construct and re-construct the filename with the suffix (filtered / filtered_wtime)
+            dest_file_list = filename.split(".")
+            dest_file_list.insert(1, suffix)
+            module_logger.debug("destination file list: %s" % dest_file_list)
+            dest_file = "%s.%s" % ("".join(dest_file_list[:-1]), dest_file_list[-1])
+            module_logger.debug("destination file after split and insert: %s" % dest_file)
+            print(dest_file)
+        dest_filename = os.path.join(dest_dir, dest_file)
+        clean_file(input_name,dest_filename,
                    keep_time, apply_limits, round_to_int=round_to_int, hrf_col=hrf_col)
 
 
@@ -90,6 +104,7 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
     :param keep_time: flag to keep the time column of the original dataset
     :param apply_limits: flag to apply limits between sections
     :param round_to_int: flag to round the time series to integer
+    :param hrf_col: column to parse the hrf values
 
     """
     single_column_dataset = False
@@ -128,11 +143,12 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
                     try:
                         float(data[1])
                     except IndexError:
-                        module_logger.error("Index out of range. The dataset should contain at least two columns. Skipping ...")
+                        module_logger.warning("Index out of range. The dataset should contain at least two columns."
+                                              " Skipping ...")
                         single_column_dataset = True
                         break
                     except ValueError as ve:
-                        module_logger.error("Value Error (%s. line: %d, column: %d). Corrupted file."
+                        module_logger.critical("Value Error (%s. line: %d, column: %d). Corrupted file."
                                                " Skipping..." % (ve, line_number, 2))
                         single_column_dataset = True
                         break

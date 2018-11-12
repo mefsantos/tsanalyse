@@ -70,53 +70,36 @@ import tools.utilityFunctions as util
 
 def clean_procedures(inputdir, options):
     logger.info("Starting filter procedures")
-
-    change_output_location = False
     specified_output = os.path.expanduser(options["output_path"]) if options["output_path"] is not None else None
     specified_output = util.remove_slash_from_path(specified_output)  # if slash exists
+    change_output_location = specified_output is not None
 
-    if specified_output is not None:
-        if os.path.exists(specified_output):
-            logger.info("Using specified output destination.")
-            specified_output = os.path.abspath(specified_output)
-            change_output_location = True
-        else:
-            logger.warning("Specified folder '%s' does not exist. Ignoring..." % os.path.abspath(specified_output))
-
+    logger.debug("change output location: %s; specified output: %s" % (change_output_location, specified_output))
+    # we will always use the suffix variable.
+    # however, if the input is a directory we delete the suffix (see ds_filter docs)
+    filtered_suffix = "_filtered"
     if options['keep_time']:
-        if not os.path.isdir(inputdir):
-            outputdir_path = os.path.dirname(inputdir) + "_filtered_wtime"
-            if change_output_location:
-                outputdir_path = os.path.join(os.path.abspath(specified_output),
-                                              os.path.basename(os.path.dirname(inputdir)) + "_filtered_wtime")
-        else:
-            outputdir_path = inputdir + "_filtered_wtime"
-            if change_output_location:
-                outputdir_path = os.path.join(os.path.abspath(specified_output),
-                                              os.path.basename(inputdir) + "_filtered_wtime")
-        if not os.path.isdir(outputdir_path):
-            logger.info("Creating directory %s" % outputdir_path)
-            os.makedirs(outputdir_path)
-        tools.filter.ds_filter(inputdir, outputdir_path, keep_time=True, apply_limits=options['apply_limits'],
-                               round_to_int=options["round_to_int"], hrf_col=options["hrf-col"])
+        filtered_suffix += "_wtime"
+
+    if not os.path.isdir(inputdir):
+        outputdir_path = os.path.abspath(util.RUN_ISOLATED_FILES_PATH)
+        if change_output_location:
+            outputdir_path = os.path.abspath(specified_output)
     else:
-        if not os.path.isdir(inputdir):
-            outputdir_path = os.path.dirname(inputdir) + "_filtered"
-            if change_output_location:
-                outputdir_path = os.path.join(os.path.abspath(specified_output),
-                                              os.path.basename(os.path.dirname(inputdir)) + "_filtered")
-        else:
-            outputdir_path = inputdir + "_filtered"
-            if change_output_location:
-                outputdir_path = os.path.join(os.path.abspath(specified_output),
-                                              os.path.basename(inputdir) + "_filtered")
-        if not os.path.isdir(outputdir_path):
-            logger.info("Creating filter directory %s" % outputdir_path)
-            os.makedirs(outputdir_path)
-        tools.filter.ds_filter(inputdir, outputdir_path, apply_limits=options['apply_limits'],
-                               round_to_int=options["round_to_int"], hrf_col=options["hrf-col"])
+        outputdir_path = inputdir + filtered_suffix
+        if change_output_location:
+            outputdir_path = os.path.join(os.path.abspath(specified_output),
+                                          os.path.basename(inputdir) + filtered_suffix)
+        filtered_suffix = None
+
+    if not os.path.isdir(outputdir_path):
+        logger.info("Creating directory %s" % outputdir_path)
+        os.makedirs(outputdir_path)
+    tools.filter.ds_filter(inputdir, outputdir_path, keep_time=options['keep_time'],
+                           apply_limits=options['apply_limits'], round_to_int=options["round_to_int"],
+                           hrf_col=options["hrf-col"], suffix=filtered_suffix)
     logger.info("Finished filter procedures")
-    return outputdir_path
+    return
 
 
 if __name__ == "__main__":
@@ -127,8 +110,8 @@ if __name__ == "__main__":
 
     # TODO: validate the input inside each module (to avoid unnecessary computation terminating in errors)
     parser = argparse.ArgumentParser(description="Filter all the files in the given directory")
-    parser.add_argument("input_path", metavar="INPUT_PATH", nargs="+",
-                        help="Path for a file(s) or directory containing the datasets to be used as input", action="store")
+    parser.add_argument("input_path", metavar="INPUT_PATH", nargs="+", action="store",
+                        help="Path for a file(s) or directory containing the datasets to be used as input")
     tools.utilityFunctions.add_logger_parser_options(parser)
     tools.filter.add_parser_options(parser)
     tools.utilityFunctions.add_csv_parser_options(parser)
@@ -146,5 +129,5 @@ if __name__ == "__main__":
         inputdir = util.remove_slash_from_path(inputdir)  # if slash exists
         inputdir = os.path.expanduser(inputdir)  # to handle the case of paths as a string
 
-        outputdir = clean_procedures(inputdir, options)  # i dont think i need the output dir from clean_procedures
+        clean_procedures(inputdir, options)  # i dont think i need the output dir from clean_procedures
         logger.info("Done.\n")
