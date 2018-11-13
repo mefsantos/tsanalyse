@@ -140,6 +140,19 @@ import tools.partition
 import tools.separate_blocks
 import tools.utilityFunctions as util
 
+
+def remove_blocks_dir(blocks, corrupted=False):
+    message = "Cleaning up corrupted blocks' directory (%s)..." % blocks if corrupted \
+        else "Cleaning up blocks' directory (%s) ..." % blocks
+    logger.info(message)
+    try:
+        # os.removedirs(blocks)
+        shutil.rmtree(blocks, ignore_errors=False)
+    except OSError as err:
+        logger.warning("Error: %s (%s)" % (err[1], blocks))
+        logger.warning("skipping directory removal...")
+    pass
+
 # TODO: add another parameter (sampling_frequency) in order to partition by seconds
 
 if __name__ == "__main__":
@@ -239,18 +252,19 @@ if __name__ == "__main__":
                                                       options['start_at_end'],
                                                       True,
                                                       options['using_lines'])
+        except OSError as ose:
+            logger.critical("Error: %s - %s" % (ose[1], inputdir))
+            remove_blocks_dir(blocks_dir, corrupted=True)
+        except IOError as ioe:
+            logger.critical("Error: %s - %s" % (ioe[1], inputdir))
+            remove_blocks_dir(blocks_dir, corrupted=True)
         except ValueError:
             logger.critical("The file '%s' does not contain the necessary columns for the evaluation. "
                             "Please make sure the file has two columns: "
                             "the first with the timestamps and the second with the hrf values." % inputdir)
             logger.info("Skipping ...")
             logger.info("Removing destination directories")
-            try:
-                os.removedirs(blocks_dir)
-            except OSError as err:
-                logger.warning("OS error: {0}".format(err))
-                logger.warning("skipping directory removal...")
-                pass
+            remove_blocks_dir(blocks_dir, corrupted=True)
         else:
             logger.info("Partitioning complete")
 
@@ -262,11 +276,19 @@ if __name__ == "__main__":
                     logger.info("Compression started for %s" % os.path.join(blocks_dir, "%s_blocks" % filename))
                     # The extensions had to be removed from the original name when the block for compatibility
                     # with windows, so this line changes the filename
-                    compressed[bfile] = tools.compress.compress(os.path.join(blocks_dir, "%s_blocks" % bfile),
+                    try:
+                        compressed[bfile] = tools.compress.compress(os.path.join(blocks_dir, "%s_blocks" % bfile),
                                                                 options['compressor'], options['level'],
                                                                 options['decompress'], options['comp_ratio'],
                                                                 options["round_digits"])
-                    logger.info("Compression complete")
+                    except OSError as ose:
+                        logger.critical("Error: %s - %s" % (ose[1], blocks_dir))
+                        remove_blocks_dir(blocks_dir, corrupted=True)
+                    except IOError as ioe:
+                        logger.critical("Error: %s - %s" % (ioe[1], blocks_dir))
+                        remove_blocks_dir(blocks_dir, corrupted=True)
+                    else:
+                        logger.info("Compression complete")
 
                 for filename in compressed:
 
@@ -314,11 +336,27 @@ if __name__ == "__main__":
                 for filename in block_minutes:
                     bfile = os.path.splitext(filename)[0]
                     logger.info("Entropy calculations started for %s" % os.path.join(blocks_dir, "%s_blocks" % bfile))
-                    files_stds = tools.entropy.calculate_std(os.path.join(blocks_dir, "%s_blocks" % bfile))
-                    tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
-                    entropy[bfile] = tools.entropy.entropy(os.path.join(blocks_dir, "%s_blocks" % bfile), algorithm,
-                                                           options['dimension'], tolerances, options["round_digits"])
-                    logger.info("Entropy calculations complete")
+                    try:
+                        files_stds = tools.entropy.calculate_std(os.path.join(blocks_dir, "%s_blocks" % bfile))
+                    except OSError as ose:
+                        logger.critical("Error: %s - %s" % (ose[1], blocks_dir))
+                        remove_blocks_dir(blocks_dir, corrupted=True)
+                    except IOError as ioe:
+                        logger.critical("Error: %s - %s" % (ioe[1], blocks_dir))
+                        remove_blocks_dir(blocks_dir, corrupted=True)
+                    else:
+                        tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
+
+
+                        try:
+                            entropy[bfile] = tools.entropy.entropy(os.path.join(blocks_dir, "%s_blocks" % bfile), algorithm,
+                                                               options['dimension'], tolerances, options["round_digits"])
+                        except OSError as ose:
+                            logger.critical("Error: %s - %s" % (ose[1], blocks_dir))
+                        except IOError as ioe:
+                            logger.critical("Error: %s - %s" % (ioe[1], blocks_dir))
+                        else:
+                            logger.info("Entropy calculations complete")
 
                 for filename in entropy:
                     fboutsuffix = "%s_%s_%s_dim_%d_tol_%.2f.csv" % (os.path.basename(filename), file_blocks_suffix,
@@ -340,7 +378,6 @@ if __name__ == "__main__":
                     logger.info("Storing into: %s" % os.path.abspath(fboutname))
 
         if not options["keep_blocks"]:
-            logger.info("Deleting scales directory: %s" % blocks_dir)
-            shutil.rmtree(blocks_dir, ignore_errors=True)
+            remove_blocks_dir(blocks_dir)
 
     logger.info("Done")

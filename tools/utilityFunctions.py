@@ -100,6 +100,31 @@ def cleanup_tmp_location():
         module_logger.warning("%s. Skipping..." % ose)
         pass
 
+
+def files_are_relatable(list_of_files):
+    # iterate over the list of files
+    # if they belong to the same folder (os.path.dirname) they are relatable, otherwise they are not
+    # we can simplify by getting the first file's dirname and checking if exists
+    if type(list_of_files) != list:
+        # raise TypeError("'%s' is not a list. Actual type: %s" % (list_of_files, type(list_of_files)))
+        module_logger.error("'%s' is not a list. Actual type: %s" % (list_of_files, type(list_of_files)))
+    if len(list_of_files) <= 1:
+        module_logger.warning("List contains less than 2 elements")
+        return False
+    if not all(map(lambda x: len(x) > 0, list_of_files)):
+        module_logger.warning("List contains empty strings")
+        return False
+    abs_path_file = map(lambda x: os.path.abspath(x), list_of_files)
+    if not os.path.exists(abs_path_file[0]):
+        module_logger.error("File %s does not exist." % abs_path_file[0])
+        return False
+    file1_dirname = os.path.dirname(abs_path_file[0])
+    res = map(lambda x: (file1_dirname == os.path.dirname(x) and os.path.exists(x)), abs_path_file[1:])
+    module_logger.debug("Files share directory ('%s')? - %s" % (os.path.basename(file1_dirname),
+                                                                zip(abs_path_file[1:], res)))
+    return all(res)
+
+
 def change_file_terminator_with_full_path(file_path, file_terminator=".txt"):
     if file_path is None:
         return None
@@ -666,3 +691,29 @@ def add_logger_parser_options(parser):
                         help="Use LOGFILE to save logs.")
     parser.add_argument("--log-level", dest="log_level", action="store", help="Set Log Level; default:[%(default)s]",
                         choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"], default=DEFAULT_LOG_LEVEL)
+
+
+def add_dataset_parser_options(parser, has_multiple_files=True):
+    """
+    (argparse.ArgumentParser) -> NoneType
+
+    !!!Auxiliary function!!!  These are arguments for an argparse parser or subparser,
+    and are the optional arguments for the entry function in this module
+
+    This will allow grouping multiple individual files into the same folder to create a -new dataset'
+    """
+    if has_multiple_files:
+        from time import time
+        parser.add_argument('-g', '--group-files-in', dest="group_files", action="store", metavar="FOLDER_NAME",
+                            type=str, default="trial_%d" % int(time()),
+                            help="Group multiple individual files into the same folder with the provided name"
+                                 " to be handled as a single dataset. The folder will be created under " + TMP_DIR +
+                                 " [default folder name: '%(default)s']")
+
+        parser.add_argument('-i', '--isolate', dest="isolate", action="store_true", default=False,
+                            help="When providing multiple files, isolate computations, i.e., each file is run "
+                                 "individually thus not considered as a single dataset")
+
+        parser.add_argument('-ktd', '--keep-tmp-dir', dest="keep_tmp_dir", action="store_true", default=False,
+                            help="Do not cleanup the 'tmp' directory after computations"
+                                 " (when --group-files-in is used).")

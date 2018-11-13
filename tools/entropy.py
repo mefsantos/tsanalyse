@@ -312,7 +312,6 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
 
 
 # AUXILIARY FUNCTIONS
-# TODO: here add the parser options for the round digits (see the commented line)
 def add_parser_options(parser):
     """
     (argparse.ArgumentParser) -> NoneType

@@ -143,6 +143,7 @@ if __name__ == "__main__":
 
     tools.utilityFunctions.add_logger_parser_options(parser)
     tools.utilityFunctions.add_csv_parser_options(parser)
+    tools.utilityFunctions.add_dataset_parser_options(parser)
 
     subparsers = parser.add_subparsers(help='Different commands/operations to execute on the datasets', dest="command")
 
@@ -184,6 +185,14 @@ if __name__ == "__main__":
     iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options[
         'input_path']
 
+    # TODO: if the user specifies multiple files from different datasets (folders) we should create a tmp folder _
+    # TODO: _ to hold all the files, and generate a name based on a timestamp (maybe add a parser flag)
+    #  use this parser options: add_dataset_parser_options(parser, has_mult_files)
+
+    # if files_are_relatable():
+    # we create a temp dataset with their own parent dir name
+    # OR: we always create a tmp folder to make things easy
+
     for inputs in iterable_input_path:
         inputdir = inputs.strip()
         inputdir = util.remove_slash_from_path(inputdir)
@@ -209,57 +218,79 @@ if __name__ == "__main__":
         if options['command'] == 'compress':
             compressor = options['compressor']
             level = tools.compress.set_level(options)
-            resulting_dict = tools.compress.compress(inputdir, compressor, level, False, options['comp_ratio'],
+            try:
+                resulting_dict = tools.compress.compress(inputdir, compressor, level, False, options['comp_ratio'],
                                                      options['round_digits'])
-
-            outfile = "%s_%s_lvl_%d" % (output_name, compressor, level)
-            if options['comp_ratio']:
-                outfile += "_wCR"
-            outfile += ".csv"
-
-            output_file = open(outfile, "w")
-            writer = csv.writer(output_file, delimiter=options["write_separator"],
-                                lineterminator=options["line_terminator"])
-            header = ["Filename", "Original_Size", "Compressed_Size"]
-            if options['comp_ratio']:
-                header.append("CRx100")
-
-            writer.writerow(header)
-
-            for filename in sorted(resulting_dict.keys()):
-                cd = resulting_dict[filename]
-                data_row = [filename, cd.original, cd.compressed]
+            except OSError as ose:
+                logger.critical("Error: %s - %s" % (ose[1], inputdir))
+            except IOError as ioe:
+                logger.critical("Error: %s - %s" % (ioe[1], inputdir))
+            else:
+                outfile = "%s_%s_lvl_%d" % (output_name, compressor, level)
                 if options['comp_ratio']:
-                    data_row.append(cd.compression_rate)
+                    outfile += "_wCR"
+                outfile += ".csv"
 
-                writer.writerow(data_row)
-            output_file.close()
-            logger.info("Storing in: %s" % os.path.abspath(outfile))
+                output_file = open(outfile, "w")
+                writer = csv.writer(output_file, delimiter=options["write_separator"],
+                                    lineterminator=options["line_terminator"])
+                header = ["Filename", "Original_Size", "Compressed_Size"]
+                if options['comp_ratio']:
+                    header.append("CRx100")
+
+                writer.writerow(header)
+
+                for filename in sorted(resulting_dict.keys()):
+                    cd = resulting_dict[filename]
+                    data_row = [filename, cd.original, cd.compressed]
+                    if options['comp_ratio']:
+                        data_row.append(cd.compression_rate)
+
+                    writer.writerow(data_row)
+                output_file.close()
+                logger.info("Storing in: %s" % os.path.abspath(outfile))
 
         elif options['command'] == 'entropy':
             algorithm = options["algorithm"]
-            files_stds = tools.entropy.calculate_std(inputdir)
-            tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
+            try:
+                files_stds = tools.entropy.calculate_std(inputdir)
+            except OSError as ose:
+                logger.critical("Error: %s - %s" % (ose[1], inputdir))
+            except IOError as ioe:
+                logger.critical("Error: %s - %s" % (ioe[1], inputdir))
+            else:
+                tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
 
-            resulting_dict = tools.entropy.entropy(inputdir, algorithm, options['dimension'], tolerances,
-                                                   options['round_digits'])
-
-            outfile = "%s_%s_dim_%d_tol_%.2f.csv" % (
-                output_name, algorithm, options['dimension'], options['tolerance'])
-            output_file = open(outfile, "w")
-            writer = csv.writer(output_file, delimiter=options["write_separator"],
-                                lineterminator=options["line_terminator"])
-            writer.writerow(["Filename", "Entropy"])
-            for filename in sorted(resulting_dict.keys()):
-                entropyData = resulting_dict[filename]
-                writer.writerow([filename, entropyData.entropy])
-            output_file.close()
-            logger.info("Storing in: %s" % os.path.abspath(outfile))
+                try:
+                    resulting_dict = tools.entropy.entropy(inputdir, algorithm, options['dimension'], tolerances,
+                                                           options['round_digits'])
+                except OSError as ose:
+                    logger.critical("Error: %s - %s" % (ose[1], inputdir))
+                except IOError as ioe:
+                    logger.critical("Error: %s - %s" % (ioe[1], inputdir))
+                else:
+                    outfile = "%s_%s_dim_%d_tol_%.2f.csv" % (
+                        output_name, algorithm, options['dimension'], options['tolerance'])
+                    output_file = open(outfile, "w")
+                    writer = csv.writer(output_file, delimiter=options["write_separator"],
+                                        lineterminator=options["line_terminator"])
+                    writer.writerow(["Filename", "Entropy"])
+                    for filename in sorted(resulting_dict.keys()):
+                        entropyData = resulting_dict[filename]
+                        writer.writerow([filename, entropyData.entropy])
+                    output_file.close()
+                    logger.info("Storing in: %s" % os.path.abspath(outfile))
 
         elif options['command'] == 'stv':
             try:
                 tools.stv_analysis.compute_stv_metrics(inputdir, options)
+            except OSError as ose:
+                logger.critical("Error: %s - %s" % (ose[1], inputdir))
             except IOError as ioe:
-                logger.critical(ioe)
+                logger.critical("Error: %s - %s" % (ioe[1], inputdir))
+            except ValueError as ve:
+                logger.critical("Error: %s" % ve)
 
     logger.info("Done")
+
+

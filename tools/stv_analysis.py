@@ -383,10 +383,12 @@ def compute_stv_metrics(input_path, options):
     global CONSIDER_NANS  # this is required so we can set the global variable instead of a local one w'the same name
     CONSIDER_NANS = options["use_nan"]
 
+    if not os.path.exists(input_path):
+        raise IOError(1, "No Such file or folder")
     if os.path.isfile(input_path):
         message = "This module only accepts directories as input. " \
-                  "Consider changing you INPUT_PATH\n\tfrom: %s\n\tto:%s" % (os.path.abspath(input_path),
-                                                                         os.path.dirname(os.path.abspath(input_path)))
+                  "Consider changing you INPUT_PATH\n\t" \
+                  "from: %s\n\tto:%s" % (os.path.abspath(input_path), os.path.dirname(os.path.abspath(input_path)))
         module_logger.warning(message)
         # file_name = os.path.basename(input_path)
         # output_dir_path = util.RUN_ISOLATED_FILES_PATH
