@@ -154,6 +154,10 @@ def initialize_logger(logger_name='tsanalyse', log_file=None, log_level=DEFAULT_
     return logger
 
 
+def is_empty_file(file_to_eval):
+    return os.path.getsize(file_to_eval) <= 0
+
+
 # List utility functions
 def head(v_list, num_elements=1):
     """

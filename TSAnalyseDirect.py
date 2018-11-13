@@ -258,9 +258,10 @@ if __name__ == "__main__":
                 logger.critical("Error: %s - %s" % (ose[1], inputdir))
             except IOError as ioe:
                 logger.critical("Error: %s - %s" % (ioe[1], inputdir))
+
             else:
                 tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
-
+                logger.debug("Tolerances dict: %s" % tolerances)
                 try:
                     resulting_dict = tools.entropy.entropy(inputdir, algorithm, options['dimension'], tolerances,
                                                            options['round_digits'])
@@ -268,6 +269,8 @@ if __name__ == "__main__":
                     logger.critical("Error: %s - %s" % (ose[1], inputdir))
                 except IOError as ioe:
                     logger.critical("Error: %s - %s" % (ioe[1], inputdir))
+                except ValueError as voe:
+                    logger.critical("Error: %s - %s" % (voe, inputdir))
                 else:
                     outfile = "%s_%s_dim_%d_tol_%.2f.csv" % (
                         output_name, algorithm, options['dimension'], options['tolerance'])

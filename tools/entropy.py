@@ -79,15 +79,23 @@ def entropy(input_name, entropy_type, dimension, tolerances, round_digits=None):
     if os.path.isdir(input_name):
         filelist = util.listdir_no_hidden(input_name)
         for filename in filelist:
-            entropy_data = method_to_call(os.path.join(input_name, filename.strip()), dimension,
-                                          tolerances[filename], round_digits)
-            entropy_dict[filename.strip()] = entropy_data
+            try:
+                entropy_data = method_to_call(os.path.join(input_name, filename.strip()), dimension,
+                                              tolerances[filename], round_digits)
+            except ValueError as voe:
+                module_logger.critical("%s. Skipping file..." % voe)
+            else:
+                entropy_dict[filename.strip()] = entropy_data
     else:
         filename = os.path.basename(input_name)
         tolerances = tolerances[list(tolerances.keys())[0]]
-        entropy_data = method_to_call(input_name.strip(), dimension, tolerances, round_digits)
-        entropy_dict[filename] = entropy_data
-        module_logger.debug("Entropy dictionary: %s" % entropy_dict)
+        try:
+            entropy_data = method_to_call(input_name.strip(), dimension, tolerances, round_digits)
+        except ValueError as voe:
+            module_logger.critical("%s. Skipping file..." % voe)
+        else:
+            entropy_dict[filename] = entropy_data
+            module_logger.debug("Entropy dictionary: %s" % entropy_dict)
     return entropy_dict
 
 
@@ -118,6 +126,11 @@ def calculate_file_std(filename):
     Function to calculate the standard deviation of the values in a single file.
 
     """
+    if util.is_empty_file(filename):
+        # raise UserWarning("File %s is empty. Standard deviation will be set to 0." % filename)
+        module_logger.warning("File %s is empty. Standard deviation will be set to 0." % filename)
+        return 0
+
     with open(filename, "rU") as fdin:
         file_data = fdin.readlines()
     file_data = list(map(float, file_data))
@@ -133,6 +146,9 @@ def sampen(filename, dimension, tolerance, round_digits=None):
 
     NOTE: Pyeeg implementation
     """
+    if util.is_empty_file(filename):
+        raise ValueError("File %s is empty" % filename)
+
     with open(filename, 'r') as file_d:
         file_data = file_d.readlines()
     file_data = numpy.array(map(float, file_data))  # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
@@ -161,6 +177,9 @@ def apen(filename, dimension, tolerance, round_digits=None):
 
     NOTE: Pyeeg implementation    
     """
+    if util.is_empty_file(filename):
+        raise ValueError("File %s is empty" % filename)
+
     with open(filename, "r") as file_d:
         file_data = file_d.readlines()
     # file_data = list(map(float, file_data))
@@ -235,8 +254,10 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
     we already know to be 0. This is done by creating a burned_indexes that contains 
     the columns we want to jump over in the upcoming rows. The columns are kept 
     in a dictionary so the test if a particular column is to jumped is O(1).
-    
     """
+
+    if util.is_empty_file(filename):
+        raise ValueError("File %s is empty" % filename)
 
     with open(filename, "r") as file_d:
         file_data = file_d.readlines()
