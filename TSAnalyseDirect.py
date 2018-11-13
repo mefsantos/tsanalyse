@@ -122,7 +122,6 @@ Examples :
 # Mandatory imports
 import os
 import csv
-import logging
 import argparse
 import tools.entropy
 import tools.compress
@@ -134,8 +133,6 @@ if __name__ == "__main__":
     if not os.path.exists(util.RUN_ISOLATED_FILES_PATH):
         os.mkdir(util.RUN_ISOLATED_FILES_PATH)
 
-    # TODO: validate the input inside each module (to avoid unnecessary computation terminating in errors)
-    # TODO: (update) we can validate while parsing the arguments!
     parser = argparse.ArgumentParser(description="Computes compression/entropy/short-term variability "
                                                  "of a file(s) or dataset(s)")
     parser.add_argument("input_path", metavar="INPUT PATH", action="store", nargs="+",
@@ -143,7 +140,7 @@ if __name__ == "__main__":
 
     tools.utilityFunctions.add_logger_parser_options(parser)
     tools.utilityFunctions.add_csv_parser_options(parser)
-    tools.utilityFunctions.add_dataset_parser_options(parser)
+    # tools.utilityFunctions.add_dataset_parser_options(parser)
 
     subparsers = parser.add_subparsers(help='Different commands/operations to execute on the datasets', dest="command")
 
@@ -154,7 +151,6 @@ if __name__ == "__main__":
     entropy = subparsers.add_parser('entropy', help='Calculate entropy for all the files in the given directory')
     tools.entropy.add_parser_options(entropy)
     tools.utilityFunctions.add_numbers_parser_options(entropy)
-    # TODO: need to add csv parser options to entropy module
 
     stv_module = subparsers.add_parser('stv', help='Perform Short-term Variability analysis of the files of a given '
                                                    'directory with the following algorithms: %s'
@@ -185,13 +181,17 @@ if __name__ == "__main__":
     iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options[
         'input_path']
 
-    # TODO: if the user specifies multiple files from different datasets (folders) we should create a tmp folder _
-    # TODO: _ to hold all the files, and generate a name based on a timestamp (maybe add a parser flag)
+    # if the user specifies multiple files from different datasets (folders) we should create a tmp folder _
+    # _ to hold all the files, and generate a name based on a timestamp (maybe add a parser flag)
+    # _ default behaviour will group individual files into a temporary folder. (-i flag disables this)
     #  use this parser options: add_dataset_parser_options(parser, has_mult_files)
 
     # if files_are_relatable():
     # we create a temp dataset with their own parent dir name
     # OR: we always create a tmp folder to make things easy
+    # keep_temp = options["keep_tmp_dir"]
+    # temp_trial_dir = options["group_files_dir"]
+    # isolate_files = options["isolate"]
 
     for inputs in iterable_input_path:
         inputdir = inputs.strip()

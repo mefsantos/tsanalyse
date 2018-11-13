@@ -704,16 +704,16 @@ def add_dataset_parser_options(parser, has_multiple_files=True):
     """
     if has_multiple_files:
         from time import time
-        parser.add_argument('-g', '--group-files-in', dest="group_files", action="store", metavar="FOLDER_NAME",
+        parser.add_argument('-g', '--group-files-in', dest="group_files_dir", action="store", metavar="FOLDER_NAME",
                             type=str, default="trial_%d" % int(time()),
                             help="Group multiple individual files into the same folder with the provided name"
                                  " to be handled as a single dataset. The folder will be created under " + TMP_DIR +
                                  " [default folder name: '%(default)s']")
 
-        parser.add_argument('-i', '--isolate', dest="isolate", action="store_true", default=False,
-                            help="When providing multiple files, isolate computations, i.e., each file is run "
-                                 "individually thus not considered as a single dataset")
-
         parser.add_argument('-ktd', '--keep-tmp-dir', dest="keep_tmp_dir", action="store_true", default=False,
                             help="Do not cleanup the 'tmp' directory after computations"
                                  " (when --group-files-in is used).")
+
+        parser.add_argument('-i', '--isolate', dest="isolate", action="store_true", default=False,
+                            help="When providing multiple files, isolate computations, i.e., each file is run "
+                                 "individually thus not considered as a single dataset")
