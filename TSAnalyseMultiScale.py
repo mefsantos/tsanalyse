@@ -312,7 +312,7 @@ if __name__ == "__main__":
                         writer.writerow(header)
                         for filename in sorted(compression_table.keys()):
 
-                            if len(compression_table[filename]) >= 0:
+                            if len(compression_table[filename]) > 0:
                                 writer.writerow([filename] + compression_table[filename])
 
                         output_file.close()
@@ -357,7 +357,7 @@ if __name__ == "__main__":
                             writer.writerow(header)
                             for filename in sorted(entropy_table.keys()):
 
-                                if len(entropy_table[filename]) >= 0:
+                                if len(entropy_table[filename]) > 0:
                                     writer.writerow([filename] + entropy_table[filename])
 
                             output_file.close()
