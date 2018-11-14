@@ -84,6 +84,8 @@ def entropy(input_name, entropy_type, dimension, tolerances, round_digits=None):
                                               tolerances[filename], round_digits)
             except ValueError as voe:
                 module_logger.critical("%s. Skipping file..." % voe)
+            except IndexError as ixe:
+                module_logger.critical("%s - The file does not conform to the requisites: one column with the hrf vales. Skipping ..." % ixe)
             else:
                 entropy_dict[filename.strip()] = entropy_data
     else:
@@ -93,6 +95,8 @@ def entropy(input_name, entropy_type, dimension, tolerances, round_digits=None):
             entropy_data = method_to_call(input_name.strip(), dimension, tolerances, round_digits)
         except ValueError as voe:
             module_logger.critical("%s. Skipping file..." % voe)
+        except IndexError as ixe:
+            module_logger.critical("%s. Skipping file..." % ixe)
         else:
             entropy_dict[filename] = entropy_data
             module_logger.debug("Entropy dictionary: %s" % entropy_dict)
@@ -113,9 +117,17 @@ def calculate_std(input_name):
         for filename in filelist:
             # debug
             # print("calculate_file_st input: %s" % os.path.join(input_name, filename))
-            files_std[filename] = calculate_file_std(os.path.join(input_name, filename))
+            try:
+                files_std[filename] = calculate_file_std(os.path.join(input_name, filename))
+            except ValueError as voe:
+                module_logger.error("Error: %s" % voe)
+                module_logger.warning("Skipping file %s..." % filename)
     else:
-        files_std[input_name] = calculate_file_std(input_name)
+        try:
+            files_std[input_name] = calculate_file_std(input_name)
+        except ValueError as voe:
+            module_logger.error("Error: %s" % voe)
+            module_logger.warning("Skipping file %s..." % input_name)
     return files_std
 
 
@@ -127,9 +139,9 @@ def calculate_file_std(filename):
 
     """
     if util.is_empty_file(filename):
-        # raise UserWarning("File %s is empty. Standard deviation will be set to 0." % filename)
-        module_logger.warning("File %s is empty. Standard deviation will be set to 0." % filename)
-        return 0
+        raise ValueError("File '%s' is empty. Unable to compute standard deviation." % filename)
+        # module_logger.warning("File %s is empty. Standard deviation will be set to 0." % filename)
+        # return 0
 
     with open(filename, "rU") as fdin:
         file_data = fdin.readlines()
@@ -160,12 +172,13 @@ def sampen(filename, dimension, tolerance, round_digits=None):
         module_logger.critical("Memory Error while computing sample entropy. Ignoring file...")
         samp_ent = numpy.nan
         # raise MemoryError
-    module_logger.debug("entropy: %s" % samp_ent)
+    else:
+        module_logger.debug("entropy: %s" % samp_ent)
 
-    if round_digits:
-        samp_ent = round(samp_ent, round_digits)
+        if round_digits:
+            samp_ent = round(samp_ent, round_digits)
 
-    return EntropyData(len(file_data), samp_ent)
+        return EntropyData(len(file_data), samp_ent)
 
 
 # IMPLEMENTATION
@@ -257,7 +270,7 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
     """
 
     if util.is_empty_file(filename):
-        raise ValueError("File %s is empty" % filename)
+        raise ValueError("File {0} is empty".format(filename))
 
     with open(filename, "r") as file_d:
         file_data = file_d.readlines()
@@ -333,6 +346,14 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
 
 
 # AUXILIARY FUNCTIONS
+def is_entropy_table_empty(entropy_table):
+    return all(map(lambda x: len(entropy_table[x]) <= 1, entropy_table))
+    # for key in entropy_table.keys:
+    #     if len(entropy_table[key]) <= 1:
+    #         return True
+    # return False
+
+
 def add_parser_options(parser):
     """
     (argparse.ArgumentParser) -> NoneType

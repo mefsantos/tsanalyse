@@ -258,12 +258,15 @@ if __name__ == "__main__":
         except IOError as ioe:
             logger.critical("Error: %s - %s" % (ioe[1], inputdir))
             remove_blocks_dir(blocks_dir, corrupted=True)
+        except IndexError as ixe:
+            logger.critical("Error: %s. Please make sure the file has two columns: "
+                            "the first with the timestamps and the second with the hrf values, or apply"
+                            " TSFilter with -kt option to convert the file to the standard format." % ixe)
+            remove_blocks_dir(blocks_dir, corrupted=True)
         except ValueError:
             logger.critical("The file '%s' does not contain the necessary columns for the evaluation. "
                             "Please make sure the file has two columns: "
                             "the first with the timestamps and the second with the hrf values." % inputdir)
-            logger.info("Skipping ...")
-            logger.info("Removing destination directories")
             remove_blocks_dir(blocks_dir, corrupted=True)
         else:
             logger.info("Partitioning complete")

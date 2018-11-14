@@ -273,46 +273,53 @@ if __name__ == "__main__":
                     logger.critical("Error: %s - %s" % (ioe[1], input_dir))
                     remove_scales_dir(scales_dir, corrupted=True)
                 else:
-                    output_file = open(outfile, "w")
-                    writer = csv.writer(output_file, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
+                    if not tools.compress.is_compression_table_empty(compression_table):
 
-                    if (not options['decompress']) and (not options['comp_ratio']):
-                        header = ["Filename"] + list(functools.reduce(
-                            operator.add, [("Scale_%d_Original" % s, "Scale_%d_Compressed" % s)
-                                           for s in range(options["scale_start"],
-                                                          options["scale_stop"] + 1,
-                                                          options["scale_step"])]))
-                    elif options['decompress'] and (not options['comp_ratio']):
-                        header = ["Filename"] + list(
-                            functools.reduce(
-                                operator.add, [("Scale_%d_Original" % s, "Scale_%d_Compressed" % s, "Scale_%d_Decompression" % s)
+                        output_file = open(outfile, "w")
+                        writer = csv.writer(output_file, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
+
+                        if (not options['decompress']) and (not options['comp_ratio']):
+                            header = ["Filename"] + list(functools.reduce(
+                                operator.add, [("Scale_%d_Original" % s, "Scale_%d_Compressed" % s)
                                                for s in range(options["scale_start"],
                                                               options["scale_stop"] + 1,
                                                               options["scale_step"])]))
+                        elif options['decompress'] and (not options['comp_ratio']):
+                            header = ["Filename"] + list(
+                                functools.reduce(
+                                    operator.add, [("Scale_%d_Original" % s, "Scale_%d_Compressed" % s, "Scale_%d_Decompression" % s)
+                                                   for s in range(options["scale_start"],
+                                                                  options["scale_stop"] + 1,
+                                                                  options["scale_step"])]))
 
-                    elif (not options['decompress']) and options['comp_ratio']:
-                        header = ["Filename"] + list(functools.reduce(
-                            operator.add, [("Scale_%d_Original" % s,"Scale_%d_Compressed" % s, "Scale_%d_CRx100" % s)
-                                           for s in range(options["scale_start"],
-                                                          options["scale_stop"] + 1,
-                                                          options["scale_step"])]))
+                        elif (not options['decompress']) and options['comp_ratio']:
+                            header = ["Filename"] + list(functools.reduce(
+                                operator.add, [("Scale_%d_Original" % s,"Scale_%d_Compressed" % s, "Scale_%d_CRx100" % s)
+                                               for s in range(options["scale_start"],
+                                                              options["scale_stop"] + 1,
+                                                              options["scale_step"])]))
+                        else:
+                            header = ["Filename"] + list(
+                                functools.reduce(
+                                    operator.add, [("Scale_%d_Original" % s,
+                                                    "Scale_%d_Compressed" % s,
+                                                    "Scale_%d_CRx100" % s,
+                                                    "Scale_%d_Decompression" % s)
+                                                   for s in range(options["scale_start"],
+                                                                  options["scale_stop"] + 1,
+                                                                  options["scale_step"])]))
+
+                        writer.writerow(header)
+                        for filename in sorted(compression_table.keys()):
+
+                            if len(compression_table[filename]) >= 0:
+                                writer.writerow([filename] + compression_table[filename])
+
+                        output_file.close()
+                        logger.info("Storing in: %s" % os.path.abspath(outfile))
+
                     else:
-                        header = ["Filename"] + list(
-                            functools.reduce(
-                                operator.add, [("Scale_%d_Original" % s,
-                                                "Scale_%d_Compressed" % s,
-                                                "Scale_%d_CRx100" % s,
-                                                "Scale_%d_Decompression" % s)
-                                               for s in range(options["scale_start"],
-                                                              options["scale_stop"] + 1,
-                                                              options["scale_step"])]))
-
-                    writer.writerow(header)
-                    for filename in sorted(compression_table.keys()):
-                        writer.writerow([filename] + compression_table[filename])
-
-                    output_file.close()
-                    logger.info("Storing in: %s" % os.path.abspath(outfile))
+                        logger.warning("Compression table is empty. Nothing to write to file")
 
             elif options["command"] == "entropy":
                 algorithm = options['algorithm']
@@ -339,17 +346,24 @@ if __name__ == "__main__":
                         logger.critical("Error: %s - %s" % (ioe[1], input_dir))
                         remove_scales_dir(scales_dir, corrupted=True)
                     else:
-                        output_file = open(outfile, "w")
-                        writer = csv.writer(output_file, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
+                        if not tools.entropy.is_entropy_table_empty(entropy_table):
+                            output_file = open(outfile, "w")
+                            writer = csv.writer(output_file, delimiter=options["write_separator"],
+                                                lineterminator=options["line_terminator"])
 
-                        header = ["Filename"] + ["Scale_%d_Entropy" % s for s in
-                                                 range(options["scale_start"], options["scale_stop"] + 1, options["scale_step"])]
-                        writer.writerow(header)
-                        for filename in sorted(entropy_table.keys()):
-                            writer.writerow([filename] + entropy_table[filename])
+                            header = ["Filename"] + ["Scale_%d_Entropy" % s for s in
+                                                     range(options["scale_start"], options["scale_stop"] + 1,
+                                                           options["scale_step"])]
+                            writer.writerow(header)
+                            for filename in sorted(entropy_table.keys()):
 
-                        output_file.close()
-                        logger.info("Storing in: %s" % os.path.abspath(outfile))
+                                if len(entropy_table[filename]) >= 0:
+                                    writer.writerow([filename] + entropy_table[filename])
+
+                            output_file.close()
+                            logger.info("Storing in: %s" % os.path.abspath(outfile))
+                        else:
+                            logger.warning("Entropy table is empty. Nothing to write to file")
 
                 else:
                     logger.error("Multiscale not implemented for %s" % algorithm)
