@@ -154,7 +154,7 @@ def calculate_file_std(filename):
     with open(filename, "rU") as fdin:
         file_data = fdin.readlines()
     file_data = list(map(float, file_data))
-    module_logger.info("Computing std for file '%s'" % filename)
+    module_logger.info("Computing std for file '%s'" % util.remove_project_path_from_file(filename))
     return numpy.std(file_data)
 
 
@@ -172,7 +172,7 @@ def sampen(filename, dimension, tolerance, round_digits=None):
     with open(filename, 'r') as file_d:
         file_data = file_d.readlines()
     file_data = numpy.array(map(float, file_data))  # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
-    module_logger.info("Computing sample entropy for file '%s'" % filename)
+    module_logger.info("Computing sample entropy for file '%s'" % util.remove_project_path_from_file(filename))
 
     try:
         samp_ent = samp_entropy(file_data, dimension, tolerance)
@@ -205,7 +205,7 @@ def apen(filename, dimension, tolerance, round_digits=None):
         file_data = file_d.readlines()
     # file_data = list(map(float, file_data))
     file_data = numpy.array(map(float, file_data))  # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
-    module_logger.info("Computing approximate entropy for file '%s'" % filename)
+    module_logger.info("Computing approximate entropy for file '%s'" % util.remove_project_path_from_file(filename))
     try:
         ap_ent = ap_entropy(file_data, dimension, tolerance)
     except MemoryError:
@@ -283,7 +283,7 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
     with open(filename, "r") as file_d:
         file_data = file_d.readlines()
     file_data = list(map(float, file_data))
-    module_logger.info("Computing approximate entropy (V2) for file '%s'" % filename)
+    module_logger.info("Computing approximate entropy (V2) for file '%s'" % util.remove_project_path_from_file(filename))
 
     data_len = len(file_data)
 

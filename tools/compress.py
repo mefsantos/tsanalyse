@@ -122,7 +122,8 @@ def compress(input_name, compression_algorithm, level, decompress=False,
         level = AVAILABLE_COMPRESSORS[compression_algorithm][0]
 
     if os.path.isdir(input_name):
-        module_logger.info("Using %s to compress files in directory '%s'" % (compression_algorithm, input_name))
+        module_logger.info("Using %s to compress files in directory '%s'"
+                           % (compression_algorithm, util.remove_project_path_from_file(input_name)))
         filelist = util.listdir_no_hidden(input_name)
         for filename in filelist:
             filename = filename.strip()  # removes the trailing \n
@@ -130,7 +131,8 @@ def compress(input_name, compression_algorithm, level, decompress=False,
                                               decompress, with_compression_rate, digits_to_round)
             compressed[filename] = compression_data
     else:
-        module_logger.info("Using %s to compress file '%s'" % (compression_algorithm, input_name))
+        module_logger.info("Using %s to compress file '%s'"
+                           % (compression_algorithm, util.remove_project_path_from_file(input_name)))
         entry_name = os.path.basename(input_name.strip())
         compression_data = method_to_call(input_name.strip(), level, decompress, with_compression_rate, digits_to_round)
         compressed[entry_name] = compression_data

@@ -46,7 +46,6 @@ import utilityFunctions as util
 module_logger = logging.getLogger('tsanalyse.filter')
 
 
-# TODO: change printouts to logger
 # ENTRY POINT FUNCTIONS
 def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_to_int=False, hrf_col=1, suffix=None):
     """
@@ -119,7 +118,7 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
         module_logger.critical("Error: %s. Skipping..." % error[1])
     else:
         if file_size <= 0:
-            module_logger.warning("File '%s' is empty. Skipping ..." % input_file)
+            module_logger.warning("File '%s' is empty. Skipping ..." % util.remove_project_path_from_file(input_file))
             return
         line_number = 0
         with open(input_file, "rU") as fdin:
@@ -135,11 +134,8 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
                     try:
                         float(data[0])
                     except ValueError as ve:
-                        # print(ve)
                         module_logger.warning("String found. Assuming its the header. Skipping line...")
                         continue
-
-                    # lets check if the dataset has at least two columns
                     try:
                         float(data[1])
                     except IndexError:
@@ -190,8 +186,8 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
             except OSError as error:
                 module_logger.warning("Error: %s. Skipping..." % error[1])
 
-# AUXILIARY FUNCTIONS
 
+# AUXILIARY FUNCTIONS
 def add_parser_options(parser):
     """
     (argparse.ArgumentParser) -> NoneType

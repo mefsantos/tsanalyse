@@ -202,7 +202,8 @@ def partition_by_time(input_name, dest_dir, starting_point, section, gap, start_
     (not just acquired signal time) times for beginning and end of the partitions.
     """
     if util.is_empty_file(input_name):
-        module_logger.warning("File '{0}' is empty. Skipping blocks creation...".format(input_name))
+        module_logger.warning("File '{0}' is empty. Skipping blocks creation..."
+                              .format(util.remove_project_path_from_file(input_name)))
         return []
 
     with open(input_name, 'rU') as fdin:

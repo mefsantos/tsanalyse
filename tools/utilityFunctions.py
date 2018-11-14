@@ -125,6 +125,16 @@ def files_are_relatable(list_of_files):
     return all(res)
 
 
+def remove_project_path_from_file(file_path, project_path=TSA_HOME):
+    """
+    This may be useful to avoid unnecessary verbosity
+    :param file_path: the path to clean
+    :param project_path: the path of the project. Default: TSA_HOME
+    :return: a string containing the clean path
+    """
+    return os.path.abspath(file_path).replace(project_path, "TSAnalyse")
+
+
 def change_file_terminator_with_full_path(file_path, file_terminator=".txt"):
     if file_path is None:
         return None

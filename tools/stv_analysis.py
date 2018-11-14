@@ -335,10 +335,11 @@ def compute_stv_metric_of_directory(input_path, algorithm_name, sampling_frequen
 
     if output_path is None:
         output_path = util.STV_ANALYSIS_STORAGE_PATH
-        module_logger.debug("Output path was not defined. Using default: %s" % output_path)
+        module_logger.debug("Output path was not defined. Using default: %s"
+                            % util.remove_project_path_from_file(output_path))
 
     if not os.path.exists(output_path):
-        module_logger.debug("Creating %s..." % output_path)
+        module_logger.debug("Creating %s..." % util.remove_project_path_from_file(output_path))
         os.mkdir(output_path)
 
     if algorithm_name.lower() == "all":

@@ -142,9 +142,9 @@ import tools.utilityFunctions as util
 
 
 def remove_blocks_dir(blocks, corrupted=False):
-    message = "Cleaning up corrupted blocks' directory (%s)..." % blocks if corrupted \
-        else "Cleaning up blocks' directory (%s) ..." % blocks
-    logger.info(message)
+    message = "Cleaning up corrupted blocks' directory (%s)..." if corrupted \
+        else "Cleaning up blocks' directory (%s)..."
+    logger.info(message % util.remove_project_path_from_file(blocks))
     try:
         # os.removedirs(blocks)
         shutil.rmtree(blocks, ignore_errors=False)
@@ -233,11 +233,11 @@ if __name__ == "__main__":
         blocks_dir = os.path.join(util.FILE_BLOCKS_STORAGE_PATH, dataset_suffix_name)
 
         if not os.path.exists(blocks_dir):
-            logger.info("Creating %s..." % blocks_dir)
+            logger.info("Creating %s..." % util.remove_project_path_from_file(blocks_dir))
             os.mkdir(blocks_dir)
 
         logger.info("Starting partition procedures")
-        logger.info("File partitions will be stored in '%s'" % blocks_dir)
+        logger.info("File partitions will be stored in '%s'" % util.remove_project_path_from_file(blocks_dir))
 
         block_minutes = {}
         logger.info("Partitioning file in %d minutes intervals with %d gaps " % (options['section'], options['gap']))
@@ -255,15 +255,16 @@ if __name__ == "__main__":
 
         # WARNING: catching these error here will terminate all subsequent computations, even if among the files, some are valid
         except OSError as ose:
-            logger.critical("Error: %s - %s" % (ose[1], inputdir))
+            logger.critical("Error: %s - %s" % (ose[1], util.remove_project_path_from_file(inputdir)))
             remove_blocks_dir(blocks_dir, corrupted=True)
         except IOError as ioe:
-            logger.critical("Error: %s - %s" % (ioe[1], inputdir))
+            logger.critical("Error: %s - %s" % (ioe[1], util.remove_project_path_from_file(inputdir)))
             remove_blocks_dir(blocks_dir, corrupted=True)
         except ValueError:
             logger.critical("The file '%s' does not contain the necessary columns for the evaluation. "
                             "Please make sure the file has two columns: "
-                            "the first with the timestamps and the second with the hrf values." % inputdir)
+                            "the first with the timestamps and the second with the hrf values."
+                            % util.remove_project_path_from_file(inputdir))
             remove_blocks_dir(blocks_dir, corrupted=True)
         else:
             logger.info("Partitioning complete")
@@ -285,15 +286,18 @@ if __name__ == "__main__":
                                                                         options['decompress'], options['comp_ratio'],
                                                                         options["round_digits"])
                             except OSError as ose:
-                                logger.critical("Error: %s - %s" % (ose[1], blocks_dir))
+                                logger.critical("Error: %s - %s" % (ose[1],
+                                                                    util.remove_project_path_from_file(blocks_dir)))
                                 remove_blocks_dir(blocks_dir, corrupted=True)
                             except IOError as ioe:
-                                logger.critical("Error: %s - %s" % (ioe[1], blocks_dir))
+                                logger.critical("Error: %s - %s" % (ioe[1],
+                                                                    util.remove_project_path_from_file(blocks_dir)))
                                 remove_blocks_dir(blocks_dir, corrupted=True)
                             else:
                                 logger.info("Compression complete")
                         else:
-                            logger.warning("No timestamps to partition file '{0}'. Skipping ...".format(filename))
+                            logger.warning("No timestamps to partition file '{0}'. Skipping ..."
+                                           .format(util.remove_project_path_from_file(filename)))
                             logger.debug("List of timestamps: {0}".format(block_minutes[filename]))
 
                     # we will log the compression table by key for better debugging
@@ -350,14 +354,15 @@ if __name__ == "__main__":
                     for filename in block_minutes:
                         if len(block_minutes[filename]) > 0:
                             bfile = os.path.splitext(filename)[0]
-                            logger.info("Entropy calculations started for %s" % os.path.join(blocks_dir, "%s_blocks" % bfile))
+                            logger.info("Entropy calculations started for %s"
+                                        % util.remove_project_path_from_file(os.path.join(blocks_dir, "%s_blocks" % bfile)))
                             try:
                                 files_stds = tools.entropy.calculate_std(os.path.join(blocks_dir, "%s_blocks" % bfile))
                             except OSError as ose:
-                                logger.critical("Error: %s - %s" % (ose[1], blocks_dir))
+                                logger.critical("Error: %s - %s" % (ose[1], util.remove_project_path_from_file(blocks_dir)))
                                 remove_blocks_dir(blocks_dir, corrupted=True)
                             except IOError as ioe:
-                                logger.critical("Error: %s - %s" % (ioe[1], blocks_dir))
+                                logger.critical("Error: %s - %s" % (ioe[1], util.remove_project_path_from_file(blocks_dir)))
                                 remove_blocks_dir(blocks_dir, corrupted=True)
                             else:
                                 tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
@@ -366,14 +371,17 @@ if __name__ == "__main__":
                                                                            algorithm, options['dimension'],
                                                                            tolerances, options["round_digits"])
                                 except OSError as ose:
-                                    logger.critical("Error: %s - %s" % (ose[1], blocks_dir))
+                                    logger.critical("Error: %s - %s"
+                                                    % (ose[1], util.remove_project_path_from_file(blocks_dir)))
                                 except IOError as ioe:
-                                    logger.critical("Error: %s - %s" % (ioe[1], blocks_dir))
+                                    logger.critical("Error: %s - %s"
+                                                    % (ioe[1], util.remove_project_path_from_file(blocks_dir)))
                                 else:
                                     logger.info("Entropy calculations complete")
 
                         else:
-                            logger.warning("No timestamps to partition file '{0}'. Skipping ...".format(filename))
+                            logger.warning("No timestamps to partition file '{0}'. Skipping ..."
+                                           .format(util.remove_project_path_from_file(filename)))
                             logger.debug("List of timestamps: {0}".format(block_minutes[filename]))
 
                     if not tools.entropy.is_entropy_table_empty(entropy):
@@ -406,7 +414,6 @@ if __name__ == "__main__":
             else:
                 logger.debug("Partition timestamps table:{0}".format(block_minutes))
                 logger.warning("Table containing the timestamps for partitioning is empty. Nothing to do.")
-
 
         if not options["keep_blocks"]:
             remove_blocks_dir(blocks_dir)
