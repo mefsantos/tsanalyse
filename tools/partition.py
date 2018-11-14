@@ -201,6 +201,10 @@ def partition_by_time(input_name, dest_dir, starting_point, section, gap, start_
     Partition a single file using the elapsed time to measure the size of the partition. Returns the real
     (not just acquired signal time) times for beginning and end of the partitions.
     """
+    if util.is_empty_file(input_name):
+        module_logger.warning("File '{0}' is empty. Skipping blocks creation...".format(input_name))
+        return []
+
     with open(input_name, 'rU') as fdin:
         lines = fdin.readlines()
     lines = [line for line in lines if line != "\n"]
@@ -353,7 +357,10 @@ def write_partition(lines, output_file, i_index, f_index):
             i_index += 1
     fdout.close()
 
+
 # AUXILIARY FUNCTIONS
+def is_block_time_table_empty(block_table):
+    return all(map(lambda x: len(block_table[x]) <= 1, block_table))
 
 
 def sniffer(lines, start_at_end=False):
