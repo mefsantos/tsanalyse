@@ -293,45 +293,55 @@ if __name__ == "__main__":
                     else:
                         logger.info("Compression complete")
 
-                for filename in compressed:
+                # we will log the compression table by key for better debugging
+                if not tools.compress.is_compression_table_empty(compressed):
 
-                    if options['decompress']:
-                        fboutsuffix = "%s_%s_decompress_%s" % (os.path.basename(filename),
-                                                               file_blocks_suffix,
-                                                               options['compressor'])
-                    else:
-                        fboutsuffix = "%s_%s_%s_lvl_%s" % (os.path.basename(filename),
-                                                           file_blocks_suffix,
-                                                           options['compressor'],
-                                                           options['level'])
-                    if options['comp_ratio']:
-                        fboutsuffix += "_wCR"
+                    for filename in compressed:
 
-                    fboutsuffix += ".csv"
-
-                    fboutname = os.path.join(output_location, fboutsuffix)
-
-                    file_to_write = open(fboutname, "w")
-                    writer = csv.writer(file_to_write, delimiter=options["write_separator"],
-                                        lineterminator=options["line_terminator"])
-                    header = ["Block", "Original Size", "Compressed Size"]
-                    if options['comp_ratio']:
-                        header.append("CRx100")
-                    if options['decompress']:
-                        header.append("Decompression Time")
-                    writer.writerow(header)
-
-                    for blocknum in range(1, len(compressed[filename]) + 1):
-                        block_results = compressed[filename]['%s_%d' % (filename, blocknum)]
-                        row_data = [blocknum, block_results.original, block_results.compressed]
-                        if options['comp_ratio']:
-                            row_data.append(block_results.compression_rate)
                         if options['decompress']:
-                            row_data.append(block_results.time)
-                        writer.writerow(row_data)
+                            fboutsuffix = "%s_%s_decompress_%s" % (os.path.basename(filename),
+                                                                   file_blocks_suffix,
+                                                                   options['compressor'])
+                        else:
+                            fboutsuffix = "%s_%s_%s_lvl_%s" % (os.path.basename(filename),
+                                                               file_blocks_suffix,
+                                                               options['compressor'],
+                                                               options['level'])
+                        if options['comp_ratio']:
+                            fboutsuffix += "_wCR"
 
-                    file_to_write.close()
-                    logger.info("Storing into: %s" % os.path.abspath(fboutname))
+                        fboutsuffix += ".csv"
+
+                        fboutname = os.path.join(output_location, fboutsuffix)
+
+                        file_to_write = open(fboutname, "w")
+                        writer = csv.writer(file_to_write, delimiter=options["write_separator"],
+                                            lineterminator=options["line_terminator"])
+                        header = ["Block", "Original Size", "Compressed Size"]
+                        if options['comp_ratio']:
+                            header.append("CRx100")
+                        if options['decompress']:
+                            header.append("Decompression Time")
+                        writer.writerow(header)
+
+                        for blocknum in range(1, len(compressed[filename]) + 1):
+                            block_results = compressed[filename]['%s_%d' % (filename, blocknum)]
+                            logger.debug("Compression Data for block '{1}': {0}".format(block_results,
+                                                                                        '%s_%d' % (filename, blocknum)))
+
+
+                            row_data = [blocknum, block_results.original, block_results.compressed]
+                            if options['comp_ratio']:
+                                row_data.append(block_results.compression_rate)
+                            if options['decompress']:
+                                row_data.append(block_results.time)
+                            writer.writerow(row_data)
+
+                        file_to_write.close()
+                        logger.info("Storing into: %s" % os.path.abspath(fboutname))
+                else:
+                    logger.debug("Compression table: {0}".format(compressed))
+                    logger.warning("Compression table is empty. Nothing to write to file")
 
             elif options['command'] == 'entropy':
                 algorithm = options['algorithm']
@@ -361,24 +371,31 @@ if __name__ == "__main__":
                         else:
                             logger.info("Entropy calculations complete")
 
-                for filename in entropy:
-                    fboutsuffix = "%s_%s_%s_dim_%d_tol_%.2f.csv" % (os.path.basename(filename), file_blocks_suffix,
-                                                                    algorithm, options['dimension'],
-                                                                    options['tolerance'])
-                    fboutname = os.path.join(output_location, fboutsuffix)
+                if not tools.entropy.is_entropy_table_empty(entropy):
+                    for filename in entropy:
+                        fboutsuffix = "%s_%s_%s_dim_%d_tol_%.2f.csv" % (os.path.basename(filename), file_blocks_suffix,
+                                                                        algorithm, options['dimension'],
+                                                                        options['tolerance'])
+                        fboutname = os.path.join(output_location, fboutsuffix)
 
-                    file_to_write = open(fboutname, "w")
-                    writer = csv.writer(file_to_write, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
+                        file_to_write = open(fboutname, "w")
+                        writer = csv.writer(file_to_write, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
 
-                    header = ["Block", "Entropy"]
-                    writer.writerow(header)
-                    for blocknum in range(1, len(entropy[filename]) + 1):
-                        block_results = entropy[filename]['%s_%d' % (filename, blocknum)]
-                        row_data = [blocknum, block_results.entropy]
-                        writer.writerow(row_data)
+                        header = ["Block", "Entropy"]
+                        writer.writerow(header)
+                        for blocknum in range(1, len(entropy[filename]) + 1):
+                            block_results = entropy[filename]['%s_%d' % (filename, blocknum)]
+                            logger.debug("Entropy Data for block '{1}': {0}".format(block_results,
+                                                                                    '%s_%d' % (filename, blocknum)))
 
-                    file_to_write.close()
-                    logger.info("Storing into: %s" % os.path.abspath(fboutname))
+                            row_data = [blocknum, block_results.entropy]
+                            writer.writerow(row_data)
+
+                        file_to_write.close()
+                        logger.info("Storing into: %s" % os.path.abspath(fboutname))
+                else:
+                    logger.debug("Entropy table: {0}".format(entropy))
+                    logger.warning("Entropy table is empty. Nothing to write to file")
 
         if not options["keep_blocks"]:
             remove_blocks_dir(blocks_dir)
