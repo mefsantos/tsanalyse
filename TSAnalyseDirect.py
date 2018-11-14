@@ -231,24 +231,29 @@ if __name__ == "__main__":
                     outfile += "_wCR"
                 outfile += ".csv"
 
-                output_file = open(outfile, "w")
-                writer = csv.writer(output_file, delimiter=options["write_separator"],
-                                    lineterminator=options["line_terminator"])
-                header = ["Filename", "Original_Size", "Compressed_Size"]
-                if options['comp_ratio']:
-                    header.append("CRx100")
-
-                writer.writerow(header)
-
-                for filename in sorted(resulting_dict.keys()):
-                    cd = resulting_dict[filename]
-                    data_row = [filename, cd.original, cd.compressed]
+                if not tools.compress.is_compression_table_empty(resulting_dict):
+                    logger.debug("Compression table: {0}".format(resulting_dict))
+                    output_file = open(outfile, "w")
+                    writer = csv.writer(output_file, delimiter=options["write_separator"],
+                                        lineterminator=options["line_terminator"])
+                    header = ["Filename", "Original_Size", "Compressed_Size"]
                     if options['comp_ratio']:
-                        data_row.append(cd.compression_rate)
+                        header.append("CRx100")
 
-                    writer.writerow(data_row)
-                output_file.close()
-                logger.info("Storing in: %s" % os.path.abspath(outfile))
+                    writer.writerow(header)
+
+                    for filename in sorted(resulting_dict.keys()):
+                        cd = resulting_dict[filename]
+                        logger.debug("Compression Data for file '{1}': {0}".format(cd, filename))
+                        data_row = [filename, cd.original, cd.compressed]
+                        if options['comp_ratio']:
+                            data_row.append(cd.compression_rate)
+
+                        writer.writerow(data_row)
+                    output_file.close()
+                    logger.info("Storing in: %s" % os.path.abspath(outfile))
+                else:
+                    logger.warning("Compression table is empty. Nothing to write to file")
 
         elif options['command'] == 'entropy':
             algorithm = options["algorithm"]
@@ -261,7 +266,7 @@ if __name__ == "__main__":
 
             else:
                 tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
-                logger.debug("Tolerances dict: %s" % tolerances)
+                logger.debug("Tolerances: %s" % tolerances)
                 try:
                     resulting_dict = tools.entropy.entropy(inputdir, algorithm, options['dimension'], tolerances,
                                                            options['round_digits'])
@@ -274,15 +279,23 @@ if __name__ == "__main__":
                 else:
                     outfile = "%s_%s_dim_%d_tol_%.2f.csv" % (
                         output_name, algorithm, options['dimension'], options['tolerance'])
-                    output_file = open(outfile, "w")
-                    writer = csv.writer(output_file, delimiter=options["write_separator"],
-                                        lineterminator=options["line_terminator"])
-                    writer.writerow(["Filename", "Entropy"])
-                    for filename in sorted(resulting_dict.keys()):
-                        entropyData = resulting_dict[filename]
-                        writer.writerow([filename, entropyData.entropy])
-                    output_file.close()
-                    logger.info("Storing in: %s" % os.path.abspath(outfile))
+
+                    if not tools.entropy.is_entropy_table_empty(resulting_dict):
+                        output_file = open(outfile, "w")
+                        writer = csv.writer(output_file, delimiter=options["write_separator"],
+                                            lineterminator=options["line_terminator"])
+                        writer.writerow(["Filename", "Entropy"])
+                        logger.debug("Entropy table: %s" % resulting_dict)
+                        for filename in sorted(resulting_dict.keys()):
+                            entropyData = resulting_dict[filename]
+
+                            logger.debug("Entropy Data for file '{1}': {0}".format(entropyData, filename))
+
+                            writer.writerow([filename, entropyData.entropy])
+                        output_file.close()
+                        logger.info("Storing in: %s" % os.path.abspath(outfile))
+                    else:
+                        logger.warning("Entropy table is empty. Nothing to write to file")
 
         elif options['command'] == 'stv':
             try:

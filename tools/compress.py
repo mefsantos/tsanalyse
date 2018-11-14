@@ -134,7 +134,9 @@ def compress(input_name, compression_algorithm, level, decompress=False,
         entry_name = os.path.basename(input_name.strip())
         compression_data = method_to_call(input_name.strip(), level, decompress, with_compression_rate, digits_to_round)
         compressed[entry_name] = compression_data
-        module_logger.debug("Compression data: %s" % compressed)
+
+    # we will move this log to the interfaces to avoid "spam" when debugging multiscale
+    # module_logger.debug("Compression data: {0}".format(compressed))
     return compressed
 
 

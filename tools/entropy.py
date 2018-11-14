@@ -82,6 +82,8 @@ def entropy(input_name, entropy_type, dimension, tolerances, round_digits=None):
             try:
                 entropy_data = method_to_call(os.path.join(input_name, filename.strip()), dimension,
                                               tolerances[filename], round_digits)
+            except KeyError as ke:
+                module_logger.error("Key %s does not exist in tolerances' list. Skipping file..." % ke)
             except ValueError as voe:
                 module_logger.critical("%s. Skipping file..." % voe)
             except IndexError as ixe:
@@ -90,16 +92,21 @@ def entropy(input_name, entropy_type, dimension, tolerances, round_digits=None):
                 entropy_dict[filename.strip()] = entropy_data
     else:
         filename = os.path.basename(input_name)
-        tolerances = tolerances[list(tolerances.keys())[0]]
         try:
-            entropy_data = method_to_call(input_name.strip(), dimension, tolerances, round_digits)
-        except ValueError as voe:
-            module_logger.critical("%s. Skipping file..." % voe)
+            tolerances = tolerances[list(tolerances.keys())[0]]
         except IndexError as ixe:
-            module_logger.critical("%s. Skipping file..." % ixe)
+            module_logger.error("%s on Tolerance's list." % ixe)
         else:
-            entropy_dict[filename] = entropy_data
-            module_logger.debug("Entropy dictionary: %s" % entropy_dict)
+            try:
+                entropy_data = method_to_call(input_name.strip(), dimension, tolerances, round_digits)
+            except ValueError as voe:
+                module_logger.critical("%s. Skipping file..." % voe)
+            except IndexError as ixe:
+                module_logger.critical("%s. Skipping file..." % ixe)
+            else:
+                entropy_dict[filename] = entropy_data
+    # we will move this log to the interfaces to avoid "spam" when debugging multiscale
+    # module_logger.debug("Entropy dictionary: {0}".format(entropy_dict))
     return entropy_dict
 
 
@@ -128,6 +135,7 @@ def calculate_std(input_name):
         except ValueError as voe:
             module_logger.error("Error: %s" % voe)
             module_logger.warning("Skipping file %s..." % input_name)
+    module_logger.debug("Files STD: {0}".format(files_std))
     return files_std
 
 
@@ -178,7 +186,7 @@ def sampen(filename, dimension, tolerance, round_digits=None):
         if round_digits:
             samp_ent = round(samp_ent, round_digits)
 
-        return EntropyData(len(file_data), samp_ent)
+    return EntropyData(len(file_data), samp_ent)
 
 
 # IMPLEMENTATION
