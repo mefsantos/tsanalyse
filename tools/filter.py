@@ -115,7 +115,7 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
     try:
         file_size = os.path.getsize(input_file)
     except OSError as error:
-        module_logger.critical("Error: %s. Skipping..." % error[1])
+        module_logger.critical("%s. Skipping..." % error[1])
     else:
         if file_size <= 0:
             module_logger.warning("File '%s' is empty. Skipping ..." % util.remove_project_path_from_file(input_file))
@@ -184,7 +184,7 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
             try:
                 os.remove(dest_file)
             except OSError as error:
-                module_logger.warning("Error: %s. Skipping..." % error[1])
+                module_logger.warning("%s. Skipping..." % error[1])
 
 
 # AUXILIARY FUNCTIONS
