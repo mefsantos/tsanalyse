@@ -131,8 +131,13 @@ def partition_by_lines(input_name, dest_dir, starting_point, section, gap, start
             p_times.append((r_start, r_end))
             k += 1
             r_start = get_p_rtime(lines[p_end:p_end + 1], r_end, cumulative)
-            p_init, p_end = next_indexes_lines(p_init, p_end, gap)
-            r_end = get_p_rtime(lines[p_init:p_end], r_start, cumulative)
+            try:
+                p_init, p_end = next_indexes_lines(p_init, p_end, gap)
+            except IndexError as ie:
+                module_logger.error("{0}.Ignoring further partitions.".format(ie))
+                break
+            else:
+                r_end = get_p_rtime(lines[p_init:p_end], r_start, cumulative)
         partname = "%s_%d" % (filename, k)
         write_partition(lines, os.path.join(file_block_dir, partname), p_init, len(lines))
         p_times.append((r_start, r_end))
@@ -219,26 +224,37 @@ def partition_by_time(input_name, dest_dir, starting_point, section, gap, start_
     r_end = get_p_rtime(lines[p_init:p_end], r_start, cumulative)
     p_times = []
     if full_file:
-        k = 1
+        block_count = 1
         file_block_dir = os.path.join(dest_dir, "%s_blocks" % filename)
         if not os.path.isdir(file_block_dir):
-            module_logger.info("Creating %s..." % file_block_dir)
+            module_logger.info("Creating %s..." % util.remove_project_path_from_file(file_block_dir))
             os.makedirs(file_block_dir)
-        while p_end < len(lines):
-            partname = "%s_%d" % (filename, k)
+        while p_init < p_end < len(lines):  #p_end < len(lines) and p_end > p_init:
+            partname = "%s_%d" % (filename, block_count)
             write_partition(lines, os.path.join(file_block_dir, partname), p_init, p_end)
+
+            module_logger.debug("Writing partition %s to file %s"
+                                % (partname, util.remove_project_path_from_file(os.path.join(file_block_dir, partname))))
+
             p_times.append((r_start, r_end))
-            k += 1
+            block_count += 1
             r_start = get_p_rtime(lines[p_end:p_end + 1], r_end, cumulative)
-            p_init, p_end = next_indexes_time(lines, p_init, p_end, gap, section, cumulative, time_stamp)
-            r_end = get_p_rtime(lines[p_init:p_end], r_start, cumulative)
-        partname = "%s_%d" % (filename, k)
+            try:
+                p_init, p_end = next_indexes_time(lines, p_init, p_end, gap, section, cumulative, time_stamp)
+            except IndexError as ie:
+                module_logger.error("{0}.Ignoring further partitions.".format(ie))
+                break
+            else:
+                r_end = get_p_rtime(lines[p_init:p_end], r_start, cumulative)
+        # to write the last partition?
+        partname = "%s_%d" % (filename, block_count)
         write_partition(lines, os.path.join(file_block_dir, partname), p_init, p_end)
         p_times.append((r_start, r_end))
     else:
         write_partition(lines, os.path.join(dest_dir, filename), p_init, p_end)
         p_times.append((r_start, r_end))
     fdin.close()
+    # module_logger.debug("partition times:{0}".format(p_times))
     return p_times
 
 
@@ -348,13 +364,21 @@ def write_partition(lines, output_file, i_index, f_index):
 
     Take the hrf file contents (in a list) and write the lines from a partition to output_file.
     """
+    block_num = output_file.split("_")[-1]
+    if i_index >= f_index:
+        module_logger.warning("Initial index is greater than finishing index. Will not write block %s" % block_num)
+
+        return
     with open(output_file, "w") as fdout:
         while i_index < f_index:
             try:
                 time, hrf = lines[i_index].split()
-            except ValueError:
+            except ValueError as ve:
+                # for the case of a single column dataset
+                module_logger.warning(ve)
                 hrf = lines[i_index].strip()
             fdout.write("%s\n" % hrf)
+
             i_index += 1
     fdout.close()
 
@@ -458,6 +482,7 @@ def add_parser_options(parser, full_file_option=True, file_blocks_usage=False):
                             help="After processing file blocks maintain the partitions generated",
                             default=False)
         if full_file_option:
+            # this flag is disabled, always try to partition the full file during the execution
             parser.add_argument("-ff", "--full-file", dest="full_file",
                                 action="store_true",
                                 default=False,

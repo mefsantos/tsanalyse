@@ -548,7 +548,13 @@ def compression_ratio(original, compressed, round_digits=4):
     """
     if round_digits is None:
         round_digits = 4
-    return round(float((float(compressed) / float(original)) * 100), int(round_digits))
+    try:
+        comp_ratio = round(float((float(compressed) / float(original)) * 100), int(round_digits))
+    except ZeroDivisionError as zde:
+        module_logger.warning("{0}. Original file is Zero. Compression Ratio will be set to 'nan'.".format(zde))
+        comp_ratio = np.nan
+        pass
+    return comp_ratio
 
 
 # Confidence Interval

@@ -400,7 +400,7 @@ def brotli_compress(input_file, level, decompress, compute_compression_rate=None
 
 # AUXILIARY FUNCTIONS
 def is_compression_table_empty(compression_table):
-    return all(map(lambda x: len(compression_table[x]) <= 1, compression_table))
+    return all(map(lambda x: len(compression_table[x]) < 1, compression_table))
 
 
 def test_compressors():
