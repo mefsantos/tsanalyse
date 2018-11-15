@@ -355,7 +355,7 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
 
 # AUXILIARY FUNCTIONS
 def is_entropy_table_empty(entropy_table):
-    return all(map(lambda x: len(entropy_table[x]) <= 1, entropy_table))
+    return all(map(lambda x: len(entropy_table[x]) < 1, entropy_table))
     # for key in entropy_table.keys:
     #     if len(entropy_table[key]) <= 1:
     #         return True
