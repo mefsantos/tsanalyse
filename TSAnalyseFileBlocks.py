@@ -149,7 +149,7 @@ def remove_blocks_dir(blocks, corrupted=False):
         # os.removedirs(blocks)
         shutil.rmtree(blocks, ignore_errors=False)
     except OSError as err:
-        logger.warning("Error: %s (%s)" % (err[1], blocks))
+        logger.warning("%s (%s)" % (err[1], blocks))
         logger.warning("skipping directory removal...")
     pass
 
@@ -255,10 +255,10 @@ if __name__ == "__main__":
 
         # WARNING: catching these error here will terminate all subsequent computations, even if among the files, some are valid
         except OSError as ose:
-            logger.critical("Error: %s - %s" % (ose[1], util.remove_project_path_from_file(inputdir)))
+            logger.critical("%s - %s" % (ose[1], util.remove_project_path_from_file(inputdir)))
             remove_blocks_dir(blocks_dir, corrupted=True)
         except IOError as ioe:
-            logger.critical("Error: %s - %s" % (ioe[1], util.remove_project_path_from_file(inputdir)))
+            logger.critical("%s - %s" % (ioe[1], util.remove_project_path_from_file(inputdir)))
             remove_blocks_dir(blocks_dir, corrupted=True)
         except ValueError:
             logger.critical("The file '%s' does not contain the necessary columns for the evaluation. "
@@ -286,11 +286,11 @@ if __name__ == "__main__":
                                                                         options['decompress'], options['comp_ratio'],
                                                                         options["round_digits"])
                             except OSError as ose:
-                                logger.critical("Error: %s - %s" % (ose[1],
+                                logger.critical("%s - %s" % (ose[1],
                                                                     util.remove_project_path_from_file(blocks_dir)))
                                 remove_blocks_dir(blocks_dir, corrupted=True)
                             except IOError as ioe:
-                                logger.critical("Error: %s - %s" % (ioe[1],
+                                logger.critical("%s - %s" % (ioe[1],
                                                                     util.remove_project_path_from_file(blocks_dir)))
                                 remove_blocks_dir(blocks_dir, corrupted=True)
                             else:
@@ -359,10 +359,10 @@ if __name__ == "__main__":
                             try:
                                 files_stds = tools.entropy.calculate_std(os.path.join(blocks_dir, "%s_blocks" % bfile))
                             except OSError as ose:
-                                logger.critical("Error: %s - %s" % (ose[1], util.remove_project_path_from_file(blocks_dir)))
+                                logger.critical("%s - %s" % (ose[1], util.remove_project_path_from_file(blocks_dir)))
                                 remove_blocks_dir(blocks_dir, corrupted=True)
                             except IOError as ioe:
-                                logger.critical("Error: %s - %s" % (ioe[1], util.remove_project_path_from_file(blocks_dir)))
+                                logger.critical("%s - %s" % (ioe[1], util.remove_project_path_from_file(blocks_dir)))
                                 remove_blocks_dir(blocks_dir, corrupted=True)
                             else:
                                 tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
@@ -371,10 +371,10 @@ if __name__ == "__main__":
                                                                            algorithm, options['dimension'],
                                                                            tolerances, options["round_digits"])
                                 except OSError as ose:
-                                    logger.critical("Error: %s - %s"
+                                    logger.critical("%s - %s"
                                                     % (ose[1], util.remove_project_path_from_file(blocks_dir)))
                                 except IOError as ioe:
-                                    logger.critical("Error: %s - %s"
+                                    logger.critical("%s - %s"
                                                     % (ioe[1], util.remove_project_path_from_file(blocks_dir)))
                                 else:
                                     logger.info("Entropy calculations complete")

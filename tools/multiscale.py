@@ -219,26 +219,26 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
                 try:
                     entropy_results = entropy(file_in_scale, entropy_function, dimension,
                                           {filename: tolerances[filename]}, round_digits)
-                except ValueError as voe:
-                    module_logger.error("Error: %s." % voe)
+                except ValueError as ve:
+                    module_logger.error("%s." % ve)
                     break
-                except KeyError as koe:
-                    module_logger.error("Error: key %s does not exist. Skipping file '%s'..."
-                                        % (koe, util.remove_project_path_from_file(filename)))
+                except KeyError as ke:
+                    module_logger.error("Key %s does not exist. Skipping file '%s'..."
+                                        % (ke, util.remove_project_path_from_file(filename)))
                     break
                 else:
                     try:
                         entropy_table[filename].append(entropy_results[filename].entropy)
                     except AttributeError as ate:
-                        module_logger.error("Error: %s" % ate)
+                        module_logger.error("%s" % ate)
     else:
         module_logger.info("Computing multiscale entropy for file '%s'" % util.remove_project_path_from_file(input_name))
         filename = os.path.basename(input_name)
         file_for_std = os.path.join(scales_dir, "Scale %d" % start, filename)
         try:
             file_std = calculate_std(file_for_std)
-        except ValueError as voe:
-            module_logger.error("Error: %s" % voe)
+        except ValueError as ve:
+            module_logger.error("%s" % ve)
             module_logger.warning("Skipping file '%s'" % filename)
         except IndexError as ixe:
                 module_logger.critical("%s - The file '%s' does not conform to the requisites:"
@@ -252,8 +252,8 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
                 file_in_scale = os.path.join(scales_dir, "Scale %d" % scale, filename)
                 try:
                     entropy_results = entropy(file_in_scale, entropy_function, dimension, tolerances, round_digits)
-                except ValueError as voe:
-                    module_logger.error("Error: %s" % voe)
+                except ValueError as ve:
+                    module_logger.error("%s" % ve)
                     break
                 except IndexError as ixe:
                     module_logger.critical("%s - The file '%s' does not conform to the requisites:"
