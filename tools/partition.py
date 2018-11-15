@@ -58,9 +58,10 @@ def partition(input_name, dest_dir, starting_point=0, section=-1, gap=-1, start_
     (str,str,int,int,int,bool,bool,bool) -> ( dict of str: list of tuples(float, float))
 
     Partition all the file in input_name, start the first cut at at starting_point and cut a section sized chunk of the
-    file, if full_file option is activated cut the hole file into sections, where each section(si) starts at starting_point+gap*si.
-    If start_at_end is used partition from the file\'s end. Partitions can be done by time(default) or by number of lines (
-    by activating the lines option).
+    file, if full_file option is activated cut the hole file into sections, where each section(si) starts at
+     starting_point+gap*si.
+    If start_at_end is used partition from the file\'s end. Partitions can be done by time(default) or by number
+     of lines (by activating the lines option).
 
     """
     block_times = {}
@@ -85,9 +86,10 @@ def partition_file(input_name, dest_dir, starting_point, section, gap, start_at_
     (str,str,int,int,int,bool, bool, bool) -> list of tuples (float, float)
 
     Partition a single file, start the first partition at starting_point, and cut a section sized chunk of the
-    file, if full_file option is activated cut the hole file into sections, where each section(si) starts at starting_point+gap*si.
-    If start_at_end is used partition from the file\'s end. Partitions can be done by time(default) or by number of lines (
-    by activating the lines option)
+    file, if full_file option is activated cut the hole file into sections, where each section(si) starts at
+     starting_point+gap*si.
+    If start_at_end is used partition from the file\'s end. Partitions can be done by time(default) or by number
+     of lines (by activating the lines option)
     
     """
     if lines:
@@ -199,6 +201,11 @@ def partition_by_time(input_name, dest_dir, starting_point, section, gap, start_
     Partition a single file using the elapsed time to measure the size of the partition. Returns the real
     (not just acquired signal time) times for beginning and end of the partitions.
     """
+    if util.is_empty_file(input_name):
+        module_logger.warning("File '{0}' is empty. Skipping blocks creation..."
+                              .format(util.remove_project_path_from_file(input_name)))
+        return []
+
     with open(input_name, 'rU') as fdin:
         lines = fdin.readlines()
     lines = [line for line in lines if line != "\n"]
@@ -339,8 +346,7 @@ def write_partition(lines, output_file, i_index, f_index):
     """
     (list, str, int, int) -> NoneType
 
-    Take the hrf f  File "/home/msantos/PycharmProjects/TSAnalyse/tools/ile contents ( in a list) and write the lines from a partition to
-    output_file.
+    Take the hrf file contents (in a list) and write the lines from a partition to output_file.
     """
     with open(output_file, "w") as fdout:
         while i_index < f_index:
@@ -352,14 +358,17 @@ def write_partition(lines, output_file, i_index, f_index):
             i_index += 1
     fdout.close()
 
+
 # AUXILIARY FUNCTIONS
+def is_block_time_table_empty(block_table):
+    return all(map(lambda x: len(block_table[x]) <= 1, block_table))
 
 
 def sniffer(lines, start_at_end=False):
     """
     (list, bool) -> (bool, float)
 
-    Recieves a sample of the file and extrapolates whether the
+    Receives a sample of the file and extrapolates whether the
     timeline is cumulative or periodic. If it's cumulative than along
     with that information also sends the first timestamp, otherwise it
     sends the mode of the timestamps(unless signal is lost machines

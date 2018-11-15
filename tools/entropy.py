@@ -79,15 +79,34 @@ def entropy(input_name, entropy_type, dimension, tolerances, round_digits=None):
     if os.path.isdir(input_name):
         filelist = util.listdir_no_hidden(input_name)
         for filename in filelist:
-            entropy_data = method_to_call(os.path.join(input_name, filename.strip()), dimension,
-                                          tolerances[filename], round_digits)
-            entropy_dict[filename.strip()] = entropy_data
+            try:
+                entropy_data = method_to_call(os.path.join(input_name, filename.strip()), dimension,
+                                              tolerances[filename], round_digits)
+            except KeyError as ke:
+                module_logger.error("Key %s does not exist in tolerances' list. Skipping file..." % ke)
+            except ValueError as voe:
+                module_logger.critical("%s. Skipping file..." % voe)
+            except IndexError as ixe:
+                module_logger.critical("%s - The file does not conform to the requisites: one column with the hrf vales. Skipping ..." % ixe)
+            else:
+                entropy_dict[filename.strip()] = entropy_data
     else:
         filename = os.path.basename(input_name)
-        tolerances = tolerances[list(tolerances.keys())[0]]
-        entropy_data = method_to_call(input_name.strip(), dimension, tolerances, round_digits)
-        entropy_dict[filename] = entropy_data
-        module_logger.debug("Entropy dictionary: %s" % entropy_dict)
+        try:
+            tolerances = tolerances[list(tolerances.keys())[0]]
+        except IndexError as ixe:
+            module_logger.error("%s on Tolerance's list." % ixe)
+        else:
+            try:
+                entropy_data = method_to_call(input_name.strip(), dimension, tolerances, round_digits)
+            except ValueError as voe:
+                module_logger.critical("%s. Skipping file..." % voe)
+            except IndexError as ixe:
+                module_logger.critical("%s. Skipping file..." % ixe)
+            else:
+                entropy_dict[filename] = entropy_data
+    # we will move this log to the interfaces to avoid "spam" when debugging multiscale
+    # module_logger.debug("Entropy dictionary: {0}".format(entropy_dict))
     return entropy_dict
 
 
@@ -105,9 +124,18 @@ def calculate_std(input_name):
         for filename in filelist:
             # debug
             # print("calculate_file_st input: %s" % os.path.join(input_name, filename))
-            files_std[filename] = calculate_file_std(os.path.join(input_name, filename))
+            try:
+                files_std[filename] = calculate_file_std(os.path.join(input_name, filename))
+            except ValueError as voe:
+                module_logger.error("Error: %s" % voe)
+                module_logger.warning("Skipping file %s..." % filename)
     else:
-        files_std[input_name] = calculate_file_std(input_name)
+        try:
+            files_std[input_name] = calculate_file_std(input_name)
+        except ValueError as voe:
+            module_logger.error("Error: %s" % voe)
+            module_logger.warning("Skipping file %s..." % input_name)
+    module_logger.debug("Files STD: {0}".format(files_std))
     return files_std
 
 
@@ -118,10 +146,15 @@ def calculate_file_std(filename):
     Function to calculate the standard deviation of the values in a single file.
 
     """
+    if util.is_empty_file(filename):
+        raise ValueError("File '%s' is empty. Unable to compute standard deviation." % filename)
+        # module_logger.warning("File %s is empty. Standard deviation will be set to 0." % filename)
+        # return 0
+
     with open(filename, "rU") as fdin:
         file_data = fdin.readlines()
     file_data = list(map(float, file_data))
-    module_logger.info("Computing std for file '%s'" % filename)
+    module_logger.info("Computing std for file '%s'" % util.remove_project_path_from_file(filename))
     return numpy.std(file_data)
 
 
@@ -133,10 +166,13 @@ def sampen(filename, dimension, tolerance, round_digits=None):
 
     NOTE: Pyeeg implementation
     """
+    if util.is_empty_file(filename):
+        raise ValueError("File %s is empty" % filename)
+
     with open(filename, 'r') as file_d:
         file_data = file_d.readlines()
     file_data = numpy.array(map(float, file_data))  # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
-    module_logger.info("Computing sample entropy for file '%s'" % filename)
+    module_logger.info("Computing sample entropy for file '%s'" % util.remove_project_path_from_file(filename))
 
     try:
         samp_ent = samp_entropy(file_data, dimension, tolerance)
@@ -144,10 +180,11 @@ def sampen(filename, dimension, tolerance, round_digits=None):
         module_logger.critical("Memory Error while computing sample entropy. Ignoring file...")
         samp_ent = numpy.nan
         # raise MemoryError
-    module_logger.debug("entropy: %s" % samp_ent)
+    else:
+        module_logger.debug("entropy: %s" % samp_ent)
 
-    if round_digits:
-        samp_ent = round(samp_ent, round_digits)
+        if round_digits:
+            samp_ent = round(samp_ent, round_digits)
 
     return EntropyData(len(file_data), samp_ent)
 
@@ -161,11 +198,14 @@ def apen(filename, dimension, tolerance, round_digits=None):
 
     NOTE: Pyeeg implementation    
     """
+    if util.is_empty_file(filename):
+        raise ValueError("File %s is empty" % filename)
+
     with open(filename, "r") as file_d:
         file_data = file_d.readlines()
     # file_data = list(map(float, file_data))
     file_data = numpy.array(map(float, file_data))  # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
-    module_logger.info("Computing approximate entropy for file '%s'" % filename)
+    module_logger.info("Computing approximate entropy for file '%s'" % util.remove_project_path_from_file(filename))
     try:
         ap_ent = ap_entropy(file_data, dimension, tolerance)
     except MemoryError:
@@ -235,13 +275,15 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
     we already know to be 0. This is done by creating a burned_indexes that contains 
     the columns we want to jump over in the upcoming rows. The columns are kept 
     in a dictionary so the test if a particular column is to jumped is O(1).
-    
     """
+
+    if util.is_empty_file(filename):
+        raise ValueError("File {0} is empty".format(filename))
 
     with open(filename, "r") as file_d:
         file_data = file_d.readlines()
     file_data = list(map(float, file_data))
-    module_logger.info("Computing approximate entropy (V2) for file '%s'" % filename)
+    module_logger.info("Computing approximate entropy (V2) for file '%s'" % util.remove_project_path_from_file(filename))
 
     data_len = len(file_data)
 
@@ -312,14 +354,20 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
 
 
 # AUXILIARY FUNCTIONS
-# TODO: here add the parser options for the round digits (see the commented line)
+def is_entropy_table_empty(entropy_table):
+    return all(map(lambda x: len(entropy_table[x]) <= 1, entropy_table))
+    # for key in entropy_table.keys:
+    #     if len(entropy_table[key]) <= 1:
+    #         return True
+    # return False
+
+
 def add_parser_options(parser):
     """
     (argparse.ArgumentParser) -> NoneType
 
-    !!!Auxiliary function!!!  These are arguments for an argparse
-    parser or subparser, and are the optional arguments for
-    the entry function in this module
+    !!!Auxiliary function!!!  These are arguments for an argparse parser or subparser,
+    and are the optional arguments for the entry function in this module
 
     """
 
@@ -331,33 +379,3 @@ def add_parser_options(parser):
                         default=0.1)
     parser.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
                         help="Matrix Dimension. [default:%(default)s]", default=2)
-
-    # util.add_numbers_parser_options(parser)
-
-
-    #
-    # entropy_parsers = parser.add_subparsers(help='Different methods for calculating entropy', dest="entropy")
-    #
-    # samp_en = entropy_parsers.add_parser('sampen', help="Sample Entropy")
-    # samp_en.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
-    #                      help="Tolerance level to be used when calculating sample entropy. [default:%(default)s]",
-    #                      default=0.1)
-    # samp_en.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
-    #                      help="Matrix Dimension. [default:%(default)s]", default=2)
-    # util.add_numbers_parser_options(samp_en)
-    #
-    # ap_en = entropy_parsers.add_parser('apen', help="Aproximate Entropy")
-    # ap_en.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
-    #                    help="Tolerance level to be used when calculating aproximate entropy. [default:%(default)s]",
-    #                    default=0.1)
-    # ap_en.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
-    #                    help="Matrix Dimension. [default:%(default)s]", default=2)
-    # util.add_numbers_parser_options(ap_en)
-    #
-    # ap_en_v2 = entropy_parsers.add_parser('apenv2', help="Aproximate Entropy version 2")
-    # ap_en_v2.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
-    #                       help="Tolerance level to be used when calculating aproximate entropy. [default:%(default)s]",
-    #                       default=0.1)
-    # ap_en_v2.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
-    #                       help="Matrix Dimension. [default:%(default)s]", default=2)
-    # util.add_numbers_parser_options(ap_en_v2)

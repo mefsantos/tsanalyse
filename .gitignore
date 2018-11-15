@@ -427,6 +427,7 @@ file_blocks/
 stv_analysis/
 block_analysis/
 individual_runs/
+tmp/
 
 *.csv
 *.ppmd

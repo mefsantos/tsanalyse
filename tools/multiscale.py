@@ -139,7 +139,8 @@ def multiscale_compression(input_name, scales_dir, start, stop, step, compressor
 
     compression_table = {}
     if os.path.isdir(input_name):
-        module_logger.info("Computing multiscale compression for directory %s" % input_name)
+        module_logger.info("Computing multiscale compression for directory %s"
+                           % util.remove_project_path_from_file(input_name))
         filelist = util.listdir_no_hidden(input_name)
         for filename in filelist:
             compression_table[filename] = []
@@ -157,7 +158,8 @@ def multiscale_compression(input_name, scales_dir, start, stop, step, compressor
                     compression_table[filename].append(compression_results[filename].time)
 
     else:
-        module_logger.info("Computing multiscale compression for file %s" % input_name)
+        module_logger.info("Computing multiscale compression for file %s"
+                           % util.remove_project_path_from_file(input_name))
         filename = os.path.basename(input_name)
         compression_table[filename] = []
         for scale in range(start, stop, step):
@@ -204,7 +206,8 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
 
     entropy_table = {}
     if os.path.isdir(input_name):
-        module_logger.info("Computing multiscale entropy for directory %s" % input_name)
+        module_logger.info("Computing multiscale entropy for directory %s"
+                           % util.remove_project_path_from_file(input_name))
         filelist = util.listdir_no_hidden(input_name)
         files_stds = calculate_std(os.path.join("%s_Scales" % input_name, "Scale %d" % start))
         tolerances = dict((filename, files_stds[filename] * tolerance) for filename in files_stds)
@@ -213,24 +216,53 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
             entropy_table[filename] = []
             for scale in range(start, stop, step):
                 file_in_scale = os.path.join("%s_Scales" % input_name, "Scale %d" % scale, filename)
-                entropy_results = entropy(file_in_scale, entropy_function, dimension,
+                try:
+                    entropy_results = entropy(file_in_scale, entropy_function, dimension,
                                           {filename: tolerances[filename]}, round_digits)
-
-                entropy_table[filename].append(entropy_results[filename].entropy)
+                except ValueError as voe:
+                    module_logger.error("Error: %s." % voe)
+                    break
+                except KeyError as koe:
+                    module_logger.error("Error: key %s does not exist. Skipping file '%s'..."
+                                        % (koe, util.remove_project_path_from_file(filename)))
+                    break
+                else:
+                    try:
+                        entropy_table[filename].append(entropy_results[filename].entropy)
+                    except AttributeError as ate:
+                        module_logger.error("Error: %s" % ate)
     else:
-        module_logger.info("Computing multiscale entropy for file %s" % input_name)
+        module_logger.info("Computing multiscale entropy for file '%s'" % util.remove_project_path_from_file(input_name))
         filename = os.path.basename(input_name)
         file_for_std = os.path.join(scales_dir, "Scale %d" % start, filename)
-        file_std = calculate_std(file_for_std)
+        try:
+            file_std = calculate_std(file_for_std)
+        except ValueError as voe:
+            module_logger.error("Error: %s" % voe)
+            module_logger.warning("Skipping file '%s'" % filename)
+        except IndexError as ixe:
+                module_logger.critical("%s - The file '%s' does not conform to the requisites:"
+                                       " one column with the hrf vales."
+                                       % (ixe, util.remove_project_path_from_file(filename)))
+        else:
+            tolerances = dict((filename, file_std[fname] * tolerance) for fname in file_std)
 
-        tolerances = dict((filename, file_std[fname] * tolerance) for fname in file_std)
+            entropy_table[filename] = []
+            for scale in range(start, stop, step):
+                file_in_scale = os.path.join(scales_dir, "Scale %d" % scale, filename)
+                try:
+                    entropy_results = entropy(file_in_scale, entropy_function, dimension, tolerances, round_digits)
+                except ValueError as voe:
+                    module_logger.error("Error: %s" % voe)
+                    break
+                except IndexError as ixe:
+                    module_logger.critical("%s - The file '%s' does not conform to the requisites:"
+                                           " one column with the hrf vales."
+                                           % (ixe, util.remove_project_path_from_file(filename)))
+                    break
+                else:
+                    entropy_table[filename].append(entropy_results[filename].entropy)
 
-        entropy_table[filename] = []
-        for scale in range(start, stop, step):
-            file_in_scale = os.path.join(scales_dir, "Scale %d" % scale, filename)
-            entropy_results = entropy(file_in_scale, entropy_function, dimension, tolerances, round_digits)
-
-            entropy_table[filename].append(entropy_results[filename].entropy)
     module_logger.debug("Entropy Table: %s" % entropy_table)
     module_logger.info("Finished computing multiscale entropy")
     return entropy_table
