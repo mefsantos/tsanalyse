@@ -73,7 +73,22 @@ def interbeat_interval_from_list(list_to_eval):
     :param list_to_eval: list of heart rate frequencies
     :return: list of inter-beat intervals in milliseconds
     """
-    return map((lambda hrf: float(60000)/hrf), list_to_eval)
+    # return map((lambda hrf: float(60000)/hrf), list_to_eval)
+    ibi_list = map(lambda hrf: compute_interbeat_interval_from_hrf(hrf), list_to_eval)
+    # small test to avoid spamming debug entries for zeros
+    # import operator as op
+    # if reduce(op.add, ibi_list) == 0:
+    #     module_logger.debug("Interbeat Intervals' List has only 0s")
+    return ibi_list
+
+
+def compute_interbeat_interval_from_hrf(hrf):
+    try:
+        return float(60000)/hrf
+    except ZeroDivisionError as zde:
+        # module_logger.debug("%s. Returning Interbeat Interval of 0." % zde)
+        return 0
+
 
 
 # ARDUINI's algorithms
@@ -95,7 +110,7 @@ def list_preparation_to_extract_ti(time_series_to_eval, duration_of_subset_in_se
     # only consider the lists with 'samples_per_subset' elements
     list_of_subsets = filter((lambda lst: len(lst) == samples_per_subset), list_of_lists)
     interbeat_intervals_of_subsets = map(interbeat_interval_from_list, list_of_subsets)
-    module_logger.debug("Interbeat interval of lists: %s" % interbeat_intervals_of_subsets)
+    # module_logger.debug("Interbeat interval of lists: %s" % interbeat_intervals_of_subsets)
 
     return interbeat_intervals_of_subsets
 
@@ -234,7 +249,12 @@ def stv_van_geijn(time_series_to_eval, sampling_frequency=4):
 
 # Yeh
 def compute_di_at_index(ti_list, index):
-    return 1000 * ((ti_list[index] - ti_list[index+1]) / (ti_list[index] + ti_list[index+1]))
+    try:
+        res = 1000 * ((ti_list[index] - ti_list[index+1]) / (ti_list[index] + ti_list[index+1]))
+    except ZeroDivisionError as zde:
+        # module_logger.debug("%s. Setting value to 'nan" % zde)
+        res = np.nan
+    return res
 
 
 def compute_dave(ti_list):
@@ -265,7 +285,12 @@ def stv_yeh(time_series_to_eval, sampling_frequency=4):
 def zugaiv_formula(list_to_eval):
     vi_list = []
     for i in range(0, len(list_to_eval)-1):
-        vi_list.append((list_to_eval[i+1] - list_to_eval[i])/float(list_to_eval[i+1] + list_to_eval[i]))
+        try:
+            res = (list_to_eval[i+1] - list_to_eval[i])/float(list_to_eval[i+1] + list_to_eval[i])
+        except ZeroDivisionError as zde:
+            # module_logger.debug("%s. Setting value as 'nan" % np.nan)
+            res = np.nan
+        vi_list.append(res)
     # sum_part = sum(map((lambda vi: vi_md(vi,np.median(vi_list))), vi_list))
 
     return (1 / float(len(list_to_eval)-1)) * sum(map((lambda vi: abs(vi - np_median_to_use(vi_list))), vi_list))
@@ -306,8 +331,11 @@ def compute_stv_metric_of_file(input_file_name, algorithm_name, sampling_frequen
                                round_digits=None, consider_nans=False):
 
     if os.path.getsize(input_file_name) <= 0:
+        module_logger.debug("File '%s' is empty" % os.path.basename(input_file_name))
+
         return []
 
+    module_logger.debug(" Running file: %s" % os.path.basename(input_file_name))
     try:
         dataframe = pandas.read_csv(input_file_name)
     except ValueError as ve:
@@ -333,18 +361,9 @@ def compute_stv_metric_of_file(input_file_name, algorithm_name, sampling_frequen
 def compute_stv_metric_of_directory(input_path, algorithm_name, sampling_frequency=4, round_digits=None,
                                     consider_nans=False, output_path=None):
 
-    if output_path is None:
-        output_path = util.STV_ANALYSIS_STORAGE_PATH
-        module_logger.debug("Output path was not defined. Using default: %s"
-                            % util.remove_project_path_from_file(output_path))
-
-    if not os.path.exists(output_path):
-        module_logger.debug("Creating %s..." % util.remove_project_path_from_file(output_path))
-        os.mkdir(output_path)
-
     if algorithm_name.lower() == "all":
         map(lambda algo: compute_stv_metric_of_directory(input_path, algo, sampling_frequency,
-                                                         round_digits, consider_nans), AVAILABLE_ALGORITHMS)
+                                                         round_digits, consider_nans,output_path), AVAILABLE_ALGORITHMS)
     else:
         if algorithm_name in AVAILABLE_ALGORITHMS:
             module_logger.debug("Running algorithm %s" % algorithm_name)
@@ -384,6 +403,21 @@ def compute_stv_metrics(input_path, options):
     global CONSIDER_NANS  # this is required so we can set the global variable instead of a local one w'the same name
     CONSIDER_NANS = options["use_nan"]
 
+    output_path = os.path.expanduser(options["output_path"]) if options["output_path"] is not None else None
+
+    if output_path is None:
+        output_path = util.STV_ANALYSIS_STORAGE_PATH
+        module_logger.debug("Output path was not defined. Using default: %s"
+                            % util.remove_project_path_from_file(output_path))
+    else:
+        module_logger.debug("Output path setup to: %s" % util.remove_project_path_from_file(output_path))
+
+    if not os.path.exists(output_path):
+        output_path = os.path.join(output_path, "stv_analysis")
+        module_logger.debug("Creating %s..." % util.remove_project_path_from_file(output_path))
+        os.makedirs(output_path)
+        # os.mkdir(output_path)
+
     if not os.path.exists(input_path):
         raise IOError(1, "No Such file or folder")
     if os.path.isfile(input_path):
@@ -404,7 +438,7 @@ def compute_stv_metrics(input_path, options):
     else:
         compute_stv_metric_of_directory(input_path, options['algorithm'], options['sampling_frequency'],
                                         options["round_digits"], options["use_nan"],
-                                        output_path=options["output_path"])
+                                        output_path=output_path)
 
 
 # TODO: validate parser input
