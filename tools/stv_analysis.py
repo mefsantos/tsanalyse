@@ -412,8 +412,10 @@ def compute_stv_metrics(input_path, options):
     else:
         module_logger.debug("Output path setup to: %s" % util.remove_project_path_from_file(output_path))
 
+    # for now, if we specify the output, do not try to use stv_analysis (to work with the shiny app)
+    # output_path = os.path.join(output_path, "stv_analysis")
+
     if not os.path.exists(output_path):
-        output_path = os.path.join(output_path, "stv_analysis")
         module_logger.debug("Creating %s..." % util.remove_project_path_from_file(output_path))
         os.makedirs(output_path)
         # os.mkdir(output_path)
