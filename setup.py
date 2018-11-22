@@ -10,8 +10,13 @@ from setuptools.command.develop import develop
 LINUX = "linux"
 MACOS = "darwin"
 
-with open('requirements.txt') as f:
-    requirements = f.read().splitlines()
+try:
+    with open('requirements.txt') as f:
+        requirements = f.read().splitlines()
+except IOError as ioe:
+    print("%s. Trying ./tsanalyse/requirements.txt" % ioe)
+    with open('./tsanalyse/requirements.txt') as f:
+        requirements = f.read().splitlines()
 
 # this may be useful for development only
 # with open('pytest_requirements.txt') as f:
