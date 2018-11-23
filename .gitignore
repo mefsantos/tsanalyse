@@ -438,6 +438,9 @@ tmp/
 algo/paq8l_src/paq8l # this will be obtained depending on the operating system
 algo/ppmd_src/ppmd  # this will be obtained depending on the operating system
 
+paq8l
+ppmd
+
 *.SIM
 .idea
 *.log
