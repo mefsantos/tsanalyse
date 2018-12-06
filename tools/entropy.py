@@ -38,6 +38,7 @@ import os
 import sys
 import numpy
 import logging
+import utilityFunctions as util
 from collections import namedtuple
 
 try:
@@ -151,9 +152,16 @@ def calculate_file_std(filename):
         # module_logger.warning("File %s is empty. Standard deviation will be set to 0." % filename)
         # return 0
 
-    with open(filename, "rU") as fdin:
-        file_data = fdin.readlines()
-    file_data = list(map(float, file_data))
+    # with open(filename, "rU") as fdin:
+    #     file_data = fdin.readlines()
+    # file_data = list(map(float, file_data))
+
+    # -1 to read the last available column
+    file_data = util.readlines_with_col_index(filename, col_index=-1, as_type=float)
+    # lets force a type cast to float so the error can be caught outside
+    file_data = map(float, file_data)
+    # print(file_data)
+
     module_logger.info("Computing std for file '%s'" % util.remove_project_path_from_file(filename))
     return numpy.std(file_data)
 
@@ -169,9 +177,16 @@ def sampen(filename, dimension, tolerance, round_digits=None):
     if util.is_empty_file(filename):
         raise ValueError("File %s is empty" % filename)
 
-    with open(filename, 'r') as file_d:
-        file_data = file_d.readlines()
-    file_data = numpy.array(map(float, file_data))  # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
+    # with open(filename, 'r') as file_d:
+    #     file_data = file_d.readlines()
+    # file_data = numpy.array(map(float, file_data))  # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
+    #
+
+    # -1 to read the last available column
+    file_data = util.readlines_with_col_index(filename, col_index=-1, as_type=float)
+    # lets force a type cast to float so the error can be caught outside
+    file_data = numpy.array(map(float, file_data))
+
     module_logger.info("Computing sample entropy for file '%s'" % util.remove_project_path_from_file(filename))
 
     try:
@@ -201,10 +216,16 @@ def apen(filename, dimension, tolerance, round_digits=None):
     if util.is_empty_file(filename):
         raise ValueError("File %s is empty" % filename)
 
-    with open(filename, "r") as file_d:
-        file_data = file_d.readlines()
-    # file_data = list(map(float, file_data))
-    file_data = numpy.array(map(float, file_data))  # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
+    # with open(filename, "r") as file_d:
+    #     file_data = file_d.readlines()
+    # # file_data = list(map(float, file_data))
+    # file_data = numpy.array(map(float, file_data))  # so file_data has attribute 'size' (due to pyeeg samp_entropy impl.)
+
+    # -1 to read the last available column
+    file_data = util.readlines_with_col_index(filename, col_index=-1, as_type=float)
+    # lets force a type cast to float so the error can be caught outside
+    file_data = numpy.array(map(float, file_data))
+
     module_logger.info("Computing approximate entropy for file '%s'" % util.remove_project_path_from_file(filename))
     try:
         ap_ent = ap_entropy(file_data, dimension, tolerance)
@@ -280,8 +301,13 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
     if util.is_empty_file(filename):
         raise ValueError("File {0} is empty".format(filename))
 
-    with open(filename, "r") as file_d:
-        file_data = file_d.readlines()
+    # with open(filename, "r") as file_d:
+    #     file_data = file_d.readlines()
+    # file_data = list(map(float, file_data))
+
+    # -1 to read the last available column
+    file_data = util.readlines_with_col_index(filename, col_index=-1, as_type=float)
+    # lets force a type cast to float so the error can be caught outside
     file_data = list(map(float, file_data))
     module_logger.info("Computing approximate entropy (V2) for file '%s'" % util.remove_project_path_from_file(filename))
 

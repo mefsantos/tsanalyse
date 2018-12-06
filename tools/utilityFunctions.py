@@ -168,6 +168,22 @@ def is_empty_file(file_to_eval):
     return os.path.getsize(file_to_eval) <= 0
 
 
+def readlines_with_col_index(filename, col_index=-1, as_type=float):
+    with open(filename, "rU") as fdin:
+        file_data = fdin.readlines()
+    try:
+        new_list = map(lambda line_entry: line_entry.split()[col_index], file_data)
+    except IndexError as ie:
+        module_logger.warning("%s. Falling back to the first column" % ie)
+        new_list = map(lambda line_entry: line_entry.split()[0], file_data)
+    try:
+        res_list = map(as_type, new_list)
+    except ValueError as ve:
+        module_logger.error("%s. Ignoring type cast..." % ve)
+        res_list = new_list
+    return res_list
+
+
 # List utility functions
 def head(v_list, num_elements=1):
     """

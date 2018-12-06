@@ -292,9 +292,18 @@ def create_scale(inputfile, output_dir, scale, mul_order, round_to_int):
     """
     filename = os.path.basename(inputfile)
     line_index = 0
-    with open(inputfile, "rU") as fdin:
-        lines = fdin.readlines()
-        lines = list(map(float, lines))
+
+    # with open(inputfile, "rU") as fdin:
+    #     lines = fdin.readlines()
+    #     lines = list(map(float, lines))
+    #
+
+    # -1 to read the last available column
+    lines = util.readlines_with_col_index(inputfile, col_index=-1, as_type=float)
+    # lets force a type cast to float so the error can be caught outside
+    lines = list(map(float, lines))
+    # print(lines)
+
     with open(os.path.join(output_dir, filename), "w") as fdout:
         while line_index + scale <= len(lines):
             scaled_hrf = numpy.mean(lines[line_index:line_index + scale])
