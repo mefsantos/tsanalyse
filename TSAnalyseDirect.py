@@ -222,9 +222,9 @@ if __name__ == "__main__":
                 resulting_dict = tools.compress.compress(inputdir, compressor, level, False, options['comp_ratio'],
                                                      options['round_digits'])
             except OSError as ose:
-                logger.critical("Error: %s - %s" % (ose[1], inputdir))
+                logger.critical("%s - %s" % (ose[1], util.remove_project_path_from_file(inputdir)))
             except IOError as ioe:
-                logger.critical("Error: %s - %s" % (ioe[1], inputdir))
+                logger.critical("%s - %s" % (ioe[1], util.remove_project_path_from_file(inputdir)))
             else:
                 outfile = "%s_%s_lvl_%d" % (output_name, compressor, level)
                 if options['comp_ratio']:
@@ -260,9 +260,9 @@ if __name__ == "__main__":
             try:
                 files_stds = tools.entropy.calculate_std(inputdir)
             except OSError as ose:
-                logger.critical("Error: %s - %s" % (ose[1], inputdir))
+                logger.critical("%s - %s" % (ose[1], util.remove_project_path_from_file(inputdir)))
             except IOError as ioe:
-                logger.critical("Error: %s - %s" % (ioe[1], inputdir))
+                logger.critical("%s - %s" % (ioe[1], util.remove_project_path_from_file(inputdir)))
 
             else:
                 tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
@@ -271,11 +271,11 @@ if __name__ == "__main__":
                     resulting_dict = tools.entropy.entropy(inputdir, algorithm, options['dimension'], tolerances,
                                                            options['round_digits'])
                 except OSError as ose:
-                    logger.critical("Error: %s - %s" % (ose[1], inputdir))
+                    logger.critical("%s - %s" % (ose[1], util.remove_project_path_from_file(inputdir)))
                 except IOError as ioe:
-                    logger.critical("Error: %s - %s" % (ioe[1], inputdir))
+                    logger.critical("%s - %s" % (ioe[1], util.remove_project_path_from_file(inputdir)))
                 except ValueError as voe:
-                    logger.critical("Error: %s - %s" % (voe, inputdir))
+                    logger.critical("%s - %s" % (voe, util.remove_project_path_from_file(inputdir)))
                 else:
                     outfile = "%s_%s_dim_%d_tol_%.2f.csv" % (
                         output_name, algorithm, options['dimension'], options['tolerance'])
@@ -301,11 +301,11 @@ if __name__ == "__main__":
             try:
                 tools.stv_analysis.compute_stv_metrics(inputdir, options)
             except OSError as ose:
-                logger.critical("Error: %s - %s" % (ose[1], inputdir))
+                logger.critical("%s - %s" % (ose[1], util.remove_project_path_from_file(inputdir)))
             except IOError as ioe:
-                logger.critical("Error: %s - %s" % (ioe[1], inputdir))
+                logger.critical("%s - %s" % (ioe[1], util.remove_project_path_from_file(inputdir)))
             except ValueError as ve:
-                logger.critical("Error: %s" % ve)
+                logger.critical("%s" % ve)
 
     logger.info("Done")
 

@@ -127,13 +127,13 @@ def calculate_std(input_name):
             try:
                 files_std[filename] = calculate_file_std(os.path.join(input_name, filename))
             except ValueError as voe:
-                module_logger.error("Error: %s" % voe)
+                module_logger.error("%s" % voe)
                 module_logger.warning("Skipping file %s..." % filename)
     else:
         try:
             files_std[input_name] = calculate_file_std(input_name)
         except ValueError as voe:
-            module_logger.error("Error: %s" % voe)
+            module_logger.error("%s" % voe)
             module_logger.warning("Skipping file %s..." % input_name)
     module_logger.debug("Files STD: {0}".format(files_std))
     return files_std
@@ -355,7 +355,7 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
 
 # AUXILIARY FUNCTIONS
 def is_entropy_table_empty(entropy_table):
-    return all(map(lambda x: len(entropy_table[x]) <= 1, entropy_table))
+    return all(map(lambda x: len(entropy_table[x]) < 1, entropy_table))
     # for key in entropy_table.keys:
     #     if len(entropy_table[key]) <= 1:
     #         return True

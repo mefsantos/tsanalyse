@@ -137,7 +137,7 @@ def remove_scales_dir(scales, corrupted=False):
         # os.removedirs(scales)
         shutil.rmtree(scales, ignore_errors=False)
     except OSError as err:
-        logger.warning("Error: %s (%s)" % (err[1], scales))
+        logger.warning("%s (%s)" % (err[1], scales))
         logger.warning("skipping directory removal...")
     pass
 
@@ -214,10 +214,10 @@ if __name__ == "__main__":
             tools.multiscale.create_scales(input_dir, scales_dir, options["scale_start"], options["scale_stop"] + 1,
                                            options["scale_step"], options['mul_order'], options['round'])
         except OSError as ose:
-            logger.critical("Error: %s - %s" % (ose[1], input_dir))
+            logger.critical("%s - %s" % (ose[1], input_dir))
             remove_scales_dir(scales_dir, corrupted=True)
         except IOError as ioe:
-                logger.critical("Error: %s - %s" % (ioe[1], input_dir))
+                logger.critical("%s - %s" % (ioe[1], input_dir))
                 remove_scales_dir(scales_dir, corrupted=True)
         except ValueError as error:
             logger.critical("%s. Did you forget to filter the file?" % error)
@@ -267,10 +267,10 @@ if __name__ == "__main__":
                                                                             options["decompress"], options["comp_ratio"],
                                                                             options['round_digits'])
                 except OSError as ose:
-                    logger.critical("Error: %s - %s" % (ose[1], input_dir))
+                    logger.critical("%s - %s" % (ose[1], input_dir))
                     remove_scales_dir(scales_dir, corrupted=True)
                 except IOError as ioe:
-                    logger.critical("Error: %s - %s" % (ioe[1], input_dir))
+                    logger.critical("%s - %s" % (ioe[1], input_dir))
                     remove_scales_dir(scales_dir, corrupted=True)
                 else:
                     if not tools.compress.is_compression_table_empty(compression_table):
@@ -340,10 +340,10 @@ if __name__ == "__main__":
                                                                         options["dimension"], options["tolerance"],
                                                                         options["round_digits"])
                     except OSError as ose:
-                        logger.critical("Error: %s - %s" % (ose[1], input_dir))
+                        logger.critical("%s - %s" % (ose[1], input_dir))
                         remove_scales_dir(scales_dir, corrupted=True)
                     except IOError as ioe:
-                        logger.critical("Error: %s - %s" % (ioe[1], input_dir))
+                        logger.critical("%s - %s" % (ioe[1], input_dir))
                         remove_scales_dir(scales_dir, corrupted=True)
                     else:
                         if not tools.entropy.is_entropy_table_empty(entropy_table):
