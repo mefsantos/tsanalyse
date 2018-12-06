@@ -429,11 +429,11 @@ def test_compressors():
     for compressor in compressor_list.keys():
         os_paths = [os.path.join(dirpath, compressor)
                     for dirpath in exec_path if os.path.isfile(os.path.join(dirpath, compressor))]
-        print("resulting paths: %s" % os_paths)
+        # print("resulting paths: %s" % os_paths)
         module_logger.debug("resulting paths: %s" % os_paths)
         os_paths_execs = [os.path.join(dirpath, compressor+".exe")
                           for dirpath in exec_path if os.path.isfile(os.path.join(dirpath, compressor+".exe"))]
-        print("resulting paths for executables: %s" % os_paths_execs)
+        # print("resulting paths for executables: %s" % os_paths_execs)
         module_logger.debug("resulting paths for executables: %s" % os_paths_execs)
         if len(os_paths) > 0 or len(os_paths_execs) > 0:
             available[compressor] = compressor_list[compressor]
@@ -444,7 +444,7 @@ def test_compressors():
             #             os.path.join(dir_in_path, compressor + '.exe')):
             #         available[compressor] = compressor_list[compressor]
             #         print "PATH %s EXIST!!!" % os.path.join(dir_in_path, compressor)
-    print("Available compressors: %s" % available)
+    # print("Available compressors: %s" % available)
     module_logger.info("Available compressors: %s" % available)
     return available
 
