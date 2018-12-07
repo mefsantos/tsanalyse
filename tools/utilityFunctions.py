@@ -34,6 +34,7 @@ ENTRY POINT: NONE
 # TODO: fix debug flags, adjust debug to comprise levels used in argument parser
 
 import os
+import constants
 import numpy as np
 import pandas as pd
 import logging as log
@@ -41,15 +42,23 @@ import itertools as it
 import scipy.stats as st
 
 # HRF package home location - when called by package main scripts, i.e.: TSAnalyse[Direct,MultiScale,...]
-TSA_HOME = os.path.abspath(".")
-TMP_DIR = os.path.join(TSA_HOME, "tmp")
-RUN_ISOLATED_FILES_PATH = os.path.join(TSA_HOME, "individual_runs")
-BLOCK_ANALYSIS_OUTPUT_PATH = os.path.join(TSA_HOME, "block_analysis")
-FILE_BLOCKS_STORAGE_PATH = os.path.join(TSA_HOME, "file_blocks")
-STV_ANALYSIS_STORAGE_PATH = os.path.join(TSA_HOME, "stv_analysis")
+# TSA_HOME = os.path.abspath(".")
+# TMP_DIR = os.path.join(TSA_HOME, "tmp")
+# RUN_ISOLATED_FILES_PATH = os.path.join(TSA_HOME, "individual_runs")
+# BLOCK_ANALYSIS_OUTPUT_PATH = os.path.join(TSA_HOME, "block_analysis")
+# FILE_BLOCKS_STORAGE_PATH = os.path.join(TSA_HOME, "file_blocks")
+# STV_ANALYSIS_STORAGE_PATH = os.path.join(TSA_HOME, "stv_analysis")
 
+# DEFAULT_LOG_LEVEL = "INFO"
 
-DEFAULT_LOG_LEVEL = "INFO"
+TSA_HOME = constants.TSA_HOME
+TMP_DIR = constants.TMP_DIR
+RUN_ISOLATED_FILES_PATH = constants.RUN_ISOLATED_FILES_PATH
+BLOCK_ANALYSIS_OUTPUT_PATH = constants.BLOCK_ANALYSIS_OUTPUT_PATH
+FILE_BLOCKS_STORAGE_PATH = constants.FILE_BLOCKS_STORAGE_PATH
+STV_ANALYSIS_STORAGE_PATH = constants.STV_ANALYSIS_STORAGE_PATH
+
+DEFAULT_LOG_LEVEL = constants.DEFAULT_LOG_LEVEL
 
 module_logger = log.getLogger("tsanalyse.util")
 

@@ -66,7 +66,7 @@ import tools.filter
 import tools.entropy
 import tools.compress
 import tools.utilityFunctions as util
-
+# import tools.constants as constants
 
 def clean_procedures(inputdir, options):
     logger.info("Starting filter procedures")
