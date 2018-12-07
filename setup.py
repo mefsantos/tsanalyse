@@ -41,7 +41,7 @@ def friendly(command_subclass):
     def modified_run(self):
 
         try:
-            command = "pip install -r %s".format(requirements_path)
+            command = "pip install -r {0}".format(requirements_path)
             sp.check_output(command, shell=True, stderr=sp.STDOUT)
         except sp.CalledProcessError as e:
             print(e.output)
