@@ -17,13 +17,13 @@ pytest_requirements_txt = 'pytest_requirements.txt'
 project_dir_path = os.path.dirname(os.path.realpath(__file__))
 requirements_path = os.path.join(project_dir_path, requirements_txt)
 
-try:
-    with open(requirements_txt) as f:
-        requirements = f.read().splitlines()
-except IOError as ioe:
-    print("%s. Trying %s" % (ioe, requirements_path))
-    with open(requirements_path) as f:
-        requirements = f.read().splitlines()
+# try:
+#     with open(requirements_txt) as f:
+#         requirements = f.read().splitlines()
+# except IOError as ioe:
+# print("%s. Trying %s" % (ioe, requirements_path))
+with open(requirements_path) as f:
+    requirements = f.read().splitlines()
 
 
 # pytest_requirements_path = os.path.join(project_dir_path, pytest_requirements_txt)
