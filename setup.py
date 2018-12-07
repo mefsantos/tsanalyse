@@ -25,6 +25,11 @@ requirements_path = os.path.join(project_dir_path, requirements_txt)
 with open(requirements_path) as f:
     requirements = f.read().splitlines()
 
+try:
+    command = "pip install -r %s".format(requirements_path)
+    sp.check_output(command, shell=True, stderr=sp.STDOUT)
+except sp.CalledProcessError as e:
+    print(e.output)
 
 # pytest_requirements_path = os.path.join(project_dir_path, pytest_requirements_txt)
 # this may be useful for development only
