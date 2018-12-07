@@ -25,12 +25,6 @@ requirements_path = os.path.join(project_dir_path, requirements_txt)
 with open(requirements_path) as f:
     requirements = f.read().splitlines()
 
-try:
-    command = "pip install -r %s".format(requirements_path)
-    sp.check_output(command, shell=True, stderr=sp.STDOUT)
-except sp.CalledProcessError as e:
-    print(e.output)
-
 # pytest_requirements_path = os.path.join(project_dir_path, pytest_requirements_txt)
 # this may be useful for development only
 # with open(pytest_requirements_path) as f:
@@ -45,6 +39,13 @@ def friendly(command_subclass):
     orig_run = command_subclass.run
 
     def modified_run(self):
+
+        try:
+            command = "pip install -r %s".format(requirements_path)
+            sp.check_output(command, shell=True, stderr=sp.STDOUT)
+        except sp.CalledProcessError as e:
+            print(e.output)
+
         # since the binary changes when built in linux and mac (and are incompatible) we need to build paq8l each time
         # we install the package
         try:
