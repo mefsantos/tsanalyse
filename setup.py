@@ -1,5 +1,6 @@
-# #!/usr/bin/env python
+#!/usr/bin/env python
 
+import os
 import sys
 import setuptools
 import subprocess as sp
@@ -10,16 +11,23 @@ from setuptools.command.develop import develop
 LINUX = "linux"
 MACOS = "darwin"
 
-try:
-    with open('requirements.txt') as f:
-        requirements = f.read().splitlines()
-except IOError as ioe:
-    print("%s. Trying ./tsanalyse/requirements.txt" % ioe)
-    with open('./tsanalyse/requirements.txt') as f:
-        requirements = f.read().splitlines()
+requirements_txt = 'requirements.txt'
+pytest_requirements_txt = 'pytest_requirements.txt'
 
+project_dir_path = os.path.dirname(os.path.realpath(__file__))
+requirements_path = os.path.join(project_dir_path, requirements_txt)
+
+# try:
+#     with open(requirements_txt) as f:
+#         requirements = f.read().splitlines()
+# except IOError as ioe:
+# print("%s. Trying %s" % (ioe, requirements_path))
+with open(requirements_path) as f:
+    requirements = f.read().splitlines()
+
+# pytest_requirements_path = os.path.join(project_dir_path, pytest_requirements_txt)
 # this may be useful for development only
-# with open('pytest_requirements.txt') as f:
+# with open(pytest_requirements_path) as f:
 #     requirements.extend(f.read().splitlines())
 
 
@@ -31,12 +39,20 @@ def friendly(command_subclass):
     orig_run = command_subclass.run
 
     def modified_run(self):
+
+        # we probably dont need to run pip install here
+        # try:
+        #     command = "pip install -r {0}".format(requirements_path)
+        #     sp.check_output(command, shell=True, stderr=sp.STDOUT)
+        # except sp.CalledProcessError as e:
+        #     print(e.output)
+
         # since the binary changes when built in linux and mac (and are incompatible) we need to build paq8l each time
         # we install the package
         try:
-            sp.check_output('g++ algo/paq8l_src/paq8l.cpp -DUNIX -DNOASM -O2 -Os -s -fomit-frame-pointer -o algo/paq8l_src/paq8l',
-                            shell=True,
-                            stderr=sp.STDOUT)
+            command = "g++ {0}/algo/paq8l_src/paq8l.cpp -DUNIX -DNOASM -O2 -Os -s -fomit-frame-pointer " \
+                      "-o {0}/algo/paq8l_src/paq8l".format(project_dir_path)
+            sp.check_output(command, shell=True, stderr=sp.STDOUT)
         except sp.CalledProcessError as e:
             print(e.output)
         else:
@@ -44,14 +60,16 @@ def friendly(command_subclass):
         # copy the ppmd binary depending on the OS
         if LINUX in sys.platform:
             try:
-                sp.check_output('cp -f algo/ppmd_src/ppmd_linux algo/ppmd_src/ppmd', shell=True, stderr=sp.STDOUT)
+                command = "cp -f {0}/algo/ppmd_src/ppmd_linux {0}/algo/ppmd_src/ppmd".format(project_dir_path)
+                sp.check_output(command, shell=True, stderr=sp.STDOUT)
             except sp.CalledProcessError as e:
                 print(e.output)
             else:
                 print("Copied Linux ppmd binary file")
         else:
             try:
-                sp.check_output('cp -f algo/ppmd_src/ppmd_darwin algo/ppmd_src/ppmd', shell=True, stderr=sp.STDOUT)
+                command = "cp -f {0}/algo/ppmd_src/ppmd_darwin {0}/algo/ppmd_src/ppmd".format(project_dir_path)
+                sp.check_output(command, shell=True, stderr=sp.STDOUT)
             except sp.CalledProcessError as e1:
                 print(e1.output)
             else:
@@ -67,6 +85,7 @@ def friendly(command_subclass):
 @friendly
 class CustomDevelopCommand(develop):
     pass
+
 
 @friendly
 class CustomInstallCommand(install):
