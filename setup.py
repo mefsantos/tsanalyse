@@ -40,11 +40,12 @@ def friendly(command_subclass):
 
     def modified_run(self):
 
-        try:
-            command = "pip install -r {0}".format(requirements_path)
-            sp.check_output(command, shell=True, stderr=sp.STDOUT)
-        except sp.CalledProcessError as e:
-            print(e.output)
+        # we probably dont need to run pip install here
+        # try:
+        #     command = "pip install -r {0}".format(requirements_path)
+        #     sp.check_output(command, shell=True, stderr=sp.STDOUT)
+        # except sp.CalledProcessError as e:
+        #     print(e.output)
 
         # since the binary changes when built in linux and mac (and are incompatible) we need to build paq8l each time
         # we install the package
