@@ -152,11 +152,11 @@ if __name__ == "__main__":
     tools.entropy.add_parser_options(entropy)
     tools.utilityFunctions.add_numbers_parser_options(entropy)
 
-    stv_module = subparsers.add_parser('stv', help='Perform Short-term Variability analysis of the files of a given '
-                                                   'directory with the following algorithms: %s'
-                                                   % stv.AVAILABLE_ALGORITHMS)
-    tools.stv_analysis.add_parser_options(stv_module)
-    tools.utilityFunctions.add_numbers_parser_options(stv_module)
+    # stv_module = subparsers.add_parser('stv', help='Perform Short-term Variability analysis of the files of a given '
+    #                                                'directory with the following algorithms: %s'
+    #                                                % stv.AVAILABLE_ALGORITHMS)
+    # tools.stv_analysis.add_parser_options(stv_module)
+    # tools.utilityFunctions.add_numbers_parser_options(stv_module)
 
     args = parser.parse_args()
     options = vars(args)
