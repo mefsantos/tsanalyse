@@ -40,7 +40,7 @@ TSFilter is a command line interface that allows you to apply filter
 
        -rint, --round-to-int    Round the hrf values to int
 
-       -col HRF-COLUMN, --hrf-column HRF-COLUMN
+       -col HRF-COLUMN, --column HRF-COLUMN
                                 Column in the dataset to extract hrf from; [default:1]
 
 Examples:
@@ -95,7 +95,7 @@ def clean_procedures(inputdir, options):
         os.makedirs(outputdir_path)
     tools.filter.ds_filter(inputdir, outputdir_path, keep_time=options['keep_time'],
                            apply_limits=options['apply_limits'], round_to_int=options["round_to_int"],
-                           hrf_col=options["hrf-col"], suffix=filtered_suffix)
+                           hrf_col=options["column"], suffix=filtered_suffix)
     logger.info("Finished filter procedures")
     return
 

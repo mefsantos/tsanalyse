@@ -396,10 +396,11 @@ def add_parser_options(parser):
     and are the optional arguments for the entry function in this module
 
     """
-
-    parser.add_argument('-a', '--algorithm', dest="algorithm", action="store", metavar="ALGORITHM", required=True,
+    positional = parser.add_argument_group('positional arguments')
+    positional.add_argument('-a', '--algorithm', dest="algorithm", action="store", metavar="ALGORITHM", required=True,
                         help="Specifies the entropy algorithm to use. "
                              "Available algorithms: " + ", " .join(AVAILABLE_ALGORITHMS))
+    
     parser.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
                         help="Tolerance level to be used when calculating sample entropy. [default:%(default)s]",
                         default=0.1)

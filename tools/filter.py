@@ -199,9 +199,9 @@ def add_parser_options(parser):
     """
 
     parser.add_argument("-col",
-                        "--hrf-column",
-                        dest="hrf-col",
-                        metavar="HRF-COLUMN",
+                        "--column",
+                        dest="column",
+                        metavar="COLUMN",
                         action="store",
                         default=1,
                         type=int,
