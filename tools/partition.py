@@ -51,7 +51,8 @@ SAMPLE_SIZE = 42
 
 
 # ENTRY POINT FUNCTIONS
-
+# note: section and gap have default it is never used, the parser contains the correct value.
+# this default is due to python function's arguments syntax
 def partition(input_name, dest_dir, starting_point=0, section=-1, gap=-1, start_at_end=False, full_file=False,
               lines=False):
     """
@@ -229,7 +230,7 @@ def partition_by_time(input_name, dest_dir, starting_point, section, gap, start_
         if not os.path.isdir(file_block_dir):
             module_logger.info("Creating %s..." % util.remove_project_path_from_file(file_block_dir))
             os.makedirs(file_block_dir)
-        while p_init < p_end < len(lines):  #p_end < len(lines) and p_end > p_init:
+        while p_init < p_end < len(lines):  # p_end < len(lines) and p_end > p_init:
             partname = "%s_%d" % (filename, block_count)
             write_partition(lines, os.path.join(file_block_dir, partname), p_init, p_end)
 
@@ -364,23 +365,45 @@ def write_partition(lines, output_file, i_index, f_index):
 
     Take the hrf file contents (in a list) and write the lines from a partition to output_file.
     """
+    delete_corrupted_file = False
+
     block_num = output_file.split("_")[-1]
     if i_index >= f_index:
         module_logger.warning("Initial index is greater than finishing index. Will not write block %s" % block_num)
-
         return
+
     with open(output_file, "w") as fdout:
         while i_index < f_index:
             try:
                 time, hrf = lines[i_index].split()
+
             except ValueError as ve:
                 # for the case of a single column dataset
                 module_logger.warning(ve)
-                hrf = lines[i_index].strip()
-            fdout.write("%s\n" % hrf)
 
+                # last resort execution. if any error occurs we will cancel the computation of this block
+                try:
+                    hrf = lines[i_index].strip()
+                except Exception as exc:
+                    module_logger.error("%s. Unable to proceed with block. File may be corrupt. Deleting..." % exc)
+                    delete_corrupted_file = True
+                    break
+
+            except IndexError as ie:
+                    module_logger.error("%s. Unable to proceed with block. File may be corrupt. Deleting..." % ie)
+                    # inform to delete the output file and break the while cycle
+                    delete_corrupted_file = True
+                    break
+
+            fdout.write("%s\n" % hrf)
             i_index += 1
-    fdout.close()
+
+    #  fdout.close() # don't need this
+
+    if delete_corrupted_file:
+        from shutil import rmtree
+        rmtree(output_file, ignore_errors=True)
+    return
 
 
 # AUXILIARY FUNCTIONS
@@ -444,7 +467,9 @@ def add_parser_options(parser, full_file_option=True, file_blocks_usage=False):
     full_file option.
     """
 
-    parser.add_argument("-ds", "--deferred-start", dest="partition_start", metavar="SECONDS",
+    parser.add_argument("-ds", "--deferred-start",
+                        dest="partition_start",
+                        metavar="SECONDS",
                         action="store",
                         type=float,
                         default=0,

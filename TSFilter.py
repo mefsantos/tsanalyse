@@ -68,6 +68,7 @@ import tools.compress
 import tools.utilityFunctions as util
 # import tools.constants as constants
 
+
 def clean_procedures(inputdir, options):
     logger.info("Starting filter procedures")
     specified_output = os.path.expanduser(options["output_path"]) if options["output_path"] is not None else None

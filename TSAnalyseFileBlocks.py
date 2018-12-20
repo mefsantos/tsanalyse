@@ -243,6 +243,11 @@ if __name__ == "__main__":
         logger.info("Partitioning file in %d seconds intervals with %d seconds gaps" % (options['section'],
                                                                                         options['gap']))
 
+        # lets protect the execution by forcing absolute values
+        options['partition_start'] = abs(options['partition_start'])
+        options['section'] = abs(options['section'])
+        options['gap'] = abs(options['gap'])
+
         # note: Mara probably used the gap to jump from the initial entry and not the last ??
         if options['gap'] == 0:
             options['gap'] = options['section']

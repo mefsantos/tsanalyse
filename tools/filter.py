@@ -218,6 +218,24 @@ def add_parser_options(parser):
                         action="store_true",
                         default=False,
                         help="When filtering apply limit cutoffs, i.e., 50 <= hrf <= 250")
+
+    # TODO: based on Teresa answer, either use two flags (like below) or the same -lim flag and a pair with the cutoff limits
+
+    # parser.add_argument("-ubl",
+    #                     "--upper-bound-limit",
+    #                     dest="upper_bound",
+    #                     metavar="UPPER_BOUND",
+    #                     action="store",
+    #                     default=250,
+    #                     help="When filtering apply upper bound limit, i.e., hrf <= UPPER_BOUND")
+    # parser.add_argument("-lbl",
+    #                     "--lower-bound-limit",
+    #                     dest="lower_bound",
+    #                     metavar="LOWER_BOUND",
+    #                     action="store",
+    #                     default=50,
+    #                     help="When filtering apply upper bound limit, i.e., LOWER_BOUND <= hrf")
+
     parser.add_argument("-rint",
                         "--round-to-int",
                         dest="round_to_int",
