@@ -96,7 +96,7 @@ def clean_procedures(inputdir, options):
         os.makedirs(outputdir_path)
     tools.filter.ds_filter(inputdir, outputdir_path, keep_time=options['keep_time'],
                            cutoff_limits=options['limits'], round_to_int=options["round_to_int"],
-                           hrf_col=abs(options["hrf-col"]), suffix=filtered_suffix)
+                           hrf_col=abs(options["column"]), suffix=filtered_suffix)
     logger.info("Finished filter procedures")
     return
 
