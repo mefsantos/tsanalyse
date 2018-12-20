@@ -162,6 +162,15 @@ if __name__ == "__main__":
     options = vars(args)
     # parser definition ends
 
+    opts_to_protect = ["level", "dimension", "tolerance", "round_digits"]
+    for option_key in opts_to_protect:
+        if option_key in options.keys():
+           options[option_key] = None if not options[option_key] else abs(options[option_key])
+    #
+    # options["dimension"] = abs(options["dimension"])
+    # options["tolerance"] = abs(options["tolerance"])
+    # options["round_digits"] = abs(options["round_digits"])
+
     logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
                                     log_level=options["log_level"], with_first_entry="TSAnalyseDirect")
 
