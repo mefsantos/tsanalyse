@@ -54,7 +54,7 @@ class TestCleanModule(unittest.TestCase):
     """
         if not os.path.exists('unittest_dataset_filtered'):
             os.mkdir('unittest_dataset_filtered')
-        tools.filter.ds_filter('unittest_dataset', 'unittest_dataset_filtered', False, apply_limits=True)
+        tools.filter.ds_filter('unittest_dataset', 'unittest_dataset_filtered', False, cutoff_limits=[50, 250])
         self.assertEqual(os.listdir('unittest_dataset'), os.listdir('unittest_dataset_filtered'))
         fdorig = open('unittest_dataset/adulterado.txt')
         fdclean = open('unittest_dataset_filtered/adulterado.txt')

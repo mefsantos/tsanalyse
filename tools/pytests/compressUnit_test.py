@@ -4,7 +4,6 @@ import os
 import shutil
 import unittest
 
-
 class TestCompressModule(unittest.TestCase):
     """
     Tests for the compress module
@@ -18,7 +17,7 @@ class TestCompressModule(unittest.TestCase):
     def setUpClass(cls):
         if not os.path.exists('unittest_dataset_filtered'):
             os.mkdir('unittest_dataset_filtered')
-        tools.filter.ds_filter('unittest_dataset/adulterado.txt', 'unittest_dataset_filtered', apply_limits=True)
+        tools.filter.ds_filter('unittest_dataset/adulterado.txt', 'unittest_dataset_filtered', cutoff_limits=[50, 250])
 
     @classmethod
     def tearDownClass(cls):

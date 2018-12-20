@@ -167,6 +167,22 @@ if __name__ == "__main__":
     args = parser.parse_args()
     options = vars(args)
 
+    opts_to_protect = ["dimension", "tolerance", "round_digits", "scale_start", "scale_stop", "scale_step",
+                       "mul_order", "round_digits"]
+    for option_key in opts_to_protect:
+        if option_key in options.keys():
+            options[option_key] = None if not options[option_key] else abs(options[option_key])
+
+    # options["dimension"] = abs(options["dimension"])
+    # options["tolerance"] = abs(options["tolerance"])
+    # options["round_digits"] = abs(options["round_digits"])
+    #
+    # options["start"] = abs(options["start"])
+    # options["stop"] = abs(options["stop"])
+    # options["step"] = abs(options["step"])
+    # options["mul_order"] = abs(options["mul_order"])
+    # options["round_digits"] = None if not options["round_digits"] else abs(options["round_digits"])
+
     options["decompress"] = None  # decompress is disabled. This os the shortest mod without deleting code
 
     logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
@@ -200,8 +216,8 @@ if __name__ == "__main__":
 
         if options['round']:
             scales_dir += "_int"
-        if options['mul_order'] != -1:
-            scales_dir += '_%d' % (options['mul_order'])
+        if options['mul_order'] != 1:
+            scales_dir += '_x%d' % (options['mul_order'])
 
         if options["scale_step"] == 0:
             logger.warning("Step value cannot be 0 (current: %s). Falling back to the minimum acceptable (1)."

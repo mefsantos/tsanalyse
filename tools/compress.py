@@ -112,9 +112,11 @@ def compress(input_name, compression_algorithm, level, decompress=False,
 
     * optional
     """
+    level = abs(level)
+    digits_to_round = None if not digits_to_round else abs(digits_to_round)
 
     compressed = {}
-    method_to_call = getattr(sys.modules[__name__], compression_algorithm + '_compress')
+    method_to_call = getattr(sys.modules[__name__], compression_algorithm.lower() + '_compress')
 
     if level > AVAILABLE_COMPRESSORS[compression_algorithm][1]:
         level = AVAILABLE_COMPRESSORS[compression_algorithm][1]
