@@ -95,7 +95,7 @@ def clean_procedures(inputdir, options):
         logger.info("Creating directory %s" % outputdir_path)
         os.makedirs(outputdir_path)
     tools.filter.ds_filter(inputdir, outputdir_path, keep_time=options['keep_time'],
-                           apply_limits=options['apply_limits'], round_to_int=options["round_to_int"],
+                           cutoff_limits=options['limits'], round_to_int=options["round_to_int"],
                            hrf_col=abs(options["hrf-col"]), suffix=filtered_suffix)
     logger.info("Finished filter procedures")
     return
@@ -119,6 +119,8 @@ if __name__ == "__main__":
 
     logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
                                     log_level=options["log_level"], with_first_entry="TSFilter")
+
+    options["limits"] = None if not options["limits"] else map(lambda x: abs(x), options["limits"])
 
     # here we protect the execution for the case of sending multiple files as a string - required by other interfaces
     iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options['input_path']

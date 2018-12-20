@@ -31,7 +31,7 @@ ENTRY POINT: NONE
 import os
 
 
-# this will be set at runtime when each interface is load so we get the exact (and correct) path
+# might need to set these at runtime when each interface is load so we get the exact (and correct) path
 TSA_HOME = os.path.abspath(".")
 TSFILTER_PATH = os.path.join(TSA_HOME, "TSFilter.py")
 TSADIRECT_PATH = os.path.join(TSA_HOME, "TSAnalyseDirect.py")
@@ -45,3 +45,4 @@ FILE_BLOCKS_STORAGE_PATH = os.path.join(TSA_HOME, "file_blocks")
 STV_ANALYSIS_STORAGE_PATH = os.path.join(TSA_HOME, "stv_analysis")
 
 DEFAULT_LOG_LEVEL = "INFO"
+DEFAULT_CUTOFF_LIMITS = [50,250]

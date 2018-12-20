@@ -35,19 +35,23 @@ Optionally a limit may be applied to eliminate signal loss, we consider the
 signal to be lost if hrf is below 50 or above 250. If a particular line is
 considered as signal lost it is omitted from the resulting file.
 
-ENTRY POINT: clean(input_name,dest_dir, keep_time=False, apply_limits=False)
+ENTRY POINT: clean(input_name,dest_dir, keep_time=False, cutoff_limits=[50,250])
 """
 
 import os
 import shutil
 import logging
 import utilityFunctions as util
+import constants
 
 module_logger = logging.getLogger('tsanalyse.filter')
 
+CUTOFF_LIMITS = constants.DEFAULT_CUTOFF_LIMITS
+
 
 # ENTRY POINT FUNCTIONS
-def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_to_int=False, hrf_col=1, suffix=None):
+def ds_filter(input_name, dest_dir, keep_time=False, cutoff_limits=CUTOFF_LIMITS,
+              round_to_int=False, hrf_col=1, suffix=None):
     """
     (str,str,bool,bool,bool) -> Nonetype
 
@@ -58,7 +62,7 @@ def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_t
     :param input_name: name of the dataset to read
     :param dest_dir: output directory
     :param keep_time: flag to keep the time column of the original dataset
-    :param apply_limits: flag to apply limits between sections
+    :param cutoff_limits: the cutoff limits to apply to the hrf
     :param round_to_int: flag to round the time series to integer
     :param hrf_col: column to parse the hrf values
     :param suffix: suffix to add to the destination file name. Used when user specifies the output location but
@@ -72,7 +76,7 @@ def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_t
         for filename in filelist:
             clean_file(os.path.join(input_name, filename.strip()),
                        os.path.join(dest_dir, filename.strip()),
-                       keep_time, apply_limits, round_to_int=round_to_int, hrf_col=hrf_col)
+                       keep_time, cutoff_limits, round_to_int=round_to_int, hrf_col=hrf_col)
     else:
         filename = os.path.basename(input_name)
         dest_file = filename
@@ -86,12 +90,12 @@ def ds_filter(input_name, dest_dir, keep_time=False, apply_limits=False, round_t
             module_logger.debug("destination file after split and insert: %s" % dest_file)
             print(dest_file)
         dest_filename = os.path.join(dest_dir, dest_file)
-        clean_file(input_name,dest_filename,
-                   keep_time, apply_limits, round_to_int=round_to_int, hrf_col=hrf_col)
+        clean_file(input_name, dest_filename,
+                   keep_time, cutoff_limits, round_to_int=round_to_int, hrf_col=hrf_col)
 
 
 # IMPLEMENTATION
-def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=False, hrf_col=1):
+def clean_file(input_file, dest_file, keep_time, cutoff_limits, round_to_int=False, hrf_col=1):
     """
 
     (str, str, bool, bool) -> NoneType
@@ -101,7 +105,6 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
     :param input_file: file to read
     :param dest_file: output file
     :param keep_time: flag to keep the time column of the original dataset
-    :param apply_limits: flag to apply limits between sections
     :param round_to_int: flag to round the time series to integer
     :param hrf_col: column to parse the hrf values
 
@@ -166,12 +169,13 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
                                 hrf = round(float(data[hrf_col]) / 1000, 3)
                             if round_to_int:
                                 hrf = round(hrf)
-                            if not apply_limits:
+                            if not cutoff_limits:
                                 if keep_time:
                                     time = data[0]
                                     fdout.write("%s " % time)
                                 fdout.write(floating_point_param % hrf)
-                            elif 50 <= hrf <= 250:
+
+                            elif min(cutoff_limits) <= hrf <= max(cutoff_limits):
                                 if keep_time:
                                     time = data[0]
                                     fdout.write("%s " % time)
@@ -180,11 +184,14 @@ def clean_file(input_file, dest_file, keep_time, apply_limits, round_to_int=Fals
         if not single_column_dataset:
             module_logger.info("Storing file in: %s" % os.path.abspath(dest_file))
         else:
-            module_logger.info("Deleting corrupted output file...")
+            module_logger.info("Deleting corrupt output file...")
             try:
                 os.remove(dest_file)
             except OSError as error:
                 module_logger.warning("%s. Skipping..." % error[1])
+
+        if os.path.getsize(dest_file) <= 0:
+            module_logger.warning("File '%s' is empty" % os.path.basename(dest_file))
 
 
 # AUXILIARY FUNCTIONS
@@ -212,29 +219,14 @@ def add_parser_options(parser):
                         action="store_true",
                         default=False,
                         help="When filtering keep both the hrf and time stamp")
-    parser.add_argument("-lim",
-                        "--apply-limits",
-                        dest="apply_limits",
-                        action="store_true",
-                        default=False,
-                        help="When filtering apply limit cutoffs, i.e., 50 <= hrf <= 250")
-
-    # TODO: based on Teresa answer, either use two flags (like below) or the same -lim flag and a pair with the cutoff limits
-
-    # parser.add_argument("-ubl",
-    #                     "--upper-bound-limit",
-    #                     dest="upper_bound",
-    #                     metavar="UPPER_BOUND",
-    #                     action="store",
-    #                     default=250,
-    #                     help="When filtering apply upper bound limit, i.e., hrf <= UPPER_BOUND")
-    # parser.add_argument("-lbl",
-    #                     "--lower-bound-limit",
-    #                     dest="lower_bound",
-    #                     metavar="LOWER_BOUND",
-    #                     action="store",
-    #                     default=50,
-    #                     help="When filtering apply upper bound limit, i.e., LOWER_BOUND <= hrf")
+    parser.add_argument('-lims',
+                        '--cutoff-limits',
+                        dest="limits",
+                        nargs=2,
+                        type=int,
+                        metavar=('LOWER_BOUND','UPPER_BOUND'),
+                        default=None,
+                        help='When filtering apply limit cutoffs, i.e., LOWER_BOUND <= hrf <= UPPER_BOUND.')
 
     parser.add_argument("-rint",
                         "--round-to-int",
