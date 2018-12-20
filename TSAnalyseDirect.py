@@ -162,14 +162,16 @@ if __name__ == "__main__":
     options = vars(args)
     # parser definition ends
 
-    opts_to_protect = ["level", "dimension", "tolerance", "round_digits"]
+    opts_to_protect = ["level", "dimension", "sd_tolerance", "unique_tolerance", "round_digits"]
     for option_key in opts_to_protect:
-        if option_key in options.keys():
+        if option_key in options.keys() and options[option_key] != 0:
            options[option_key] = None if not options[option_key] else abs(options[option_key])
     #
     # options["dimension"] = abs(options["dimension"])
     # options["tolerance"] = abs(options["tolerance"])
     # options["round_digits"] = abs(options["round_digits"])
+
+    print(options)
 
     logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
                                     log_level=options["log_level"], with_first_entry="TSAnalyseDirect")
@@ -265,16 +267,22 @@ if __name__ == "__main__":
                     logger.warning("Compression table is empty. Nothing to write to file")
 
         elif options['command'] == 'entropy':
-            algorithm = options["algorithm"]
+            algorithm = options["algorithm"].lower()
             try:
                 files_stds = tools.entropy.calculate_std(inputdir)
             except OSError as ose:
                 logger.critical("%s - %s" % (ose[1], util.remove_project_path_from_file(inputdir)))
             except IOError as ioe:
                 logger.critical("%s - %s" % (ioe[1], util.remove_project_path_from_file(inputdir)))
-
             else:
-                tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
+                tolerance_used = options["sd_tolerance"]
+                tolerances = dict((filename, files_stds[filename] * options["sd_tolerance"]) for filename in files_stds)
+                if options["unique_tolerance"]:
+                    logger.info("Tolerance does not include Standard Deviation")
+                    tolerances = dict(zip(files_stds.keys(), [options["unique_tolerance"]] * len(files_stds)))
+                    tolerance_used = options["unique_tolerance"]
+                else:
+                    logger.info("Tolerance includes Standard Deviation")
                 logger.debug("Tolerances: %s" % tolerances)
                 try:
                     resulting_dict = tools.entropy.entropy(inputdir, algorithm, options['dimension'], tolerances,
@@ -287,7 +295,7 @@ if __name__ == "__main__":
                     logger.critical("%s - %s" % (voe, util.remove_project_path_from_file(inputdir)))
                 else:
                     outfile = "%s_%s_dim_%d_tol_%.2f.csv" % (
-                        output_name, algorithm, options['dimension'], options['tolerance'])
+                        output_name, algorithm, options['dimension'], tolerance_used)
 
                     if not tools.entropy.is_entropy_table_empty(resulting_dict):
                         output_file = open(outfile, "w")

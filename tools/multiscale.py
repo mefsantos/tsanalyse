@@ -182,7 +182,7 @@ def multiscale_compression(input_name, scales_dir, start, stop, step, compressor
 
 
 def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_function, dimension, tolerance,
-                       round_digits=None):
+                       use_sd_tolerance=True, round_digits=None):
     """
     Calculate the multiscale entropy for a file or directory.
 
@@ -200,6 +200,7 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
     :param entropy_function: entropy algorithm to use
     :param dimension: matrix dimension
     :param tolerance: tolerance to use
+    :param use_sd_tolerance: flag to decide whether or not to multiply the tolerance by the standard deviation
     :param round_digits: numbers of digits to round
     :return dictionary of 'string:EntropyData'
     """
@@ -211,6 +212,13 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
         filelist = util.listdir_no_hidden(input_name)
         files_stds = calculate_std(os.path.join("%s_Scales" % input_name, "Scale %d" % start))
         tolerances = dict((filename, files_stds[filename] * tolerance) for filename in files_stds)
+
+        if not use_sd_tolerance:
+            module_logger.info("Tolerance does not include Standard Deviation")
+            tolerances = dict(zip(files_stds.keys(), [tolerance] * len(files_stds)))
+        else:
+            module_logger.info("Tolerance includes Standard Deviation")
+
         for filename in filelist:
 
             entropy_table[filename] = []
@@ -246,6 +254,11 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
                                        % (ixe, util.remove_project_path_from_file(filename)))
         else:
             tolerances = dict((filename, file_std[fname] * tolerance) for fname in file_std)
+            if not use_sd_tolerance:
+                module_logger.info("Tolerance does not include Standard Deviation")
+                tolerances = dict(zip(file_std.keys(), [tolerance] * len(file_std)))
+            else:
+               module_logger.info("Tolerance includes Standard Deviation")
 
             entropy_table[filename] = []
             for scale in range(start, stop, step):

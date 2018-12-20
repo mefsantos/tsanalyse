@@ -185,6 +185,13 @@ if __name__ == "__main__":
     logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
                                     log_level=options["log_level"], with_first_entry="TSAnalyseFileBlocks")
 
+    # lets protect the execution by forcing absolute values
+    opts_to_protect = ["partition_start", "section", "gap",
+                       "dimension", "sd_tolerance", "unique_tolerance", "round_digits"]
+    for option_key in opts_to_protect:
+        if option_key in options.keys() and options[option_key] != 0:
+            options[option_key] = None if not options[option_key] else abs(options[option_key])
+
     # THESE OPTIONS ARE DISABLED FOR NOW
     options['start_at_end'] = False
     options['decompress'] = None
@@ -242,11 +249,6 @@ if __name__ == "__main__":
         block_minutes = {}
         logger.info("Partitioning file in %d seconds intervals with %d seconds gaps" % (options['section'],
                                                                                         options['gap']))
-
-        # lets protect the execution by forcing absolute values
-        options['partition_start'] = abs(options['partition_start'])
-        options['section'] = abs(options['section'])
-        options['gap'] = abs(options['gap'])
 
         # note: Mara probably used the gap to jump from the initial entry and not the last ??
         if options['gap'] == 0:
@@ -355,7 +357,8 @@ if __name__ == "__main__":
                         logger.warning("Compression table is empty. Nothing to write to file")
 
                 elif options['command'] == 'entropy':
-                    algorithm = options['algorithm']
+                    algorithm = options['algorithm'].lower()
+                    tolerance_to_use = options["sd_tolerance"]
                     entropy = {}
                     for filename in block_minutes:
                         if len(block_minutes[filename]) > 0:
@@ -371,7 +374,14 @@ if __name__ == "__main__":
                                 logger.critical("%s - %s" % (ioe[1], util.remove_project_path_from_file(blocks_dir)))
                                 remove_blocks_dir(blocks_dir, corrupted=True)
                             else:
-                                tolerances = dict((filename, files_stds[filename] * options["tolerance"]) for filename in files_stds)
+                                tolerances = dict((filename, files_stds[filename] * options["sd_tolerance"]) for filename in files_stds)
+                                if options["unique_tolerance"]:
+                                    tolerance_to_use = options["unique_tolerance"]
+                                    logger.info("Tolerance does not include Standard Deviation")
+                                    tolerances = dict(zip(files_stds.keys(),[options["unique_tolerance"]] * len(files_stds)))
+                                else:
+                                    logger.info("Tolerance includes Standard Deviation")
+
                                 try:
                                     entropy[bfile] = tools.entropy.entropy(os.path.join(blocks_dir, "%s_blocks" % bfile),
                                                                            algorithm, options['dimension'],
@@ -394,7 +404,7 @@ if __name__ == "__main__":
                         for filename in entropy:
                             fboutsuffix = "%s_%s_%s_dim_%d_tol_%.2f.csv" % (os.path.basename(filename), file_blocks_suffix,
                                                                             algorithm, options['dimension'],
-                                                                            options['tolerance'])
+                                                                            tolerance_to_use)
                             fboutname = os.path.join(output_location, fboutsuffix)
 
                             file_to_write = open(fboutname, "w")

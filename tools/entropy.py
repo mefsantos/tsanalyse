@@ -418,8 +418,13 @@ def add_parser_options(parser):
                         help="Specifies the entropy algorithm to use. "
                              "Available algorithms: " + ", " .join(AVAILABLE_ALGORITHMS))
     
-    parser.add_argument('-t', '--tolerance', dest="tolerance", type=float, action="store", metavar="TOLERANCE",
-                        help="Tolerance level to be used when calculating sample entropy. [default:%(default)s]",
-                        default=0.1)
+    parser.add_argument('-sdt', '--sd-tolerance', dest="sd_tolerance", type=float, action="store", metavar="TOLERANCE",
+                        help="Tolerance level (TOLERANCE x Standard Deviation) to be used when "
+                             "calculating sample entropy. [default:%(default)s]",
+                        default=0.15)
+    parser.add_argument('-ut', '--unique-tolerance', dest="unique_tolerance", type=float, action="store", metavar="TOLERANCE",
+                        help="Tolerance level to be used directly (without multiplying by the Standard Deviation)"
+                             " when calculating sample entropy.",
+                        default=None)
     parser.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
                         help="Matrix Dimension. [default:%(default)s]", default=2)
