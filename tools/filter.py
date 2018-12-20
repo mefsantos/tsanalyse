@@ -105,6 +105,7 @@ def clean_file(input_file, dest_file, keep_time, cutoff_limits, round_to_int=Fal
     :param input_file: file to read
     :param dest_file: output file
     :param keep_time: flag to keep the time column of the original dataset
+    :param cutoff_limits: the cutoff limits to apply to the hrf
     :param round_to_int: flag to round the time series to integer
     :param hrf_col: column to parse the hrf values
 
@@ -224,10 +225,9 @@ def add_parser_options(parser):
                         dest="limits",
                         nargs=2,
                         type=int,
-                        metavar=('LOWER_BOUND','UPPER_BOUND'),
+                        metavar=('LOWER_BOUND', 'UPPER_BOUND'),
                         default=None,
                         help='When filtering apply limit cutoffs, i.e., LOWER_BOUND <= hrf <= UPPER_BOUND.')
-
     parser.add_argument("-rint",
                         "--round-to-int",
                         dest="round_to_int",
