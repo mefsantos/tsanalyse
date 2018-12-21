@@ -53,6 +53,7 @@ import timeit
 import logging
 import subprocess
 from collections import namedtuple
+from shutil import rmtree
 
 try:
     import utilityFunctions as util
@@ -75,11 +76,11 @@ module_logger = logging.getLogger('tsanalyse.compress')
 
 # DATA TYPE DEFINITIONS
 """
-This is a data type defined to be used as a return for compression it has three attributes:
+This is a data type defined to be used as a return for compression it has four attributes:
     - original: contains the original size of the file
     - compressed: the size of the resulting compressed file
-    - compression_rate: the compression rate of the file
-    - time: the time it takes to decompress (null if the timing is not run)
+    - compression_rate: the compression rate of the file (None if its not computed)
+    - time: the time it takes to decompress (None if the timing is not run)
 """
 CompressionData = namedtuple('CompressionData', 'original compressed compression_rate time')
 
@@ -92,8 +93,6 @@ util.setup_environment()
 def compress(input_name, compression_algorithm, level, decompress=False,
              with_compression_rate=False, digits_to_round=None):
     """
-    (str,str,int,bool)-> dict of str : CompressionData
-
     Given a file or directory named input_name, apply the desired
     compression algorithm to all the files. Optionally a timing on
     decompression may also be run.
@@ -101,13 +100,13 @@ def compress(input_name, compression_algorithm, level, decompress=False,
     Levels will be set to the compressor's maximum or minimum respectively
     if the level passed as argument is not valid.
 
-    :param input_name: name of the dataset to read
-    :param compression_algorithm: the compressor to use
-    :param level: the level of compression
-    :param decompress: flag to determine whether to output the decompression time or not
-    :param with_compression_rate: flag to determine whether to output the compression rate or not
-    :param digits_to_round: number of digits to use when rounding floats/doubles
-    :return dictionary of 'string:CompressionData' with:
+    :param input_name: string containing the name of the dataset to read
+    :param compression_algorithm: string containing the name of the compressor to use
+    :param level: integer containing the level of compression to use
+    :param decompress: boolean flag to determine whether to output the decompression time or not
+    :param with_compression_rate: boolean flag to determine whether to compute the compression rate or not
+    :param digits_to_round: integer containing the number of digits to use when rounding floats/doubles
+    :return dictionary of 'string : CompressionData' with:
         the original size, compressed size, compression rate*, decompression time*
 
     * optional
@@ -147,8 +146,6 @@ def compress(input_name, compression_algorithm, level, decompress=False,
 # IMPLEMENTATION
 def gzip_compress(inputfile, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
-    (str, int, bool)-> CompressionData
-
     Compresses one file using the python implementation of zlib.
 
     NOTE: Although this uses the name gzip the actual tool being used
@@ -157,11 +154,11 @@ def gzip_compress(inputfile, level, decompress, compute_compression_rate=None, d
     gzip and zlib is the header added to the compressed file, which is not in the
     resulting compressed string, nor is it added in our case.
 
-    :param inputfile: file to read
-    :param level: level of compression
-    :param decompress: flag to enable the decompression time
-    :param compute_compression_rate: flag to enable the compression rate
-    :param digits_to_round: number of digits to use when rounding floats/doubles
+    :param input_file: string containing the name of the file to read
+    :param level: integer containing the level of compression to use
+    :param decompress: boolean flag to obtain the decompression time
+    :param compute_compression_rate: boolean flag to enable computing the compression rate
+    :param digits_to_round: integer containing the number of digits to use when rounding floats/doubles
     :return  CompressionData
     """
 
@@ -186,35 +183,43 @@ def gzip_compress(inputfile, level, decompress, compute_compression_rate=None, d
 
 def paq8l_compress(input_file, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
-    (str, int, bool) -> CompressionData
-
-    Compresses one file using the paq8l compressor, the size is
-    determined by querying the file paq8l creates, this temporary file
+    Compresses one file using the paq8l compressor.
+    The size is determined by querying the file paq8l creates, this temporary file
     is removed at the end of this function.
 
-    :param input_file: file to read
-    :param level: level of compression
-    :param decompress: flag to enable the decompression time
-    :param compute_compression_rate: flag to enable the compression rate
-    :param digits_to_round: number of digits to use when rounding floats/doubles
+    :param input_file: string containing the name of the file to read
+    :param level: integer containing the level of compression to use
+    :param decompress: boolean flag to obtain the decompression time
+    :param compute_compression_rate: boolean flag to enable computing the compression rate
+    :param digits_to_round: integer containing the number of digits to use when rounding floats/doubles
     :return  CompressionData
     """
-    subprocess.check_output('paq8l -%d "%s"' % (level, input_file),
-                            shell=True,
-                            stderr=subprocess.STDOUT)
+    subprocess.check_output('paq8l -%d "%s"' % (level, input_file), shell=True, stderr=subprocess.STDOUT)
     original_size = int(os.stat(input_file).st_size)
     compressed_size = int(os.stat(input_file + '.paq8l').st_size)
     compression_rate = None
     decompress_time = None
+    #
+    # if decompress:
+    #     decompress_time = min(timeit.repeat(
+    #         'subprocess.check_output(\'paq8l -d "%s.paq8l"\',shell=True,stderr=subprocess.STDOUT)' % input_file,
+    #         number=1,
+    #         repeat=3,
+    #         setup='import subprocess'))
 
     if decompress:
-        decompress_time = min(timeit.repeat(
-            'subprocess.check_output(\'paq8l -d "%s.paq8l"\',shell=True,stderr=subprocess.STDOUT)' % input_file,
-            number=1,
-            repeat=3,
-            setup='import subprocess'))
+        decompress_time = min(
+            timeit.repeat(
+                'subprocess.check_output({0},'
+                ' shell=True,'
+                ' stderr=subprocess.STDOUT)'.format('paq8l -%d "%s"' % (level, input_file)),
+                number=1,
+                repeat=3,
+                setup='import subprocess'
+            )
+        )
 
-    os.remove('%s.paq8l' % input_file)
+    rmtree('%s.paq8l' % input_file, ignore_errors=True)
 
     if compute_compression_rate:
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
@@ -225,8 +230,6 @@ def paq8l_compress(input_file, level, decompress, compute_compression_rate=None,
 
 def lzma_compress(input_file, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
-    (str,int,bool) -> CompressionData
-
     Compresses one file using the python implementation of lzma.
 
     NOTE: The lzma module was created for python3, the backported version for
@@ -234,11 +237,11 @@ def lzma_compress(input_file, level, decompress, compute_compression_rate=None, 
     code backwards compatible so the level parameter is never used. The
     default the level being used is 6.
 
-    :param input_file: file to read
-    :param level: level of compression
-    :param decompress: flag to enable the decompression time
-    :param compute_compression_rate: flag to enable the compression rate
-    :param digits_to_round: number of digits to use when rounding floats/doubles
+    :param input_file: string containing the name of the file to read
+    :param level: integer containing the level of compression to use
+    :param decompress: boolean flag to obtain the decompression time
+    :param compute_compression_rate: boolean flag to enable computing the compression rate
+    :param digits_to_round: integer containing the number of digits to use when rounding floats/doubles
     :return  CompressionData
      """
 
@@ -263,16 +266,13 @@ def lzma_compress(input_file, level, decompress, compute_compression_rate=None, 
 
 def bzip2_compress(input_file, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
-    (str, int, bool) -> CompressionData
-
     Compresses one file using the python implementation of bzip2.
 
-
-    :param input_file: file to read
-    :param level: level of compression
-    :param decompress: flag to enable the decompression time
-    :param compute_compression_rate: flag to enable the compression rate
-    :param digits_to_round: number of digits to use when rounding floats/doubles
+    :param input_file: string containing the name of the file to read
+    :param level: integer containing the level of compression to use
+    :param decompress: boolean flag to obtain the decompression time
+    :param compute_compression_rate: boolean flag to enable computing the compression rate
+    :param digits_to_round: integer containing the number of digits to use when rounding floats/doubles
     :return  CompressionData
     """
 
@@ -298,25 +298,21 @@ def bzip2_compress(input_file, level, decompress, compute_compression_rate=None,
 
 def ppmd_compress(input_file, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
-    (str, int, bool) -> CompressionData
-
     Compresses one file using the ppmd compressor.
 
     NOTE: This algorithm does not have a standard level, but the model
     order behaves as a compression level, so level here refers to the
     order level. Maximum memory is always used.
 
-    :param input_file: file to read
-    :param level: level of compression
-    :param decompress: flag to enable the decompression time
-    :param compute_compression_rate: flag to enable the compression rate
-    :param digits_to_round: number of digits to use when rounding floats/doubles
+    :param input_file: string containing the name of the file to read
+    :param level: integer containing the level of compression to use
+    :param decompress: boolean flag to obtain the decompression time
+    :param compute_compression_rate: boolean flag to enable computing the compression rate
+    :param digits_to_round: integer containing the number of digits to use when rounding floats/doubles
     :return  CompressionData
     """
-    # subprocess.call('ppmd e -s -f"%s.ppmd" -m256 -o%d "%s"' % (input_file, level, input_file), shell=True)
 
-    # change the previous line to this so the ppmd compressor does not output an empty line into the shell
-    subprocess.check_output('ppmd e -s -f"%s.ppmd" -m256 -o%d "%s"' % (input_file, level, input_file), shell=True,
+    subprocess.check_output('ppmd e -s -f"{0}.ppmd" -m256 -o{1} "{0}"'.format(input_file, level), shell=True,
                             stderr=subprocess.STDOUT)
 
     original_size = int(os.stat(input_file).st_size)
@@ -325,13 +321,23 @@ def ppmd_compress(input_file, level, decompress, compute_compression_rate=None, 
     decompress_time = None
     if decompress:
         decompress_time = min(
+            # timeit.repeat(
+            #     'subprocess.call(\'ppmd d -s "%s.ppmd"\',shell=True,stderr=subprocess.STDOUT)' % input_file,
+            #     number=5,
+            #     repeat=3,
+            #     setup='import subprocess'))
+
             timeit.repeat(
-                'subprocess.call(\'ppmd d -s "%s.ppmd"\',shell=True,stderr=subprocess.STDOUT)' % input_file,
+                'subprocess.check_output({0},'
+                ' shell=True,'
+                ' stderr=subprocess.STDOUT)'.format('ppmd e -s -f"{0}.ppmd" -m256 -o{1} "{0}"'.format(input_file, level)),
                 number=5,
                 repeat=3,
-                setup='import subprocess'))
+                setup='import subprocess'
+            )
+        )
 
-    os.remove('%s.ppmd' % input_file)
+    rmtree('%s.ppmd' % input_file, ignore_errors=True)
 
     if compute_compression_rate:
         compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
@@ -342,17 +348,16 @@ def ppmd_compress(input_file, level, decompress, compute_compression_rate=None, 
 
 def spbio_compress(input_file, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
-    (str, int, bool) -> CompressionData
-
     Compresses one file using the spbio tool.
 
     NOTE: This compressor is only available for Windows and has no
     compression levels.
 
-    :param input_file: file to read
-    :param level: level of compression
-    :param decompress: flag to enable the decompression time
-    :param compute_compression_rate: flag to enable the compression rate
+    :param input_file: string containing the name of the file to read
+    :param level: integer containing the level of compression to use
+    :param decompress: boolean flag to obtain the decompression time
+    :param compute_compression_rate: boolean flag to enable computing the compression rate
+    :param digits_to_round: integer containing the number of digits to use when rounding floats/doubles
     :return  CompressionData
     """
 
@@ -373,18 +378,13 @@ def spbio_compress(input_file, level, decompress, compute_compression_rate=None,
 
 def brotli_compress(input_file, level, decompress, compute_compression_rate=None, digits_to_round=None):
     """
-    @param input_file
-    @param level
-    @param decompress
-    @return CompressionData
-
     Compresses one file using the brotli algorithm by google.
 
-    :param input_file: file to read
-    :param level: level of compression
-    :param decompress: flag to enable the decompression time
-    :param compute_compression_rate: flag to enable the compression rate
-    :param digits_to_round: number of digits to use when rounding floats/doubles
+    :param input_file: string containing the name of the file to read
+    :param level: integer containing the level of compression to use
+    :param decompress: boolean flag to obtain the decompression time
+    :param compute_compression_rate: boolean flag to enable computing the compression rate
+    :param digits_to_round: integer containing the number of digits to use when rounding floats/doubles
     :return  CompressionData
     """
 
@@ -455,13 +455,12 @@ def test_compressors():
             #         available[compressor] = compressor_list[compressor]
             #         print "PATH %s EXIST!!!" % os.path.join(dir_in_path, compressor)
     # print("Available compressors: %s" % available)
-    module_logger.info("Available compressors: %s" % available)
+    module_logger.info("Available compressors: %s" % available.keys())
     return available
 
 
-# A constant variable with the list of available compressors in the path
+# A constant with the list of available compressors in the path
 AVAILABLE_COMPRESSORS = test_compressors()
-module_logger.debug(AVAILABLE_COMPRESSORS)
 
 
 def add_parser_options(parser):
@@ -517,9 +516,6 @@ def set_level(options):
     :param options: a dictionary containing all the parser options
     :return the correct level to be used by the compressor
     """
-    # max_level = AVAILABLE_COMPRESSORS[options['compressor']][1]
-    # min_level = AVAILABLE_COMPRESSORS[options['compressor']][0]
-
     max_level = max(AVAILABLE_COMPRESSORS[options['compressor']])
     min_level = min(AVAILABLE_COMPRESSORS[options['compressor']])
 

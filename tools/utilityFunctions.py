@@ -28,7 +28,6 @@ numpy (http://numpy.scipy.org/),
 pandas (http://pandas.pydata.org/)
 scipy (https://www.scipy.org/)
 
-ENTRY POINT: NONE
 
 """
 # TODO: fix debug flags, adjust debug to comprise levels used in argument parser
@@ -40,16 +39,6 @@ import pandas as pd
 import logging as log
 import itertools as it
 import scipy.stats as st
-
-# HRF package home location - when called by package main scripts, i.e.: TSAnalyse[Direct,MultiScale,...]
-# TSA_HOME = os.path.abspath(".")
-# TMP_DIR = os.path.join(TSA_HOME, "tmp")
-# RUN_ISOLATED_FILES_PATH = os.path.join(TSA_HOME, "individual_runs")
-# BLOCK_ANALYSIS_OUTPUT_PATH = os.path.join(TSA_HOME, "block_analysis")
-# FILE_BLOCKS_STORAGE_PATH = os.path.join(TSA_HOME, "file_blocks")
-# STV_ANALYSIS_STORAGE_PATH = os.path.join(TSA_HOME, "stv_analysis")
-
-# DEFAULT_LOG_LEVEL = "INFO"
 
 TSA_HOME = constants.TSA_HOME
 TMP_DIR = constants.TMP_DIR
@@ -63,8 +52,11 @@ DEFAULT_LOG_LEVEL = constants.DEFAULT_LOG_LEVEL
 module_logger = log.getLogger("tsanalyse.util")
 
 
-# Setup the environment with the compressors' path we need
 def setup_environment():
+    """
+    Setup the environment with the compressors' path needed for the compress module
+    :return:
+    """
     paq8l_bin_path = os.path.join(TSA_HOME, "algo", "paq8l_src")
     ppmd_bin_path = os.path.join(TSA_HOME, "algo", "ppmd_src")
 
@@ -76,8 +68,14 @@ def setup_environment():
     return
 
 
-# setup temp directory with respective files. It will also return the path for the temporary location created
+#
 def setup_tmp_location(list_of_files, dataset_name):
+    """
+    setup temp directory with respective files. It will also return the path for the temporary location created
+    :param list_of_files: files to copy
+    :param dataset_name: name of the dataset in the tmp location
+    :return: path for the temporary location
+    """
     tmp_dir = os.path.join(TMP_DIR, dataset_name)
     dir_has_no_file = True
     if not os.path.exists(tmp_dir):
@@ -111,11 +109,14 @@ def cleanup_tmp_location():
 
 
 def files_are_relatable(list_of_files):
-    # iterate over the list of files
-    # if they belong to the same folder (os.path.dirname) they are relatable, otherwise they are not
-    # we can simplify by getting the first file's dirname and checking if exists
+    """
+    iterate over the list of files
+    if they belong to the same folder (os.path.dirname) they are relatable, otherwise they are not
+    we can simplify by getting the first file's dirname and checking if exists
+    :param list_of_files: list of files to evaluate
+    :return:
+    """
     if type(list_of_files) != list:
-        # raise TypeError("'%s' is not a list. Actual type: %s" % (list_of_files, type(list_of_files)))
         module_logger.error("'%s' is not a list. Actual type: %s" % (list_of_files, type(list_of_files)))
     if len(list_of_files) <= 1:
         module_logger.warning("List contains less than 2 elements")
@@ -583,22 +584,22 @@ def compression_ratio(original, compressed, round_digits=4):
 
 
 # Confidence Interval
-def conf_interval(data_frame, conf_percent=0.95, string_4_header=None, round_digits=None):
+def conf_interval(data_frame, conf_percent=0.95, header_string=None, round_digits=None):
     """
     Computes the Mean, Std. Deviation and Upper and Lower Confidence Intervals on a given dataset.
     :param data_frame: data set to evaluate
     :param conf_percent: percentage of confidence to use [Default: 0.95]
-    :param string_4_header: String to append to the metrics [Default: CR - (Compression Ratio)]
+    :param header_string: String to append to the metrics [Default: CR - (Compression Ratio)]
     :param round_digits: number of digits to use when applying round
     :return: a data frame containing the mean, standard deviation and the confidence interval
     """
-    if string_4_header is None:
-        string_4_header = ""
+    if not header_string:
+        header_string = ""
     res_list = list()
-    df_mean = ["Mean%s" % string_4_header]
-    df_std = ["SDev%s" % string_4_header]
-    df_ci_min = ["LowerCInterval%s" % string_4_header]
-    df_ci_max = ["UpperCInterval%s" % string_4_header]
+    df_mean = ["Mean%s" % header_string]
+    df_std = ["SDev%s" % header_string]
+    df_ci_min = ["LowerCInterval%s" % header_string]
+    df_ci_max = ["UpperCInterval%s" % header_string]
     for i in range(1, len(data_frame.keys())):
 
         df_col = np.array(data_frame.ix[:, i])
@@ -691,13 +692,15 @@ def add_csv_parser_options(parser):
                         "--output-path",
                         dest="output_path",
                         action="store",
+                        metavar="PATH",
                         help="Specifies the path to save the resulting data set containing the metrics "
-                             "to isolate from the input data sets; [default:%(default)s]")
+                             "to isolate from the input data sets;")
 
     parser.add_argument("-rsep",
                         "--read-separator",
                         dest="read_separator",
                         action="store",
+                        metavar="SEPARATOR",
                         default=";",
                         help="Specifies the csv separator character to use in the given input; [default:'%(default)s']")
 
@@ -705,6 +708,7 @@ def add_csv_parser_options(parser):
                         "--write-separator",
                         dest="write_separator",
                         action="store",
+                        metavar="SEPARATOR",
                         default=";",
                         help="Specifies the csv separator character to use in the output files; [default:'%(default)s']")
 
@@ -712,6 +716,7 @@ def add_csv_parser_options(parser):
                         "--line-terminator",
                         dest="line_terminator",
                         action="store",
+                        metavar="TERMINATOR",
                         default="\n",
                         help="Specifies the character to use as line termination; [default:'\\n']")
 
@@ -727,6 +732,7 @@ def add_numbers_parser_options(parser):
                         "--round-digits",
                         dest="round_digits",
                         action="store",
+                        metavar="DIGITS",
                         type=int,
                         help="Specifies number of digits to use when rounding values; [default: %(default)s]")
 

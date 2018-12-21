@@ -124,8 +124,8 @@ def multiscale_compression(input_name, scales_dir, start, stop, step, compressor
     RETURN: Dictionary with filenames as keys and an array of CompressionData
     (one for each scale) as values.
 
-    :param input_name: name of the dataset to read
-    :param scales_dir: directory containing the scales
+    :param input_name: string containing the name of the dataset to read
+    :param scales_dir: string containing the directory with the scales
     :param start: starting scale
     :param stop: ending scale
     :param step: step between scales
@@ -186,22 +186,16 @@ def multiscale_entropy(input_name, scales_dir, start, stop, step, entropy_functi
     """
     Calculate the multiscale entropy for a file or directory.
 
-    ARGUMENTS: String input file/directory name, int start scale, int stop scale,
-    int step between scales, String compressor, int dimension, float tolerance
-
-    RETURN: Dictionary with filenames as keys and an array of EntropyData (one
-    for each scale) as values.
-
-    :param input_name: name of the dataset to read
-    :param scales_dir: directory containing the multiple scales
-    :param start: starting scale
-    :param stop: ending scale
-    :param step: step between scales
-    :param entropy_function: entropy algorithm to use
-    :param dimension: matrix dimension
-    :param tolerance: tolerance to use
-    :param use_sd_tolerance: flag to decide whether or not to multiply the tolerance by the standard deviation
-    :param round_digits: numbers of digits to round
+    :param input_name: string containing the name of the dataset to read
+    :param scales_dir: string containing the directory with the multiple scales
+    :param start: integer containing the starting scale
+    :param stop: integer containing the ending scale
+    :param step: integer containing the step between scales
+    :param entropy_function: string containing the entropy algorithm to use
+    :param dimension: integer containing the matrix dimension
+    :param tolerance: float/double containing the tolerance to use
+    :param use_sd_tolerance: boolean flag to decide whether or not to multiply the tolerance by the standard deviation
+    :param round_digits: integer containing the numbers of digits to round to
     :return dictionary of 'string:EntropyData'
     """
 

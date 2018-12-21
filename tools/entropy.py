@@ -318,10 +318,6 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
     if util.is_empty_file(filename):
         raise ValueError("File {0} is empty".format(filename))
 
-    # with open(filename, "r") as file_d:
-    #     file_data = file_d.readlines()
-    # file_data = list(map(float, file_data))
-
     # -1 to read the last available column
     file_data = util.readlines_with_col_index(filename, col_index=-1, as_type=float)
     # lets force a type cast to float so the error can be caught outside
@@ -329,7 +325,6 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
     module_logger.info("Computing approximate entropy (V2) for file '%s'" % util.remove_project_path_from_file(filename))
 
     data_len = len(file_data)
-
 
     try:
         n_m = [data_len - dimension + 1] * (data_len - dimension + 1)
@@ -399,10 +394,6 @@ def apenv2(filename, dimension, tolerance, round_digits=None):
 # AUXILIARY FUNCTIONS
 def is_entropy_table_empty(entropy_table):
     return all(map(lambda x: len(entropy_table[x]) < 1, entropy_table))
-    # for key in entropy_table.keys:
-    #     if len(entropy_table[key]) <= 1:
-    #         return True
-    # return False
 
 
 def add_parser_options(parser):
@@ -413,18 +404,19 @@ def add_parser_options(parser):
     and are the optional arguments for the entry function in this module
 
     """
-    positional = parser.add_argument_group('positional arguments')
-    positional.add_argument('-a', '--algorithm', dest="algorithm", action="store", metavar="ALGORITHM", required=True,
-                        help="Specifies the entropy algorithm to use. "
-                             "Available algorithms: " + ", " .join(AVAILABLE_ALGORITHMS))
+    # positional = parser.add_argument_group('positional arguments')
+    parser.add_argument('-a', '--algorithm', dest="algorithm", action="store", metavar="ALGORITHM",  # required=True,
+                            default='sampen',
+                            help="Specifies the entropy algorithm to use. "
+                             "Available algorithms: " + ", ".join(AVAILABLE_ALGORITHMS) + " . [default:%(default)s]")
     
     parser.add_argument('-sdt', '--sd-tolerance', dest="sd_tolerance", type=float, action="store", metavar="TOLERANCE",
                         help="Tolerance level (TOLERANCE x Standard Deviation) to be used when "
                              "calculating sample entropy. [default:%(default)s]",
                         default=0.15)
     parser.add_argument('-ut', '--unique-tolerance', dest="unique_tolerance", type=float, action="store", metavar="TOLERANCE",
-                        help="Tolerance level to be used directly (without multiplying by the Standard Deviation)"
+                        help="Tolerance level to be used directly (without being multiplied by the Standard Deviation)"
                              " when calculating sample entropy.",
                         default=None)
-    parser.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="MATRIX DIMENSION",
+    parser.add_argument('-d', '--dimension', dest="dimension", type=int, action="store", metavar="DIMENSION",
                         help="Matrix Dimension. [default:%(default)s]", default=2)

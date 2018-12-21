@@ -225,9 +225,9 @@ def add_parser_options(parser):
                         dest="limits",
                         nargs=2,
                         type=int,
-                        metavar=('LOWER_BOUND', 'UPPER_BOUND'),
+                        metavar=('LOWER', 'UPPER'),
                         default=None,
-                        help='When filtering apply limit cutoffs, i.e., LOWER_BOUND <= hrf <= UPPER_BOUND.')
+                        help='When filtering apply limit cutoffs, i.e., LOWER <= hrf <= UPPER.')
     parser.add_argument("-rint",
                         "--round-to-int",
                         dest="round_to_int",
