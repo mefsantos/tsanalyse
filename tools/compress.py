@@ -360,7 +360,15 @@ def spbio_compress(input_file, level, decompress, compute_compression_rate=None,
     original_size = int(os.stat(input_file).st_size)
     compressed_size = int(os.stat(input_file + '.sph').st_size)
     os.remove(input_file + '.sph')
-    return original_size, compressed_size
+
+    compression_rate = None
+    decompress_time = None
+    if compute_compression_rate:
+        compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
+
+    cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
+
+    return cd
 
 
 def brotli_compress(input_file, level, decompress, compute_compression_rate=None, digits_to_round=None):
@@ -509,8 +517,11 @@ def set_level(options):
     :param options: a dictionary containing all the parser options
     :return the correct level to be used by the compressor
     """
-    max_level = AVAILABLE_COMPRESSORS[options['compressor']][1]
-    min_level = AVAILABLE_COMPRESSORS[options['compressor']][0]
+    # max_level = AVAILABLE_COMPRESSORS[options['compressor']][1]
+    # min_level = AVAILABLE_COMPRESSORS[options['compressor']][0]
+
+    max_level = max(AVAILABLE_COMPRESSORS[options['compressor']])
+    min_level = min(AVAILABLE_COMPRESSORS[options['compressor']])
 
     module_logger.debug("Input level: %s. Available levels: %s" %
                         (options["level"], AVAILABLE_COMPRESSORS[options['compressor']]))

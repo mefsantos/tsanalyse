@@ -134,7 +134,6 @@ def remove_scales_dir(scales, corrupted=False):
         else "Cleaning up scales' directory (%s) ..." % scales
     logger.info(message)
     try:
-        # os.removedirs(scales)
         shutil.rmtree(scales, ignore_errors=False)
     except OSError as err:
         logger.warning("%s (%s)" % (err[1], scales))
@@ -167,8 +166,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     options = vars(args)
 
-    opts_to_protect = ["dimension", "sd_tolerance", "unique_tolerance", "round_digits",
-                       "scale_start", "scale_stop", "scale_step", "mul_order", "round_digits"]
+    opts_to_protect = ["scale_start", "scale_stop", "scale_step", "mul_order",
+                       "dimension", "sd_tolerance", "unique_tolerance", "round_digits"]
     for option_key in opts_to_protect:
         if option_key in options.keys() and options[option_key] != 0:
             options[option_key] = None if not options[option_key] else abs(options[option_key])
@@ -195,7 +194,7 @@ if __name__ == "__main__":
 
     for inputs in iterable_input_path:
         input_dir = inputs.strip()
-        input_dir = util.remove_slash_from_path(input_dir)  # if slash exists
+        input_dir = util.remove_slash_from_path(input_dir)
         input_dir = os.path.expanduser(input_dir)  # to handle the case of paths as a string
 
         scales_dir = '%s_Scales' % (input_dir if os.path.isdir(input_dir)
@@ -383,7 +382,6 @@ if __name__ == "__main__":
                     remove_scales_dir(scales_dir)
 
             if not options["keep_scales"]:
-                # logger.info("Deleting scales directory: %s" % scales_dir)
                 remove_scales_dir(scales_dir)
 
     logger.info("Done")
