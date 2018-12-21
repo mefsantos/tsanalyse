@@ -167,21 +167,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     options = vars(args)
 
-    opts_to_protect = ["dimension", "tolerance", "round_digits", "scale_start", "scale_stop", "scale_step",
-                       "mul_order", "round_digits"]
+    opts_to_protect = ["dimension", "sd_tolerance", "unique_tolerance", "round_digits",
+                       "scale_start", "scale_stop", "scale_step", "mul_order", "round_digits"]
     for option_key in opts_to_protect:
-        if option_key in options.keys():
+        if option_key in options.keys() and options[option_key] != 0:
             options[option_key] = None if not options[option_key] else abs(options[option_key])
-
-    # options["dimension"] = abs(options["dimension"])
-    # options["tolerance"] = abs(options["tolerance"])
-    # options["round_digits"] = abs(options["round_digits"])
-    #
-    # options["start"] = abs(options["start"])
-    # options["stop"] = abs(options["stop"])
-    # options["step"] = abs(options["step"])
-    # options["mul_order"] = abs(options["mul_order"])
-    # options["round_digits"] = None if not options["round_digits"] else abs(options["round_digits"])
 
     options["decompress"] = None  # decompress is disabled. This os the shortest mod without deleting code
 
@@ -338,7 +328,13 @@ if __name__ == "__main__":
                         logger.warning("Compression table is empty. Nothing to write to file")
 
             elif options["command"] == "entropy":
-                algorithm = options['algorithm']
+                tolerance_used = options["sd_tolerance"]
+                use_sd_tolerance = True
+                if options["unique_tolerance"]:
+                    tolerance_used = options["unique_tolerance"]
+                    use_sd_tolerance = False
+
+                algorithm = options['algorithm'].lower()
                 if algorithm == 'apen' or algorithm == 'apenv2' or algorithm == "sampen":
                     outfile = "%s_multiscale_start_%d_end_%d_step_%d_%s_dim_%d_tol_%.2f.csv" % (output_name,
                                                                                                 options["scale_start"],
@@ -346,15 +342,16 @@ if __name__ == "__main__":
                                                                                                 options["scale_step"],
                                                                                                 algorithm,
                                                                                                 options["dimension"],
-                                                                                                options["tolerance"])
+                                                                                                tolerance_used)
                     entropy_table = {}
 
                     try:
                         entropy_table = tools.multiscale.multiscale_entropy(input_dir, scales_dir,
-                                                                        options["scale_start"], options["scale_stop"] + 1,
-                                                                        options["scale_step"], algorithm,
-                                                                        options["dimension"], options["tolerance"],
-                                                                        options["round_digits"])
+                                                                            options["scale_start"],
+                                                                            options["scale_stop"] + 1,
+                                                                            options["scale_step"], algorithm,
+                                                                            options["dimension"], tolerance_used,
+                                                                            use_sd_tolerance, options["round_digits"])
                     except OSError as ose:
                         logger.critical("%s - %s" % (ose[1], input_dir))
                         remove_scales_dir(scales_dir, corrupted=True)
