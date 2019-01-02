@@ -202,14 +202,23 @@ if __name__ == "__main__":
 
     block_analysis_storage = util.BLOCK_ANALYSIS_OUTPUT_PATH
 
-    if specified_output is not None:
-        if os.path.exists(specified_output):
-            logger.info("Using specified output destination.")
-            specified_output = os.path.abspath(specified_output)
-            block_analysis_storage = os.path.join(specified_output, "block_analysis")
-            change_output_location = True
-        else:
-            logger.warning("Specified folder '%s' does not exist. Ignoring..." % specified_output)
+    change_output_location = util.handle_specific_output_path(specified_output, options["override_output"], logger)
+
+    if change_output_location:
+        block_analysis_storage = os.path.join(specified_output, "block_analysis")
+
+    #
+    # if specified_output is not None:
+    #     if os.path.exists(specified_output):
+    #         logger.info("Using specified output destination.")
+    #         specified_output = os.path.abspath(specified_output)
+    #         block_analysis_storage = os.path.join(specified_output, "block_analysis")
+    #         change_output_location = True
+    #     else:
+    #         logger.warning("Specified folder '%s' does not exist." % os.path.abspath(specified_output))
+    #         logger.info("Creating directory %s" % specified_output)
+    #         os.makedirs(specified_output)
+
 
     if not os.path.exists(util.FILE_BLOCKS_STORAGE_PATH):
         logger.warning("Output directory for file blocks does not exist.")

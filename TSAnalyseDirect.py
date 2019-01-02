@@ -171,7 +171,7 @@ if __name__ == "__main__":
     # options["tolerance"] = abs(options["tolerance"])
     # options["round_digits"] = abs(options["round_digits"])
 
-    print(options)
+    # print(options)
 
     logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
                                     log_level=options["log_level"], with_first_entry="TSAnalyseDirect")
@@ -180,17 +180,23 @@ if __name__ == "__main__":
     specified_output = os.path.expanduser(options["output_path"]) if options["output_path"] is not None else None
     specified_output = util.remove_slash_from_path(specified_output)  # if slash exists
 
-    if specified_output is not None:
-        if os.path.exists(specified_output):
-            logger.info("Using specified output destination.")
-            specified_output = os.path.abspath(specified_output)
-            change_output_location = True
-        else:
-            logger.warning("Specified folder '%s' does not exist. Ignoring..." % os.path.abspath(specified_output))
+    change_output_location = util.handle_specific_output_path(specified_output, options["override_output"], logger)
+
+    # already validated (and directory is created) in 'handle_specific_output_path'
+    # if specified_output is not None:
+    #     if os.path.exists(specified_output):
+    #         logger.info("Using specified output destination.")
+    #         specified_output = os.path.abspath(specified_output)
+    #         change_output_location = True
+    #     else:
+    #         # logger.warning("Specified folder '%s' does not exist. Ignoring..." % os.path.abspath(specified_output))
+    #         logger.warning("Specified folder '%s' does not exist." % os.path.abspath(specified_output))
+    #         logger.info("Creating directory %s" % specified_output)
+    #         os.makedirs(specified_output)
 
     # here we protect the execution for the case of sending multiple files as a string - required by other interfaces
-    iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options[
-        'input_path']
+    iterable_input_path = options['input_path'][0].split(" ") \
+        if len(options['input_path']) == 1 else options['input_path']
 
     # if the user specifies multiple files from different datasets (folders) we should create a tmp folder _
     # _ to hold all the files, and generate a name based on a timestamp (maybe add a parser flag)

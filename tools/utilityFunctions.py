@@ -110,6 +110,35 @@ def cleanup_tmp_location():
         pass
 
 
+def handle_specific_output_path(specified_output, should_override_output=False, interface_logger=module_logger):
+    """
+
+        Handles the specified output path provided as input.
+
+    :param specified_output: specified path to evaluate
+    :param should_override_output: flag to decide whether or not to override the existing path
+    :param interface_logger: logger to use (to enable logging within the interface calling this method
+    :return: Boolean (True if specified path is enabled, False otherwise)
+    """
+    if specified_output is None:
+        return False
+    try:
+        os.makedirs(os.path.abspath(specified_output))
+    except OSError as ose:
+        code, msg = ose
+        import errno
+        if code == errno.EACCES:
+            interface_logger.error("Error creating directory - {0}. Disabling specific output path...".format(msg))
+            return False
+        if code == errno.EEXIST:
+            if should_override_output:
+                interface_logger.warning("Directory Exists. Files may be overridden...")
+            else:
+                interface_logger.warning("Directory Exists. Disabling specific output path...")
+                return False
+    return True
+
+
 def files_are_relatable(list_of_files):
     # iterate over the list of files
     # if they belong to the same folder (os.path.dirname) they are relatable, otherwise they are not
@@ -691,8 +720,13 @@ def add_csv_parser_options(parser):
                         "--output-path",
                         dest="output_path",
                         action="store",
-                        help="Specifies the path to save the resulting data set containing the metrics "
-                             "to isolate from the input data sets; [default:%(default)s]")
+                        help="Specifies the path to save the resulting dataset.")
+
+    parser.add_argument("-fo",
+                        "--force-override",
+                        dest="override_output",
+                        action="store_true",
+                        help="Allow overriding existing files/folders specified as output.")
 
     parser.add_argument("-rsep",
                         "--read-separator",
