@@ -41,16 +41,6 @@ import logging as log
 import itertools as it
 import scipy.stats as st
 
-# HRF package home location - when called by package main scripts, i.e.: TSAnalyse[Direct,MultiScale,...]
-# TSA_HOME = os.path.abspath(".")
-# TMP_DIR = os.path.join(TSA_HOME, "tmp")
-# RUN_ISOLATED_FILES_PATH = os.path.join(TSA_HOME, "individual_runs")
-# BLOCK_ANALYSIS_OUTPUT_PATH = os.path.join(TSA_HOME, "block_analysis")
-# FILE_BLOCKS_STORAGE_PATH = os.path.join(TSA_HOME, "file_blocks")
-# STV_ANALYSIS_STORAGE_PATH = os.path.join(TSA_HOME, "stv_analysis")
-
-# DEFAULT_LOG_LEVEL = "INFO"
-
 TSA_HOME = constants.TSA_HOME
 TMP_DIR = constants.TMP_DIR
 RUN_ISOLATED_FILES_PATH = constants.RUN_ISOLATED_FILES_PATH
@@ -190,7 +180,6 @@ def initialize_logger(logger_name='tsanalyse', log_file=None, log_level=DEFAULT_
 
     log_output = log.StreamHandler() if log_file_name is None else log.FileHandler(log_file_name)
     log_output.setLevel(getattr(log, log_level))
-    # formatter = log.Formatter('%(name)s - %(levelname)s - %(message)s')
     formatter = log.Formatter(fmt='[%(asctime)s | %(levelname)-9s] %(name)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     log_output.setFormatter(formatter)
     logger.addHandler(log_output)

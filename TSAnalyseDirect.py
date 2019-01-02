@@ -117,9 +117,6 @@ Examples :
 
 """
 
-# TODO: add pydocs above regarding the new modules (stv analysis) and complete with the remaining optional params
-
-# Mandatory imports
 import os
 import csv
 import argparse

@@ -184,7 +184,6 @@ if __name__ == "__main__":
 
     change_output_location = util.handle_specific_output_path(specified_output, options["override_output"], logger)
 
-
     # if specified_output is not None:
     #     if os.path.exists(specified_output):
     #         logger.info("Using specified output destination.")
@@ -195,7 +194,6 @@ if __name__ == "__main__":
     #         logger.warning("Specified folder '%s' does not exist." % os.path.abspath(specified_output))
     #         logger.info("Creating directory %s" % specified_output)
     #         os.makedirs(specified_output)
-
 
     # here we protect the execution for the case of sending multiple files as a string - required by other interfaces
     iterable_input_path = options['input_path'][0].split(" ") if len(options['input_path']) == 1 else options['input_path']
