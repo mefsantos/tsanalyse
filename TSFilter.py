@@ -76,6 +76,9 @@ def clean_procedures(inputdir, options):
     change_output_location = specified_output is not None
 
     logger.debug("change output location: %s; specified output: %s" % (change_output_location, specified_output))
+
+    change_output_location = util.handle_specific_output_path(specified_output, options["override_output"], logger)
+
     filtered_suffix = "_filtered"
     if options['keep_time']:
         filtered_suffix += "_wtime"
