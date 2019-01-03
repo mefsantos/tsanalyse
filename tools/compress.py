@@ -178,7 +178,7 @@ def gzip_compress(inputfile, level, decompress, compute_compression_rate=None, d
                                             number=10,
                                             repeat=3, timer=time.clock))
     if compute_compression_rate:
-        compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
+        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
     return cd
@@ -217,7 +217,7 @@ def paq8l_compress(input_file, level, decompress, compute_compression_rate=None,
     os.remove('%s.paq8l' % input_file)
 
     if compute_compression_rate:
-        compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
+        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
     return cd
@@ -255,7 +255,7 @@ def lzma_compress(input_file, level, decompress, compute_compression_rate=None, 
                                             number=10,
                                             repeat=3, timer=time.clock))
     if compute_compression_rate:
-        compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
+        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
     return cd
@@ -290,7 +290,7 @@ def bzip2_compress(input_file, level, decompress, compute_compression_rate=None,
                                             repeat=3, timer=time.clock))
 
     if compute_compression_rate:
-        compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
+        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
     return cd
@@ -334,7 +334,7 @@ def ppmd_compress(input_file, level, decompress, compute_compression_rate=None, 
     os.remove('%s.ppmd' % input_file)
 
     if compute_compression_rate:
-        compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
+        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
     return cd
@@ -394,7 +394,7 @@ def brotli_compress(input_file, level, decompress, compute_compression_rate=None
                                             repeat=3, timer=time.clock))
 
     if compute_compression_rate:
-        compression_rate = util.compression_ratio(original_size, compressed_size, digits_to_round)
+        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
     return cd
@@ -483,12 +483,12 @@ def add_parser_options(parser):
                         help="compression level to be used, this variable is compressor dependent; "
                              "default:[The maximum of whatever compressor was chosen]")
     parser.add_argument("-cr",
-                        "--with-compression-ratio",
-                        dest="comp_ratio",
+                        "--with-compression-rate",
+                        dest="comp_rate",
                         action="store_true",
                         default=False,
                         help="Use this options if you want add a column to the final data set containing "
-                             "the compression ratio")
+                             "the compression rate[(compressed size / uncompressed size) * 100]")
     # 28/02/18 - removed flags to avoid excessive unexplained functionalities (paper review)
     # parser.add_argument("-dt",
     #                     "--decompress-time",
