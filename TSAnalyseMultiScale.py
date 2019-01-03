@@ -71,7 +71,7 @@ compress: This command allows you to compress all the files in the
                         compressor was chosen]
      # disabled --decompression    Use this option if you also wish to calculate how long it
                         takes to decompress the file once it's compressed
-     -cr, --with-compression-ratio      Add an additional column with the compression ratio
+     -cr, --with-compression-rate      Add an additional column with the compression rate
 
 
 entropy: This command allows you to calculate the entropy for all
@@ -266,7 +266,7 @@ if __name__ == "__main__":
                     outfile += "_int"
                 if options['mul_order'] != -1:
                     outfile += "_%d" % (options["mul_order"])
-                if options['comp_ratio']:
+                if options['comp_rate']:
                     outfile += "_wCR"
                 outfile += ".csv"
 
@@ -274,7 +274,7 @@ if __name__ == "__main__":
                     compression_table = tools.multiscale.multiscale_compression(input_dir, scales_dir, options["scale_start"],
                                                                             options["scale_stop"] + 1, options["scale_step"],
                                                                             options["compressor"], options["level"],
-                                                                            options["decompress"], options["comp_ratio"],
+                                                                            options["decompress"], options["comp_rate"],
                                                                             options['round_digits'])
                 except OSError as ose:
                     logger.critical("%s - %s" % (ose[1], input_dir))
@@ -288,13 +288,13 @@ if __name__ == "__main__":
                         output_file = open(outfile, "w")
                         writer = csv.writer(output_file, delimiter=options["write_separator"], lineterminator=options["line_terminator"])
 
-                        if (not options['decompress']) and (not options['comp_ratio']):
+                        if (not options['decompress']) and (not options['comp_rate']):
                             header = ["Filename"] + list(functools.reduce(
                                 operator.add, [("Scale_%d_Original" % s, "Scale_%d_Compressed" % s)
                                                for s in range(options["scale_start"],
                                                               options["scale_stop"] + 1,
                                                               options["scale_step"])]))
-                        elif options['decompress'] and (not options['comp_ratio']):
+                        elif options['decompress'] and (not options['comp_rate']):
                             header = ["Filename"] + list(
                                 functools.reduce(
                                     operator.add, [("Scale_%d_Original" % s, "Scale_%d_Compressed" % s, "Scale_%d_Decompression" % s)
@@ -302,7 +302,7 @@ if __name__ == "__main__":
                                                                   options["scale_stop"] + 1,
                                                                   options["scale_step"])]))
 
-                        elif (not options['decompress']) and options['comp_ratio']:
+                        elif (not options['decompress']) and options['comp_rate']:
                             header = ["Filename"] + list(functools.reduce(
                                 operator.add, [("Scale_%d_Original" % s,"Scale_%d_Compressed" % s, "Scale_%d_CRx100" % s)
                                                for s in range(options["scale_start"],

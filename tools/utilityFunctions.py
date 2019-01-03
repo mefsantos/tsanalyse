@@ -592,7 +592,7 @@ def is_multiscale(string2parse):
 
 
 # Compression
-def compression_ratio(original, compressed, round_digits=4):
+def compression_rate(original, compressed, round_digits=4):
     """
     Compute the compression ratio
     :param original: original size of the file
@@ -603,12 +603,12 @@ def compression_ratio(original, compressed, round_digits=4):
     if round_digits is None:
         round_digits = 4
     try:
-        comp_ratio = round(float((float(compressed) / float(original)) * 100), int(round_digits))
+        comp_rate = round(float((float(compressed) / float(original)) * 100), int(round_digits))
     except ZeroDivisionError as zde:
         module_logger.warning("{0}. Original file is Zero. Compression Ratio will be set to 'nan'.".format(zde))
-        comp_ratio = np.nan
+        comp_rate = np.nan
         pass
-    return comp_ratio
+    return comp_rate
 
 
 # Confidence Interval

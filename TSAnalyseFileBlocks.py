@@ -75,7 +75,7 @@ compress: This command allows you to compress all the files in the
                         compressor was chosen]
      # disabled --decompression    Use this option if you also wish to calculate how long it takes to
                         decompress the file once it's compressed
-     -cr, --with-compression-ratio      Add an additional column with the compression ratio
+     -cr, --with-compression-rate      Add an additional column with the compression rate
 
 
 entropy: This command allows you to calculate the entropy for all
@@ -298,7 +298,7 @@ if __name__ == "__main__":
                             try:
                                 compressed[bfile] = tools.compress.compress(os.path.join(blocks_dir, "%s_blocks" % bfile),
                                                                             options['compressor'], options['level'],
-                                                                            options['decompress'], options['comp_ratio'],
+                                                                            options['decompress'], options['comp_rate'],
                                                                             options["round_digits"])
                             except OSError as ose:
                                 logger.critical("%s - %s" % (ose[1], util.remove_project_path_from_file(blocks_dir)))
@@ -327,7 +327,7 @@ if __name__ == "__main__":
                                                                    file_blocks_suffix,
                                                                    options['compressor'],
                                                                    options['level'])
-                            if options['comp_ratio']:
+                            if options['comp_rate']:
                                 fboutsuffix += "_wCR"
 
                             fboutsuffix += ".csv"
@@ -338,7 +338,7 @@ if __name__ == "__main__":
                             writer = csv.writer(file_to_write, delimiter=options["write_separator"],
                                                 lineterminator=options["line_terminator"])
                             header = ["Block", "Original Size", "Compressed Size"]
-                            if options['comp_ratio']:
+                            if options['comp_rate']:
                                 header.append("CRx100")
                             if options['decompress']:
                                 header.append("Decompression Time")
@@ -349,7 +349,7 @@ if __name__ == "__main__":
                                 logger.debug("Compression Data for block '{1}': {0}".format(block_results,
                                                                                             '%s_%d' % (filename, blocknum)))
                                 row_data = [blocknum, block_results.original, block_results.compressed]
-                                if options['comp_ratio']:
+                                if options['comp_rate']:
                                     row_data.append(block_results.compression_rate)
                                 if options['decompress']:
                                     row_data.append(block_results.time)

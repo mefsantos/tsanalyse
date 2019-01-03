@@ -64,7 +64,7 @@ compress: This command allows you to compress all the files in the
     --level LEVEL       compression level to be used, this variable is
                         compressor dependent; default:[The maximum of whatever
                         compressor was chosen]
-    -cr, --with-compression-ratio      Add an additional column with the compression ratio
+    -cr, --with-compression-rate      Add an additional column with the compression rate
 
 
 entropy: This command allows you to calculate the entropy for all
@@ -227,7 +227,7 @@ if __name__ == "__main__":
             compressor = options['compressor']
             level = tools.compress.set_level(options)
             try:
-                resulting_dict = tools.compress.compress(inputdir, compressor, level, False, options['comp_ratio'],
+                resulting_dict = tools.compress.compress(inputdir, compressor, level, False, options['comp_rate'],
                                                      options['round_digits'])
             except OSError as ose:
                 logger.critical("%s - %s" % (ose[1], util.remove_project_path_from_file(inputdir)))
@@ -235,7 +235,7 @@ if __name__ == "__main__":
                 logger.critical("%s - %s" % (ioe[1], util.remove_project_path_from_file(inputdir)))
             else:
                 outfile = "%s_%s_lvl_%d" % (output_name, compressor, level)
-                if options['comp_ratio']:
+                if options['comp_rate']:
                     outfile += "_wCR"
                 outfile += ".csv"
 
@@ -245,7 +245,7 @@ if __name__ == "__main__":
                     writer = csv.writer(output_file, delimiter=options["write_separator"],
                                         lineterminator=options["line_terminator"])
                     header = ["Filename", "Original_Size", "Compressed_Size"]
-                    if options['comp_ratio']:
+                    if options['comp_rate']:
                         header.append("CRx100")
 
                     writer.writerow(header)
@@ -254,7 +254,7 @@ if __name__ == "__main__":
                         cd = resulting_dict[filename]
                         logger.debug("Compression Data for file '{1}': {0}".format(cd, filename))
                         data_row = [filename, cd.original, cd.compressed]
-                        if options['comp_ratio']:
+                        if options['comp_rate']:
                             data_row.append(cd.compression_rate)
 
                         writer.writerow(data_row)
