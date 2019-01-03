@@ -175,7 +175,7 @@ def gzip_compress(inputfile, level, decompress, compute_compression_rate=None, d
                                             number=10,
                                             repeat=3, timer=time.clock))
     if compute_compression_rate:
-        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round)
+        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round, module_logger)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
     return cd
@@ -222,7 +222,7 @@ def paq8l_compress(input_file, level, decompress, compute_compression_rate=None,
     rmtree('%s.paq8l' % input_file, ignore_errors=True)
 
     if compute_compression_rate:
-        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round)
+        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round, module_logger)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
     return cd
@@ -258,7 +258,7 @@ def lzma_compress(input_file, level, decompress, compute_compression_rate=None, 
                                             number=10,
                                             repeat=3, timer=time.clock))
     if compute_compression_rate:
-        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round)
+        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round, module_logger)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
     return cd
@@ -290,7 +290,7 @@ def bzip2_compress(input_file, level, decompress, compute_compression_rate=None,
                                             repeat=3, timer=time.clock))
 
     if compute_compression_rate:
-        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round)
+        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round, module_logger)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
     return cd
@@ -340,7 +340,7 @@ def ppmd_compress(input_file, level, decompress, compute_compression_rate=None, 
     rmtree('%s.ppmd' % input_file, ignore_errors=True)
 
     if compute_compression_rate:
-        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round)
+        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round, module_logger)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
     return cd
@@ -402,7 +402,7 @@ def brotli_compress(input_file, level, decompress, compute_compression_rate=None
                                             repeat=3, timer=time.clock))
 
     if compute_compression_rate:
-        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round)
+        compression_rate = util.compression_rate(original_size, compressed_size, digits_to_round, module_logger)
 
     cd = CompressionData(original_size, compressed_size, compression_rate, decompress_time)
     return cd

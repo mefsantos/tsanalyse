@@ -592,12 +592,13 @@ def is_multiscale(string2parse):
 
 
 # Compression
-def compression_rate(original, compressed, round_digits=4):
+def compression_rate(original, compressed, round_digits=4, logger=module_logger):
     """
     Compute the compression ratio
     :param original: original size of the file
     :param compressed: size of the compressed file
     :param round_digits: amount of decimal cases to consider when rounding the number
+    :param logger: the logger to be used
     :return: the compression ratio
     """
     if round_digits is None:
@@ -605,7 +606,8 @@ def compression_rate(original, compressed, round_digits=4):
     try:
         comp_rate = round(float((float(compressed) / float(original)) * 100), int(round_digits))
     except ZeroDivisionError as zde:
-        module_logger.warning("{0}. Original file is Zero. Compression Ratio will be set to 'nan'.".format(zde))
+        logger.warning("{0}. No data to compress.. Compression rate will be set to 'nan'.".format(zde))
+        module_logger.debug("{0}. 'original' is zero. Compression rate will be set to 'nan'.".format(zde))
         comp_rate = np.nan
         pass
     return comp_rate
