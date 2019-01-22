@@ -191,8 +191,8 @@ def clean_file(input_file, dest_file, keep_time, cutoff_limits, round_to_int=Fal
             except OSError as error:
                 module_logger.warning("%s. Skipping..." % error[1])
 
-        if os.path.getsize(dest_file) <= 0:
-            module_logger.warning("File '%s' is empty" % os.path.basename(dest_file))
+        # if os.path.getsize(dest_file) <= 0:
+        #     module_logger.warning("File '%s' is empty" % os.path.basename(dest_file))
 
 
 # AUXILIARY FUNCTIONS
