@@ -295,8 +295,6 @@ if __name__ == "__main__":
                         if len(block_minutes[filename]) > 0:
                             bfile = os.path.splitext(filename)[0]
                             logger.info("Compression started for %s" % os.path.join(blocks_dir, "%s_blocks" % filename))
-                            # The extensions had to be removed from the original name when the block for compatibility
-                            # with windows, so this line changes the filename
                             try:
                                 compressed[bfile] = tools.compress.compress(os.path.join(blocks_dir, "%s_blocks" % bfile),
                                                                             options['compressor'], options['level'],

@@ -163,12 +163,6 @@ if __name__ == "__main__":
     for option_key in opts_to_protect:
         if option_key in options.keys() and options[option_key] != 0:
            options[option_key] = None if not options[option_key] else abs(options[option_key])
-    #
-    # options["dimension"] = abs(options["dimension"])
-    # options["tolerance"] = abs(options["tolerance"])
-    # options["round_digits"] = abs(options["round_digits"])
-
-    # print(options)
 
     logger = util.initialize_logger(logger_name="tsanalyse", log_file=options["log_file"],
                                     log_level=options["log_level"], with_first_entry="TSAnalyseDirect")
