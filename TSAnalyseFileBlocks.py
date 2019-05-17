@@ -138,7 +138,7 @@ import tools.entropy
 import tools.compress
 import tools.partition
 import tools.separate_blocks
-import tools.utilityFunctions as util
+import tools.utility_functions as util
 
 
 def remove_blocks_dir(blocks, corrupted=False):
@@ -153,10 +153,10 @@ def remove_blocks_dir(blocks, corrupted=False):
         logger.warning("skipping directory removal...")
     pass
 
+
 # TODO: add another parameter (sampling_frequency) in order to partition by seconds
 
 if __name__ == "__main__":
-
     if not os.path.exists(util.RUN_ISOLATED_FILES_PATH):
         os.mkdir(util.RUN_ISOLATED_FILES_PATH)
 
@@ -164,20 +164,20 @@ if __name__ == "__main__":
     parser.add_argument("input_path", metavar="INPUT PATH", action="store", nargs="+",
                         help="Path for a file or directory containing the datasets to be used as input")
 
-    tools.utilityFunctions.add_logger_parser_options(parser)
+    util.add_logger_parser_options(parser)
     tools.partition.add_parser_options(parser, full_file_option=False, file_blocks_usage=True)
     #    tools.separate_blocks.add_parser_options(parser)
-    tools.utilityFunctions.add_csv_parser_options(parser)
+    util.add_csv_parser_options(parser)
 
     subparsers = parser.add_subparsers(help='Different commands to be run on directory', dest="command")
 
     compress = subparsers.add_parser('compress', help='compress all the files in the given directory')
     tools.compress.add_parser_options(compress)
-    tools.utilityFunctions.add_numbers_parser_options(compress)
+    util.add_numbers_parser_options(compress)
 
     entropy = subparsers.add_parser('entropy', help='calculate entropy for all the files in the given directory')
     tools.entropy.add_parser_options(entropy)
-    tools.utilityFunctions.add_numbers_parser_options(entropy)
+    util.add_numbers_parser_options(entropy)
 
     args = parser.parse_args()
     options = vars(args)

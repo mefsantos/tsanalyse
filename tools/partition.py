@@ -40,9 +40,9 @@ import os
 import logging
 
 try:
-    import utilityFunctions as util
+    import utility_functions as util
 except ImportError:
-    import tools.utilityFunctions as util
+    import tools.utility_functions as util
 
 module_logger = logging.getLogger('tsanalyse.partition')
 

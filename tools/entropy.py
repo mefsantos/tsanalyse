@@ -38,7 +38,6 @@ import os
 import sys
 import numpy
 import logging
-import utilityFunctions as util
 from collections import namedtuple
 
 try:
@@ -47,9 +46,9 @@ except ImportError:
     from pyeeg import samp_entropy, ap_entropy
 
 try:
-    import utilityFunctions as util
-except ImportError:
-    import tools.utilityFunctions as util
+    import utility_functions as util
+except Exception:
+    import tools.utility_functions as util
 
 AVAILABLE_ALGORITHMS = ["sampen", "apen", "apenv2"]
 

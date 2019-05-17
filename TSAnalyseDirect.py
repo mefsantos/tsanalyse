@@ -123,7 +123,7 @@ import argparse
 import tools.entropy
 import tools.compress
 import tools.stv_analysis as stv
-import tools.utilityFunctions as util
+import tools.utility_functions as util
 
 if __name__ == "__main__":
 
@@ -134,26 +134,25 @@ if __name__ == "__main__":
                                                  "of a file(s) or dataset(s)")
     parser.add_argument("input_path", metavar="INPUT PATH", action="store", nargs="+",
                         help="Path for a file(s) or directory containing the datasets to be used as input")
-
-    tools.utilityFunctions.add_logger_parser_options(parser)
-    tools.utilityFunctions.add_csv_parser_options(parser)
-    # tools.utilityFunctions.add_dataset_parser_options(parser)
+    util.add_logger_parser_options(parser)
+    util.add_csv_parser_options(parser)
+    # tools.utility_functions.add_dataset_parser_options(parser)
 
     subparsers = parser.add_subparsers(help='Different commands/operations to execute on the datasets', dest="command")
 
     compress = subparsers.add_parser('compress', help='Compress all the files in the given directory')
     tools.compress.add_parser_options(compress)
-    tools.utilityFunctions.add_numbers_parser_options(compress)
+    util.add_numbers_parser_options(compress)
 
     entropy = subparsers.add_parser('entropy', help='Calculate entropy for all the files in the given directory')
     tools.entropy.add_parser_options(entropy)
-    tools.utilityFunctions.add_numbers_parser_options(entropy)
+    util.add_numbers_parser_options(entropy)
 
     # stv_module = subparsers.add_parser('stv', help='Perform Short-term Variability analysis of the files of a given '
     #                                                'directory with the following algorithms: %s'
     #                                                % stv.AVAILABLE_ALGORITHMS)
     # tools.stv_analysis.add_parser_options(stv_module)
-    # tools.utilityFunctions.add_numbers_parser_options(stv_module)
+    # tools.utility_functions.add_numbers_parser_options(stv_module)
 
     args = parser.parse_args()
     options = vars(args)

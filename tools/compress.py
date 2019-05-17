@@ -56,9 +56,9 @@ from collections import namedtuple
 from shutil import rmtree
 
 try:
-    import utilityFunctions as util
+    import utility_functions as util
 except ImportError:
-    import tools.utilityFunctions as util
+    import tools.utility_functions as util
 
 try:
     import lzma
