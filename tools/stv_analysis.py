@@ -50,12 +50,12 @@ import glob
 import pandas
 import logging
 import numpy as np
-import tools.utilityFunctions as util
+import tools.utility_functions as util
 
 try:
-    import utilityFunctions as util
+    import utility_functions as util
 except ImportError:
-    import tools.utilityFunctions as util
+    import tools.utility_functions as util
 
 
 module_logger = logging.getLogger('tsanalyse.stv')

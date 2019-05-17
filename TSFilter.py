@@ -65,7 +65,7 @@ import argparse
 import tools.filter
 import tools.entropy
 import tools.compress
-import tools.utilityFunctions as util
+import tools.utility_functions as util
 # import tools.constants as constants
 
 
@@ -114,9 +114,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Filter all the files in the given directory")
     parser.add_argument("input_path", metavar="INPUT_PATH", nargs="+", action="store",
                         help="Path for a file(s) or directory containing the datasets to be used as input")
-    tools.utilityFunctions.add_logger_parser_options(parser)
+    util.add_logger_parser_options(parser)
     tools.filter.add_parser_options(parser)
-    tools.utilityFunctions.add_csv_parser_options(parser)
+    util.add_csv_parser_options(parser)
     args = parser.parse_args()
     options = vars(args)
 

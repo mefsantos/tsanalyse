@@ -41,7 +41,7 @@ ENTRY POINT: clean(input_name,dest_dir, keep_time=False, cutoff_limits=[50,250])
 import os
 import shutil
 import logging
-import utilityFunctions as util
+import utility_functions as util
 import constants
 
 module_logger = logging.getLogger('tsanalyse.filter')

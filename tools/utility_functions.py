@@ -33,12 +33,16 @@ scipy (https://www.scipy.org/)
 # TODO: fix debug flags, adjust debug to comprise levels used in argument parser
 
 import os
-import constants
 import numpy as np
 import pandas as pd
 import logging as log
 import itertools as it
 import scipy.stats as st
+
+try:
+    import constants as constants
+except Exception:
+    import tools.constants as constants
 
 TSA_HOME = constants.TSA_HOME
 TMP_DIR = constants.TMP_DIR
